@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Dr. Jorge Salomão</title>
+    <title>Sistema Clínico Dr. Jorge</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,9 +11,9 @@
         :root { --cat-esportivo: #f97316; --cat-emagrecimento: #3b82f6; --cat-aplicacao: #a855f7; }
         body { background: #fafafa; font-family: 'Quicksand', sans-serif; color: #000; margin: 0; padding: 0; }
         .full-header { width: 100%; background: #fff; border-bottom: 1px solid #eee; text-align: center; padding: 10px 0; }
-        .full-header img { max-width: 300px; display: inline-block; }
+        .full-header img { max-width: 280px; display: inline-block; }
         
-        /* Cores das Categorias conforme solicitado */
+        /* Cores das Categorias conforme fotos */
         .slot-card { transition: all 0.2s ease; border-radius: 18px; border: 1px solid #f0f0f0; cursor: pointer; margin-bottom: 10px; background: #fff; }
         .free-esportivo { border-left: 10px solid var(--cat-esportivo); background: #fffaf7; }
         .free-emagrecimento { border-left: 10px solid var(--cat-emagrecimento); background: #f7faff; }
@@ -28,8 +28,9 @@
         .search-suggestions { position: absolute; width: 100%; top: 100%; left: 0; z-index: 100; background: white; border: 1px solid #ddd; border-radius: 12px; max-h: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .search-suggestions div { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; color: #000; font-weight: 600; }
 
-        .rep-table { width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 15px; border: 1px solid #000; }
-        .rep-table td, .rep-table th { border: 1px solid #000; padding: 4px; color: #000; font-weight: bold; }
+        /* Estilo da Tabela de Impressão */
+        .rep-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 15px; border: 1px solid #000; }
+        .rep-table td, .rep-table th { border: 1px solid #000; padding: 6px; color: #000; font-weight: bold; }
         
         @media print { .no-print { display: none !important; } .print-area { display: block !important; } }
     </style>
@@ -51,33 +52,30 @@
         <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-file-invoice"></i><span class="text-[9px] font-bold">RELATÓRIO</span></button>
     </nav>
 
-    <div id="modal-agenda" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[28px] p-8 shadow-2xl relative text-black">
+    <div id="modal-agenda" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[28px] p-8 shadow-2xl relative text-black text-center">
             <h2 class="font-bold text-2xl mb-4 uppercase">Agendar</h2>
             <select id="tipo-servico" class="w-full p-4 border rounded-2xl mb-4 font-bold bg-gray-50">
                 <option value="Consulta">Consulta</option>
-                <option value="Consulta Clinical">Consulta Clinical</option>
                 <option value="Retorno">Retorno</option>
-                <option value="Retorno Clinical">Retorno Clinical</option>
                 <option value="Aplicação">Aplicação</option>
-                <option value="Aplicação Clinical">Aplicação Clinical</option>
             </select>
-            <div class="relative mb-6">
-                <input type="text" id="busca-pac" oninput="autoSugerir(this.value, 'sug-modal')" placeholder="Iniciais do nome..." class="w-full p-4 border rounded-2xl font-bold bg-gray-50 outline-none">
+            <div class="relative mb-6 text-left">
+                <input type="text" id="busca-pac" oninput="autoSugerir(this.value, 'sug-modal')" placeholder="Nome do paciente..." class="w-full p-4 border rounded-2xl font-bold bg-gray-50 outline-none">
                 <div id="sug-modal" class="search-suggestions hidden"></div>
             </div>
             <div class="flex flex-col gap-3">
                 <div class="flex gap-3">
-                    <button onclick="fecharModal()" class="flex-1 p-4 font-bold text-gray-400 uppercase">Sair</button>
-                    <button onclick="salvar()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold uppercase">Confirmar</button>
+                    <button onclick="fecharModal()" class="flex-1 p-4 font-bold text-gray-400">SAIR</button>
+                    <button onclick="salvar()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold">CONFIRMAR</button>
                 </div>
-                <button id="btn-remover" onclick="remover()" class="hidden w-full p-2 text-red-500 font-bold text-xs uppercase">Desmarcar</button>
+                <button id="btn-remover" onclick="remover()" class="hidden w-full p-2 text-red-500 font-bold text-xs">DESMARCAR HORÁRIO</button>
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyi-J5JDG_NgNyV42XiWxWgkQD1W7nT-SV05-oiQ2QPR3gelAASof0SjBP9NS5wqYJK/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbzi_xUfQMzgf61XeiNSoIz4TMRrxk69f3XAVzvmo2ETUUXbKBK3HQIjAtVNPookwqZE/exec"; 
         let pacientes = [], agendamentos = [], sTime, sCat, editId = null;
 
         window.onload = () => {
@@ -88,11 +86,7 @@
 
         function verificarDia(data) {
             const d = new Date(data + "T12:00:00").getDay();
-            if(d !== 2 && d !== 4) { 
-                alert("Atenção: Atendimento apenas Terças e Quintas!"); 
-                const hoje = new Date();
-                document.getElementById('data-seletor').value = hoje.toLocaleDateString('en-CA');
-            }
+            if(d !== 2 && d !== 4) { alert("Atendimento apenas Terças e Quintas!"); }
             loadData();
         }
 
@@ -125,16 +119,16 @@
             } else if (window.currentTab === 'historico') {
                 container.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm relative"><h2 class="font-bold text-xl mb-4 uppercase">Histórico</h2><input type="text" oninput="autoSugerir(this.value, 'sug-hist')" placeholder="Nome do paciente..." class="w-full p-4 border rounded-2xl font-bold outline-none text-black"><div id="sug-hist" class="search-suggestions hidden"></div><div id="lista-historico" class="mt-8 space-y-4"></div></div>`;
             } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `<div class="p-8 bg-white rounded-3xl border shadow-sm"><h2 class="font-bold text-2xl mb-6 uppercase text-center">Novo Cadastro</h2><div class="space-y-4">
-                    <input id="c-nome" placeholder="Nome Completo" class="w-full p-4 border rounded-2xl font-bold">
+                container.innerHTML = `<div class="p-8 bg-white rounded-3xl border shadow-sm text-center"><h2 class="font-bold text-2xl mb-6 uppercase">Novo Cadastro</h2><div class="space-y-4">
+                    <input id="c-nome" placeholder="Nome" class="w-full p-4 border rounded-2xl font-bold">
                     <input id="c-tel" placeholder="WhatsApp" class="w-full p-4 border rounded-2xl font-bold">
+                    <input id="c-nasc" placeholder="Nascimento" class="w-full p-4 border rounded-2xl font-bold">
                     <input id="c-email" placeholder="E-mail" class="w-full p-4 border rounded-2xl font-bold">
                     <input id="c-alt" placeholder="Altura" class="w-full p-4 border rounded-2xl font-bold">
-                    <input id="c-nasc" placeholder="Data Nascimento" class="w-full p-4 border rounded-2xl font-bold">
-                    <button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-bold text-lg mt-4 uppercase">Salvar</button>
+                    <button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-bold uppercase text-lg mt-4">Salvar</button>
                 </div></div>`;
             } else if (window.currentTab === 'busca') {
-                container.innerHTML = `<div class="relative mb-6"><input type="text" oninput="autoSugerir(this.value, 'sug-ficha')" placeholder="🔍 Buscar Ficha..." class="w-full p-4 border rounded-2xl font-bold outline-none border-gray-200"><div id="sug-ficha" class="search-suggestions hidden"></div></div><div id="res-busca"></div>`;
+                container.innerHTML = `<div class="relative mb-6"><input type="text" oninput="autoSugerir(this.value, 'sug-ficha')" placeholder="Buscar Ficha..." class="w-full p-4 border rounded-2xl font-bold outline-none border-gray-200"><div id="sug-ficha" class="search-suggestions hidden"></div></div><div id="res-busca"></div>`;
             } else if (window.currentTab === 'relatorio') { gerarRelatorio(dataF); }
         }
 
@@ -171,7 +165,7 @@
 
         function verHistorico(nome) {
             const lista = agendamentos.filter(a => a.paciente === nome).reverse();
-            document.getElementById('lista-historico').innerHTML = lista.map(a => `<div class="p-4 border rounded-2xl bg-gray-50 text-black font-bold"><div class="flex justify-between"><span>${a.data} - ${a.hora}</span> <span>${a.servico}</span></div></div>`).join('') || 'Vazio';
+            document.getElementById('lista-historico').innerHTML = lista.map(a => `<div class="p-4 border rounded-2xl bg-gray-50 text-black font-bold"><span>${a.data} - ${a.hora} - ${a.servico}</span></div>`).join('') || 'Vazio';
         }
 
         function verFicha(nome) {
@@ -182,18 +176,22 @@
         function gerarRelatorio(dataF) {
             const diaSemana = new Date(document.getElementById('data-seletor').value + "T12:00:00").getDay();
             const ags = agendamentos.filter(a => a.data === dataF);
-            const getMed = (c) => c==='Emagrecimento'?'Dr. Bruno':(diaSemana===2?'Dra. Líbia':'Dr. Geraldo');
+            
+            const getMed = (cat) => {
+                if(cat === 'Emagrecimento') return 'Bruno';
+                return (diaSemana === 4) ? 'Geraldo' : 'Líbia';
+            };
 
             const tab = (cat, cor, titulo) => {
                 const lista = ags.filter(a => a.categoria === cat);
                 return `<table class="rep-table"><tr style="background:${cor}; color:#fff"><th colspan="8" style="text-align:left; padding:6px;">* ${titulo.toUpperCase()} (${getMed(cat)})</th></tr>
-                    <tr style="background:#f0f0f0"><td>HORA</td><td>PACIENTE</td><td>TELEFONE</td><td>NASC.</td><td>EMAIL</td><td>ALTURA</td><td>ÚLT. PROC.</td><td>SERVIÇO</td></tr>
+                    <tr style="background:#f0f0f0"><td>HORA</td><td>PACIENTE</td><td>TEL</td><td>NASC</td><td>EMAIL</td><td>ALT</td><td>ÚLT. PROC.</td><td>SERV</td></tr>
                     ${lista.map(a => {
                         const p = pacientes.find(pac => pac.nome === a.paciente) || {};
                         const hists = agendamentos.filter(h => h.paciente === a.paciente && h.data !== dataF);
-                        const last = hists.length > 0 ? hists[hists.length-1].data : '--';
+                        const last = hists.length > 0 ? hists[0].data : '--';
                         return `<tr><td>${a.hora}</td><td>${a.paciente}</td><td>${p.telefone||''}</td><td>${p.nascimento||''}</td><td>${p.email||''}</td><td>${p.altura||''}</td><td>${last}</td><td>${a.servico}</td></tr>`
-                    }).join('') || '<tr><td colspan="8" style="text-align:center">Vazio</td></tr>'}</table>`;
+                    }).join('') || '<tr><td colspan="8">Sem agendamentos</td></tr>'}</table>`;
             }
             document.getElementById('content').innerHTML = `<div class="print-area bg-white p-4"><h2 style="text-align:center; font-bold; margin-bottom:15px;">MAPA DO DIA - ${dataF}</h2>
                 ${tab('Esportivo', 'var(--cat-esportivo)', 'Esportivo')}
@@ -213,7 +211,7 @@
         function fecharModal() { document.getElementById('modal-agenda').classList.add('hidden'); }
 
         async function remover() {
-            if(!confirm("Remover agendamento?")) return;
+            if(!confirm("Deseja desmarcar este paciente?")) return;
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteAppointment', id: editId }) });
             fecharModal(); loadData();
         }
@@ -229,9 +227,9 @@
 
         async function cadastrar() {
             const n = document.getElementById('c-nome').value, t = document.getElementById('c-tel').value;
-            if(!n || !t) return alert("Dados obrigatórios!");
-            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t, email: document.getElementById('c-email').value, altura: document.getElementById('c-alt').value, nascimento: document.getElementById('c-nasc').value }) });
-            alert("Salvo!"); loadData(); showTab('agenda');
+            if(!n || !t) return alert("Nome e Telefone são obrigatórios!");
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t, nascimento: document.getElementById('c-nasc').value, email: document.getElementById('c-email').value, altura: document.getElementById('c-alt').value }) });
+            alert("Paciente cadastrado com sucesso!"); loadData(); showTab('agenda');
         }
     </script>
 </body>
