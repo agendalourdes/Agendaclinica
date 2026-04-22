@@ -7,127 +7,160 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f3f4f6; -webkit-tap-highlight-color: transparent; }
-        input, select, button { font-size: 16px !important; } 
+        body { background-color: #f8fafc; font-family: sans-serif; }
+        .tab-active { border-bottom: 4px solid #1e40af; color: #1e40af; font-weight: bold; }
+        .card-laranja { border-left: 8px solid #f97316; } /* Esportivo */
+        .card-azul { border-left: 8px solid #3b82f6; }    /* Emagrecimento */
+        .card-roxo { border-left: 8px solid #a855f7; }    /* Aplicação */
     </style>
 </head>
-<body class="pb-20">
-    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-        <div class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md">
-            <h1 class="text-xl font-bold flex items-center">
-                <i class="fas fa-clinic-medical mr-2"></i> Agenda Lourdes
-            </h1>
+<body class="pb-24">
+    <div class="bg-slate-800 text-white p-4 sticky top-0 z-50 shadow-lg flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold italic">Agenda da Clínica</h1>
+            <p class="text-xs text-slate-300">Terças e Quintas • 09h-12h</p>
         </div>
-        <div id="content" class="p-4"></div>
-        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t flex justify-around p-2 z-50">
-            <button onclick="showTab('pacientes')" class="flex flex-col items-center p-2 text-gray-500" id="btn-pacientes">
-                <i class="fas fa-users text-xl"></i><span class="text-xs">Pacientes</span>
-            </button>
-            <button onclick="showTab('agenda')" class="flex flex-col items-center p-2 text-gray-500" id="btn-agenda">
-                <i class="fas fa-calendar-alt text-xl"></i><span class="text-xs">Agenda</span>
-            </button>
-            <button onclick="showTab('novo')" class="flex flex-col items-center p-2 text-gray-500" id="btn-novo">
-                <i class="fas fa-plus-circle text-xl"></i><span class="text-xs">Novo</span>
-            </button>
-        </nav>
-    </div><script>
+        <button onclick="loadData()" class="bg-slate-700 p-2 rounded-full"><i class="fas fa-sync-alt"></i></button>
+    </div>
+
+    <div class="bg-white border-b sticky top-[68px] z-40 flex justify-around text-gray-500 shadow-sm">
+        <button onclick="showTab('agenda')" id="tab-agenda" class="p-3 flex-1 tab-active"><i class="fas fa-calendar-day mr-1"></i> Agenda</button>
+        <button onclick="showTab('cadastro')" id="tab-cadastro" class="p-3 flex-1"><i class="fas fa-user-plus mr-1"></i> Cadastro</button>
+        <button onclick="showTab('relatorio')" id="tab-relatorio" class="p-3 flex-1"><i class="fas fa-file-alt mr-1"></i> Relatório</button>
+    </div>
+
+    <div id="content" class="p-4 max-w-md mx-auto"></div>
+
+    <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzf_bS756gOkaO84uiXXif9ZXu_rgVNF7hCtufXw4LKCmsMc1brJrs4hUD7Zjo92TDF/exec";
-
-        let currentTab = 'pacientes';
         let pacientes = [];
+        let abaAtual = 'agenda';
 
-        async function init() {
-            showTab('pacientes');
-            await loadData();
-        }
+        // Inicialização
+        window.onload = () => { showTab('agenda'); loadData(); };
 
         async function loadData() {
             try {
-                const resp = await fetch(`${API_URL}?action=getInitialData`);
-                const data = await resp.json();
-                pacientes = data.patients || [];
-                render();
-            } catch (e) {
-                console.error(e);
-            }
+                const r = await fetch(`${API_URL}?action=getInitialData`);
+                const d = await r.json();
+                pacientes = d.patients || [];
+                if(abaAtual === 'agenda' || abaAtual === 'cadastro') render();
+            } catch(e) { console.error("Erro ao carregar dados", e); }
         }
 
         function showTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('nav button').forEach(b => b.classList.add('text-gray-500'));
-            document.getElementById(`btn-${tab}`).classList.remove('text-gray-500');
-            document.getElementById(`btn-${tab}`).classList.add('text-blue-600');
+            abaAtual = tab;
+            document.querySelectorAll('nav button, .bg-white button').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
             render();
         }
 
-        async function savePaciente(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const originalText = btn.innerText;
-            btn.innerText = "Salvando...";
-            btn.disabled = true;
-
-            const payload = {
-                name: document.getElementById('nome').value,
-                phone: document.getElementById('tel').value
-            };
-
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'addPatient', ...payload })
-                });
-                alert("Paciente salvo com sucesso!");
-                document.getElementById('nome').value = '';
-                document.getElementById('tel').value = '';
-                await loadData();
-                showTab('pacientes');
-            } catch (e) {
-                alert("Erro ao salvar. Verifique a conexão.");
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
-        }
-
         function render() {
-            const content = document.getElementById('content');
-            if (currentTab === 'pacientes') {
-                content.innerHTML = `
-                    <div class="mb-4">
-                        <input type="text" placeholder="Buscar..." class="w-full p-3 border rounded-lg" oninput="filter(this.value)">
+            const container = document.getElementById('content');
+            if (abaAtual === 'cadastro') {
+                container.innerHTML = `
+                    <div class="bg-white p-6 rounded-2xl shadow-sm space-y-4 border">
+                        <h2 class="font-bold text-gray-700"><i class="fas fa-plus mr-2"></i>Novo Paciente</h2>
+                        <input type="text" id="nome" placeholder="Nome Completo" class="w-full p-3 border rounded-xl bg-gray-50">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="tel" id="tel" placeholder="Telefone" class="p-3 border rounded-xl bg-gray-50">
+                            <input type="date" id="nasc" class="p-3 border rounded-xl bg-gray-50 text-sm">
+                        </div>
+                        <input type="email" id="email" placeholder="E-mail" class="w-full p-3 border rounded-xl bg-gray-50">
+                        <input type="number" id="alt" placeholder="Altura (cm)" class="w-full p-3 border rounded-xl bg-gray-50">
+                        <button onclick="salvarPaciente()" class="w-full bg-slate-800 text-white p-4 rounded-xl font-bold shadow-lg">Cadastrar</button>
                     </div>
-                    <div id="lista" class="space-y-2">
-                        ${pacientes.map(p => `
-                            <div class="p-3 bg-gray-50 rounded-lg border">
-                                <p class="font-bold">${p.name}</p>
-                                <p class="text-sm text-gray-600">${p.phone}</p>
-                            </div>
-                        `).join('')}
+                    <div class="mt-6">
+                        <h3 class="font-bold mb-2">Pacientes Cadastrados</h3>
+                        <input type="text" oninput="buscar(this.value)" placeholder="Buscar paciente..." class="w-full p-3 border rounded-xl mb-3 shadow-inner">
+                        <div id="lista-busca" class="space-y-2"></div>
                     </div>`;
-            } else if (currentTab === 'novo') {
-                content.innerHTML = `
-                    <form onsubmit="savePaciente(event)" class="space-y-4">
-                        <h2 class="text-lg font-bold">Cadastrar Paciente</h2>
-                        <input type="text" id="nome" placeholder="Nome" class="w-full p-3 border rounded-lg" required>
-                        <input type="tel" id="tel" placeholder="Telefone" class="w-full p-3 border rounded-lg" required>
-                        <button class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold">Salvar</button>
-                    </form>`;
+                renderListaBusca(pacientes);
+            } 
+            else if (abaAtual === 'agenda') {
+                container.innerHTML = `
+                    <div class="space-y-6">
+                        <section>
+                            <h3 class="text-orange-600 font-black mb-2 uppercase text-sm tracking-wider">Nutricionista Esportivo (25 min)</h3>
+                            <div class="space-y-2">${gerarGrade(9, 12, 25, 'card-laranja')}</div>
+                        </section>
+                        <section>
+                            <h3 class="text-blue-600 font-black mb-2 uppercase text-sm tracking-wider">Emagrecimento (35 min)</h3>
+                            <div class="space-y-2">${gerarGrade(9, 12, 35, 'card-azul')}</div>
+                        </section>
+                        <section>
+                            <h3 class="text-purple-600 font-black mb-2 uppercase text-sm tracking-wider">Aplicação (30 min)</h3>
+                            <div class="space-y-2">${gerarGrade(9, 12, 30, 'card-roxo')}</div>
+                        </section>
+                    </div>`;
+            }
+            else if (abaAtual === 'relatorio') {
+                container.innerHTML = `
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-dashed border-gray-300">
+                        <div class="flex justify-between items-start mb-4">
+                            <h2 class="font-bold text-lg">Resumo de Atendimentos</h2>
+                            <button onclick="window.print()" class="text-blue-600"><i class="fas fa-print"></i></button>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4 italic">Toque no ícone da impressora para gerar o PDF do dia.</p>
+                        <div class="space-y-4 text-sm">
+                            <div class="flex justify-between border-b pb-2"><span>Total Pacientes:</span> <b>${pacientes.length}</b></div>
+                            <div class="flex justify-between border-b pb-2"><span>Consultas Esportivas:</span> <b>-</b></div>
+                            <div class="flex justify-between border-b pb-2"><span>Consultas Emagrecimento:</span> <b>-</b></div>
+                        </div>
+                    </div>`;
             }
         }
 
-        function filter(val) {
-            const term = val.toLowerCase();
-            const filtered = pacientes.filter(p => p.name.toLowerCase().includes(term));
-            const lista = document.getElementById('lista');
-            lista.innerHTML = filtered.map(p => `
-                <div class="p-3 bg-gray-50 rounded-lg border">
-                    <p class="font-bold">${p.name}</p>
-                    <p class="text-sm text-gray-600">${p.phone}</p>
+        function gerarGrade(inicio, fim, intervalo, classe) {
+            let html = '';
+            let atual = new Date(); atual.setHours(inicio, 0, 0);
+            let limite = new Date(); limite.setHours(fim, 0, 0);
+            while(atual < limite) {
+                let hora = atual.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                html += `<div class="bg-white p-3 rounded-lg shadow-sm border flex justify-between items-center ${classe}">
+                            <span class="font-mono font-bold text-gray-600">${hora}</span>
+                            <button class="text-blue-600 text-xs font-bold">+ Agendar</button>
+                         </div>`;
+                atual.setMinutes(atual.getMinutes() + intervalo);
+            }
+            return html;
+        }
+
+        function buscar(valor) {
+            const filtrados = pacientes.filter(p => p.name.toLowerCase().includes(valor.toLowerCase()));
+            renderListaBusca(filtrados);
+        }
+
+        function renderListaBusca(lista) {
+            const div = document.getElementById('lista-busca');
+            if(!div) return;
+            div.innerHTML = lista.map(p => `
+                <div class="p-3 bg-white border rounded-xl flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-gray-800">${p.name}</p>
+                        <p class="text-xs text-gray-500">${p.phone || 'Sem telefone'}</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-300"></i>
                 </div>`).join('');
         }
 
-        init();
+        async function salvarPaciente() {
+            const data = {
+                action: 'addPatient',
+                name: document.getElementById('nome').value,
+                phone: document.getElementById('tel').value,
+                email: document.getElementById('email').value,
+                altura: document.getElementById('alt').value,
+                nascimento: document.getElementById('nasc').value
+            };
+            if(!data.name) return alert("Digite ao menos o nome!");
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify(data) });
+            alert("Paciente salvo com sucesso!");
+            loadData();
+            showTab('cadastro');
+        }
     </script>
 </body>
 </html>
+
+        
