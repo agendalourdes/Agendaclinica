@@ -9,21 +9,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --cat-esportivo: #f97316; --cat-emagrecimento: #3b82f6; --cat-aplicacao: #a855f7; }
-        body { background: #fafafa; font-family: 'Quicksand', sans-serif; color: #4a148c; margin: 0; padding: 0; }
+        body { background: #fafafa; font-family: 'Quicksand', sans-serif; color: #000; margin: 0; padding: 0; }
         .full-header { width: 100%; background: #fff; border-bottom: 1px solid #eee; text-align: center; padding: 10px 0; }
         .full-header img { max-width: 300px; display: inline-block; }
         
+        /* Cores das Categorias conforme solicitado */
         .slot-card { transition: all 0.2s ease; border-radius: 18px; border: 1px solid #f0f0f0; cursor: pointer; margin-bottom: 10px; background: #fff; }
-        .free-card { border-left: 10px solid #e2e8f0; }
-        .busy-card { background: #4a148c !important; color: white !important; border: none; }
-        .busy-card p, .busy-card span { color: white !important; }
+        .free-esportivo { border-left: 10px solid var(--cat-esportivo); background: #fffaf7; }
+        .free-emagrecimento { border-left: 10px solid var(--cat-emagrecimento); background: #f7faff; }
+        .free-aplicacao { border-left: 10px solid var(--cat-aplicacao); background: #fbf7ff; }
+
+        .busy-card { color: white !important; border: none; }
+        .busy-esportivo { background: var(--cat-esportivo) !important; }
+        .busy-emagrecimento { background: var(--cat-emagrecimento) !important; }
+        .busy-aplicacao { background: var(--cat-aplicacao) !important; }
 
         .tab-active { color: #4a148c !important; font-weight: 800; border-bottom: 3px solid #4a148c; }
         .search-suggestions { position: absolute; width: 100%; top: 100%; left: 0; z-index: 100; background: white; border: 1px solid #ddd; border-radius: 12px; max-h: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .search-suggestions div { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; color: #000; font-weight: 600; }
 
-        .rep-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 15px; border: 1px solid #000; }
-        .rep-table td, .rep-table th { border: 1px solid #000; padding: 4px; color: #000; }
+        .rep-table { width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 15px; border: 1px solid #000; }
+        .rep-table td, .rep-table th { border: 1px solid #000; padding: 4px; color: #000; font-weight: bold; }
         
         @media print { .no-print { display: none !important; } .print-area { display: block !important; } }
     </style>
@@ -32,17 +38,17 @@
 
     <header class="full-header no-print">
         <img src="logo.png" alt="Logo">
-        <div class="mt-2"><input type="date" id="data-seletor" onchange="loadData()" class="p-2 border rounded-xl font-bold text-purple-900"></div>
+        <div class="mt-2"><input type="date" id="data-seletor" onchange="verificarDia(this.value)" class="p-2 border rounded-xl font-bold"></div>
     </header>
 
     <main id="content" class="p-4 max-w-2xl mx-auto"></main>
 
-    <nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around no-print z-50 shadow-lg">
-        <button onclick="showTab('agenda')" id="tab-agenda" class="flex-1 flex flex-col items-center gap-1 text-gray-400"><i class="fas fa-calendar-day"></i><span class="text-[9px] font-bold uppercase">Agenda</span></button>
-        <button onclick="showTab('historico')" id="tab-historico" class="flex-1 flex flex-col items-center gap-1 text-gray-400"><i class="fas fa-history"></i><span class="text-[9px] font-bold uppercase">Histórico</span></button>
-        <button onclick="showTab('cadastro')" id="tab-cadastro" class="flex-1 flex flex-col items-center gap-1 text-gray-400"><i class="fas fa-user-plus"></i><span class="text-[9px] font-bold uppercase">Cadastro</span></button>
-        <button onclick="showTab('busca')" id="tab-busca" class="flex-1 flex flex-col items-center gap-1 text-gray-400"><i class="fas fa-search"></i><span class="text-[9px] font-bold uppercase">Fichas</span></button>
-        <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1 text-gray-400"><i class="fas fa-file-invoice"></i><span class="text-[9px] font-bold uppercase">Relatório</span></button>
+    <nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around no-print z-50 shadow-lg text-gray-400">
+        <button onclick="showTab('agenda')" id="tab-agenda" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-calendar-day"></i><span class="text-[9px] font-bold">AGENDA</span></button>
+        <button onclick="showTab('historico')" id="tab-historico" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-history"></i><span class="text-[9px] font-bold">HISTÓRICO</span></button>
+        <button onclick="showTab('cadastro')" id="tab-cadastro" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-user-plus"></i><span class="text-[9px] font-bold">CADASTRO</span></button>
+        <button onclick="showTab('busca')" id="tab-busca" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-search"></i><span class="text-[9px] font-bold">FICHAS</span></button>
+        <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-file-invoice"></i><span class="text-[9px] font-bold">RELATÓRIO</span></button>
     </nav>
 
     <div id="modal-agenda" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -63,9 +69,9 @@
             <div class="flex flex-col gap-3">
                 <div class="flex gap-3">
                     <button onclick="fecharModal()" class="flex-1 p-4 font-bold text-gray-400 uppercase">Sair</button>
-                    <button onclick="salvar()" class="flex-[2] bg-purple-900 text-white p-4 rounded-2xl font-bold uppercase">Salvar</button>
+                    <button onclick="salvar()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold uppercase">Confirmar</button>
                 </div>
-                <button id="btn-remover" onclick="remover()" class="hidden w-full p-2 text-red-500 font-bold text-xs uppercase">Desmarcar Horário</button>
+                <button id="btn-remover" onclick="remover()" class="hidden w-full p-2 text-red-500 font-bold text-xs uppercase">Desmarcar</button>
             </div>
         </div>
     </div>
@@ -80,6 +86,16 @@
             showTab('agenda'); loadData();
         };
 
+        function verificarDia(data) {
+            const d = new Date(data + "T12:00:00").getDay();
+            if(d !== 2 && d !== 4) { 
+                alert("Atenção: Atendimento apenas Terças e Quintas!"); 
+                const hoje = new Date();
+                document.getElementById('data-seletor').value = hoje.toLocaleDateString('en-CA');
+            }
+            loadData();
+        }
+
         async function loadData() {
             try {
                 const r = await fetch(`${API_URL}?action=getInitialData`);
@@ -87,7 +103,7 @@
                 pacientes = d.patients || [];
                 agendamentos = d.appointments || [];
                 render();
-            } catch(e) { console.error("Erro na carga de dados"); }
+            } catch(e) { console.error("Erro na carga"); }
         }
 
         function showTab(tab) {
@@ -103,35 +119,35 @@
 
             if (window.currentTab === 'agenda') {
                 container.innerHTML = `
-                    ${renderCategoria('Esportivo', 25, dataF)}
-                    ${renderCategoria('Emagrecimento', 35, dataF)}
-                    ${renderCategoria('Aplicação', 30, dataF)}`;
+                    ${renderCategoria('Esportivo', 'free-esportivo', 'busy-esportivo', 25, dataF)}
+                    ${renderCategoria('Emagrecimento', 'free-emagrecimento', 'busy-emagrecimento', 35, dataF)}
+                    ${renderCategoria('Aplicação', 'free-aplicacao', 'busy-aplicacao', 30, dataF)}`;
             } else if (window.currentTab === 'historico') {
-                container.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm relative"><h2 class="font-bold text-xl mb-4 uppercase">Histórico</h2><input type="text" oninput="autoSugerir(this.value, 'sug-hist')" placeholder="Digite o nome..." class="w-full p-4 border rounded-2xl font-bold outline-none text-black"><div id="sug-hist" class="search-suggestions hidden"></div><div id="lista-historico" class="mt-8 space-y-4"></div></div>`;
+                container.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm relative"><h2 class="font-bold text-xl mb-4 uppercase">Histórico</h2><input type="text" oninput="autoSugerir(this.value, 'sug-hist')" placeholder="Nome do paciente..." class="w-full p-4 border rounded-2xl font-bold outline-none text-black"><div id="sug-hist" class="search-suggestions hidden"></div><div id="lista-historico" class="mt-8 space-y-4"></div></div>`;
             } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `<div class="p-8 bg-white rounded-3xl border shadow-sm"><h2 class="font-bold text-2xl mb-6 uppercase text-center">Cadastro</h2><div class="space-y-4">
-                    <input id="c-nome" placeholder="Nome Completo" class="w-full p-4 border rounded-2xl font-bold text-black border-gray-200">
-                    <input id="c-tel" placeholder="WhatsApp" class="w-full p-4 border rounded-2xl font-bold text-black border-gray-200">
-                    <input id="c-email" placeholder="E-mail" class="w-full p-4 border rounded-2xl font-bold text-black border-gray-200">
-                    <input id="c-alt" placeholder="Altura" class="w-full p-4 border rounded-2xl font-bold text-black border-gray-200">
-                    <input id="c-nasc" placeholder="Data Nascimento" class="w-full p-4 border rounded-2xl font-bold text-black border-gray-200">
-                    <button onclick="cadastrar()" class="w-full bg-purple-900 text-white p-5 rounded-2xl font-bold text-lg mt-4 uppercase">Salvar Cadastro</button>
+                container.innerHTML = `<div class="p-8 bg-white rounded-3xl border shadow-sm"><h2 class="font-bold text-2xl mb-6 uppercase text-center">Novo Cadastro</h2><div class="space-y-4">
+                    <input id="c-nome" placeholder="Nome Completo" class="w-full p-4 border rounded-2xl font-bold">
+                    <input id="c-tel" placeholder="WhatsApp" class="w-full p-4 border rounded-2xl font-bold">
+                    <input id="c-email" placeholder="E-mail" class="w-full p-4 border rounded-2xl font-bold">
+                    <input id="c-alt" placeholder="Altura" class="w-full p-4 border rounded-2xl font-bold">
+                    <input id="c-nasc" placeholder="Data Nascimento" class="w-full p-4 border rounded-2xl font-bold">
+                    <button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-bold text-lg mt-4 uppercase">Salvar</button>
                 </div></div>`;
             } else if (window.currentTab === 'busca') {
-                container.innerHTML = `<div class="relative mb-6"><input type="text" oninput="autoSugerir(this.value, 'sug-ficha')" placeholder="Buscar Paciente..." class="w-full p-4 border rounded-2xl font-bold outline-none text-black border-gray-200"><div id="sug-ficha" class="search-suggestions hidden"></div></div><div id="res-busca"></div>`;
+                container.innerHTML = `<div class="relative mb-6"><input type="text" oninput="autoSugerir(this.value, 'sug-ficha')" placeholder="🔍 Buscar Ficha..." class="w-full p-4 border rounded-2xl font-bold outline-none border-gray-200"><div id="sug-ficha" class="search-suggestions hidden"></div></div><div id="res-busca"></div>`;
             } else if (window.currentTab === 'relatorio') { gerarRelatorio(dataF); }
         }
 
-        function renderCategoria(cat, step, dataF) {
+        function renderCategoria(cat, freeCl, busyCl, step, dataF) {
             let html = `<h3 class="font-bold text-[11px] uppercase tracking-widest mt-8 mb-4 text-gray-400 px-2">${cat}</h3>`;
             let t = new Date(); t.setHours(9, 0, 0);
             while(t.getHours() < 13) {
                 let h = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 const ag = agendamentos.find(a => a.data === dataF && a.categoria === cat && a.hora === h);
                 if(ag) {
-                    html += `<div onclick="abrirModal('${h}','${cat}',${JSON.stringify(ag).replace(/"/g, '&quot;')})" class="p-5 slot-card busy-card"><div class="flex justify-between text-[10px] uppercase"><span>${h}</span><span>${ag.servico}</span></div><p class="text-xl font-bold uppercase mt-1">${ag.paciente}</p></div>`;
+                    html += `<div onclick="abrirModal('${h}','${cat}',${JSON.stringify(ag).replace(/"/g, '&quot;')})" class="p-5 slot-card busy-card ${busyCl}"><div class="flex justify-between text-[10px] uppercase"><span>${h}</span><span>${ag.servico}</span></div><p class="text-xl font-bold uppercase mt-1">${ag.paciente}</p></div>`;
                 } else {
-                    html += `<div onclick="abrirModal('${h}','${cat}')" class="p-5 slot-card free-card flex justify-between items-center"><span class="font-bold text-gray-400">${h} - LIVRE</span><i class="fas fa-plus opacity-20"></i></div>`;
+                    html += `<div onclick="abrirModal('${h}','${cat}')" class="p-5 slot-card ${freeCl} flex justify-between items-center"><span class="font-bold text-gray-400">${h} - LIVRE</span><i class="fas fa-plus opacity-20"></i></div>`;
                 }
                 t.setMinutes(t.getMinutes() + step);
             }
@@ -155,12 +171,12 @@
 
         function verHistorico(nome) {
             const lista = agendamentos.filter(a => a.paciente === nome).reverse();
-            document.getElementById('lista-historico').innerHTML = lista.map(a => `<div class="p-4 border rounded-2xl bg-gray-50 text-black"><div class="flex justify-between font-bold text-sm"><span>${a.data} - ${a.hora}</span> <span class="text-purple-700">${a.servico}</span></div></div>`).join('') || '<p class="text-center text-gray-300">Vazio.</p>';
+            document.getElementById('lista-historico').innerHTML = lista.map(a => `<div class="p-4 border rounded-2xl bg-gray-50 text-black font-bold"><div class="flex justify-between"><span>${a.data} - ${a.hora}</span> <span>${a.servico}</span></div></div>`).join('') || 'Vazio';
         }
 
         function verFicha(nome) {
             const p = pacientes.find(p => p.nome === nome);
-            document.getElementById('res-busca').innerHTML = `<div class="bg-white border p-6 rounded-[28px] shadow-sm text-black"><div class="flex justify-between border-b pb-4 mb-4"><h4 class="font-bold text-xl uppercase text-purple-900">${p.nome}</h4><a href="https://wa.me/55${p.telefone.replace(/\D/g,'')}" target="_blank" class="text-green-500 text-2xl"><i class="fab fa-whatsapp"></i></a></div><div class="grid grid-cols-2 gap-4 text-xs font-bold uppercase"><p>TEL: ${p.telefone}</p><p>ALT: ${p.altura}</p><p>EMAIL: ${p.email}</p><p>NASC: ${p.nascimento}</p></div></div>`;
+            document.getElementById('res-busca').innerHTML = `<div class="bg-white border p-6 rounded-[28px] shadow-sm text-black font-bold"><h4 class="text-xl uppercase border-b pb-2 mb-4">${p.nome}</h4><div class="grid grid-cols-2 gap-4 text-xs uppercase"><p>TEL: ${p.telefone}</p><p>ALT: ${p.altura}</p><p>EMAIL: ${p.email}</p><p>NASC: ${p.nascimento}</p></div></div>`;
         }
 
         function gerarRelatorio(dataF) {
@@ -170,19 +186,20 @@
 
             const tab = (cat, cor, titulo) => {
                 const lista = ags.filter(a => a.categoria === cat);
-                return `<table class="rep-table"><tr style="background:${cor}; color:#fff"><th colspan="7" style="text-align:left; font-weight:800; padding:8px;">* ${titulo.toUpperCase()} (${getMed(cat)})</th></tr>
-                    <tr style="background:#f0f0f0; font-weight:bold"><td>HORA</td><td>PACIENTE</td><td>TELEFONE</td><td>NASC.</td><td>EMAIL</td><td>ALT.</td><td>SERVIÇO</td></tr>
+                return `<table class="rep-table"><tr style="background:${cor}; color:#fff"><th colspan="8" style="text-align:left; padding:6px;">* ${titulo.toUpperCase()} (${getMed(cat)})</th></tr>
+                    <tr style="background:#f0f0f0"><td>HORA</td><td>PACIENTE</td><td>TELEFONE</td><td>NASC.</td><td>EMAIL</td><td>ALTURA</td><td>ÚLT. PROC.</td><td>SERVIÇO</td></tr>
                     ${lista.map(a => {
                         const p = pacientes.find(pac => pac.nome === a.paciente) || {};
-                        return `<tr><td>${a.hora}</td><td>${a.paciente}</td><td>${p.telefone||''}</td><td>${p.nascimento||''}</td><td>${p.email||''}</td><td>${p.altura||''}</td><td>${a.servico}</td></tr>`
-                    }).join('') || '<tr><td colspan="7" style="text-align:center; padding:10px; color:#ccc">Sem agendamentos</td></tr>'}</table>`;
+                        const hists = agendamentos.filter(h => h.paciente === a.paciente && h.data !== dataF);
+                        const last = hists.length > 0 ? hists[hists.length-1].data : '--';
+                        return `<tr><td>${a.hora}</td><td>${a.paciente}</td><td>${p.telefone||''}</td><td>${p.nascimento||''}</td><td>${p.email||''}</td><td>${p.altura||''}</td><td>${last}</td><td>${a.servico}</td></tr>`
+                    }).join('') || '<tr><td colspan="8" style="text-align:center">Vazio</td></tr>'}</table>`;
             }
-
-            document.getElementById('content').innerHTML = `<div class="print-area bg-white p-4"><h2 style="text-align:center; font-weight:bold; font-size:18px; margin-bottom:20px; color:#000">AGENDA LOURDES - ${dataF}</h2>
+            document.getElementById('content').innerHTML = `<div class="print-area bg-white p-4"><h2 style="text-align:center; font-bold; margin-bottom:15px;">MAPA DO DIA - ${dataF}</h2>
                 ${tab('Esportivo', 'var(--cat-esportivo)', 'Esportivo')}
                 ${tab('Emagrecimento', 'var(--cat-emagrecimento)', 'Emagrecimento')}
                 ${tab('Aplicação', 'var(--cat-aplicacao)', 'Aplicação')}
-                <button onclick="window.print()" class="no-print w-full bg-black text-white p-5 rounded-2xl font-bold mt-6 shadow-lg">IMPRIMIR</button></div>`;
+                <button onclick="window.print()" class="no-print w-full bg-black text-white p-5 rounded-2xl font-bold mt-6">IMPRIMIR</button></div>`;
         }
 
         function abrirModal(h, cat, ag = null) {
@@ -196,7 +213,7 @@
         function fecharModal() { document.getElementById('modal-agenda').classList.add('hidden'); }
 
         async function remover() {
-            if(!confirm("Desmarcar este horário?")) return;
+            if(!confirm("Remover agendamento?")) return;
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteAppointment', id: editId }) });
             fecharModal(); loadData();
         }
@@ -212,9 +229,9 @@
 
         async function cadastrar() {
             const n = document.getElementById('c-nome').value, t = document.getElementById('c-tel').value;
-            if(!n || !t) return alert("Nome e Telefone são obrigatórios!");
+            if(!n || !t) return alert("Dados obrigatórios!");
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t, email: document.getElementById('c-email').value, altura: document.getElementById('c-alt').value, nascimento: document.getElementById('c-nasc').value }) });
-            alert("Paciente Cadastrado!"); loadData(); showTab('agenda');
+            alert("Salvo!"); loadData(); showTab('agenda');
         }
     </script>
 </body>
