@@ -66,7 +66,6 @@
 </head>
 <body class="pb-28">
 
-<!-- HEADER -->
 <header class="full-header">
     <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
     <div class="date-picker-wrap">
@@ -77,7 +76,6 @@
 
 <main id="content" class="p-4 max-w-2xl mx-auto"></main>
 
-<!-- BOTTOM NAV -->
 <nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 shadow-lg text-gray-400 text-[10px] font-bold">
     <button onclick="showTab('agenda')"    id="tab-agenda"    class="flex-1 flex flex-col items-center gap-1"><span class="tab-icon"><i class="fas fa-calendar-day text-lg"></i></span>AGENDA</button>
     <button onclick="showTab('historico')" id="tab-historico" class="flex-1 flex flex-col items-center gap-1"><span class="tab-icon"><i class="fas fa-history text-lg"></i></span>HISTÓRICO</button>
@@ -86,7 +84,6 @@
     <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1"><span class="tab-icon"><i class="fas fa-file-alt text-lg"></i></span>RELATÓRIO</button>
 </nav>
 
-<!-- MODAL AGENDAR / EDITAR -->
 <div id="modal-agenda" class="hidden modal-bg" onclick="fecharModalFora(event)">
     <div class="modal-box">
         <h2 class="font-black text-xl mb-5 uppercase text-center tracking-wide" id="modal-titulo">Agendar</h2>
@@ -107,9 +104,8 @@
         <div class="flex gap-3 mt-2">
             <button onclick="fecharModal()" class="flex-1 p-4 font-bold text-gray-400 rounded-2xl border-2">SAIR</button>
             <button id="btn-deletar" onclick="deletarAgendamento()" class="hidden flex-1 bg-red-500 text-white p-4 rounded-2xl font-bold">CANCELAR</button>
-            <button onclick="salvar()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold">CONFIRMAR</button>
+            <button id="btn-confirmar" onclick="salvar()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold">CONFIRMAR</button>
         </div>
-        <!-- Botão WhatsApp -->
         <div id="btn-whats-wrap" class="hidden mt-3">
             <button onclick="abrirWhatsApp()" class="w-full p-4 font-bold rounded-2xl flex items-center justify-center gap-2" style="background:#25D366;color:#fff;">
                 <i class="fab fa-whatsapp text-xl"></i> Lembrete no WhatsApp
@@ -118,63 +114,42 @@
     </div>
 </div>
 
-<!-- RELATÓRIO PARA IMPRESSÃO -->
 <div id="relatorio-print"></div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxfRKSYKra0hRBLsdJOdGEUcuXNAfCsoJlTqyZMIAegIh_yH2w7L8V7U6uC0OhAvjgi/exec";
+// COLOQUE SUA URL AQUI ABAIXO:
+const API_URL = "https://script.google.com/macros/s/AKfycbwwHCeyeRcJ3qnp1SS7_Io7_dED9myeQlCm_O3oZLvRLSqi5W3GYnLaq_GiGfEhkMyy/exec";
 
 let pacientes = [], agendamentos = [];
 let sTime, sCat, editId = null, editPacTel = null;
 
-// ── DATA ──────────────────────────────────────────────────────────────────────
 function isoParaBR(iso) {
     if (!iso) return '';
-    // Se já vier como DD/MM/YYYY, retorna como está
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(iso)) return iso;
-    // Se vier como YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
         const [y,m,d] = iso.split('-');
         return `${d}/${m}/${y}`;
     }
-    // Se vier como objeto Date serializado
-    try {
-        const d = new Date(iso);
-        if (!isNaN(d)) {
-            const dd = String(d.getUTCDate()).padStart(2,'0');
-            const mm = String(d.getUTCMonth()+1).padStart(2,'0');
-            const yyyy = d.getUTCFullYear();
-            return `${dd}/${mm}/${yyyy}`;
-        }
-    } catch(e){}
     return iso;
 }
 
 function formatarHora(val) {
     if (!val) return '';
     if (/^\d{2}:\d{2}$/.test(val)) return val;
-    try {
-        const d = new Date(val);
-        if (!isNaN(d)) {
-            return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
-        }
-    } catch(e){}
     return val;
 }
 
 function getDataSelecionadaBR() {
-    const v = document.getElementById('data-seletor').value; // YYYY-MM-DD
+    const v = document.getElementById('data-seletor').value;
     const [y,m,d] = v.split('-');
     return `${d}/${m}/${y}`;
 }
 
-function getDataSelecionadaISO() {
-    return document.getElementById('data-seletor').value;
-}
+function getDataSelecionadaISO() { return document.getElementById('data-seletor').value; }
 
 function diaDaSemana(iso) {
     const d = new Date(iso + 'T12:00:00');
-    return d.getDay(); // 0=dom, 2=ter, 4=qui
+    return d.getDay(); 
 }
 
 function isDataPermitida(iso) {
@@ -186,13 +161,10 @@ function profissionalEsportivo(iso) {
     return diaDaSemana(iso) === 2 ? 'Líbia' : 'Geraldo';
 }
 
-// ── LOAD ──────────────────────────────────────────────────────────────────────
 window.onload = () => {
-    // Próxima terça
     const hoje = new Date();
     const dia = hoje.getDay();
     let diff = (2 - dia + 7) % 7;
-    if (diff === 0) diff = 0;
     hoje.setDate(hoje.getDate() + diff);
     document.getElementById('data-seletor').value = hoje.toLocaleDateString('en-CA');
     atualizarBadge();
@@ -200,10 +172,7 @@ window.onload = () => {
     loadData();
 };
 
-function onDateChange() {
-    atualizarBadge();
-    render();
-}
+function onDateChange() { atualizarBadge(); render(); }
 
 function atualizarBadge() {
     const iso = getDataSelecionadaISO();
@@ -216,19 +185,15 @@ function atualizarBadge() {
 
 async function loadData() {
     try {
-        const r = await fetch(`${API_URL}?action=getInitialData`);
+        // t= garante que não pegue cache antigo
+        const r = await fetch(`${API_URL}?action=getInitialData&t=${new Date().getTime()}`);
         const d = await r.json();
         pacientes = d.patients || [];
-        agendamentos = (d.appointments || []).map(a => ({
-            ...a,
-            data: isoParaBR(a.data),
-            hora: formatarHora(a.hora)
-        }));
+        agendamentos = d.appointments || [];
         render();
-    } catch(e) { console.error('Erro ao carregar:', e); }
+    } catch(e) { console.error('Erro ao carregar'); }
 }
 
-// ── TABS ──────────────────────────────────────────────────────────────────────
 function showTab(tab) {
     window.currentTab = tab;
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
@@ -236,121 +201,64 @@ function showTab(tab) {
     render();
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
 function render() {
     const c = document.getElementById('content');
     const iso = getDataSelecionadaISO();
-    const permitida = isDataPermitida(iso);
-
     if (window.currentTab === 'agenda') {
-        if (!permitida) {
-            c.innerHTML = `<div class="mt-10 text-center">
-                <div class="text-5xl mb-4">🚫</div>
-                <p class="font-bold text-lg text-red-500">Data bloqueada</p>
-                <p class="text-gray-400 text-sm mt-2">Selecione uma <b>terça</b> ou <b>quinta</b>-feira.</p>
-            </div>`;
+        if (!isDataPermitida(iso)) {
+            c.innerHTML = `<div class="mt-10 text-center"><p class="font-bold text-red-500">Data bloqueada</p></div>`;
             return;
         }
-        const profEsp = profissionalEsportivo(iso);
-        c.innerHTML =
-            renderCategoria('Esportivo', profEsp, 'slot-esportivo', 'busy-esportivo', 25) +
-            renderCategoria('Emagrecimento', 'Bruno', 'slot-emagrecimento', 'busy-emagrecimento', 35) +
-            renderCategoria('Aplicação', '', 'slot-aplicacao', 'busy-aplicacao', 30);
-
+        c.innerHTML = renderCategoria('Esportivo', profissionalEsportivo(iso), 'slot-esportivo', 'busy-esportivo', 25) +
+                      renderCategoria('Emagrecimento', 'Bruno', 'slot-emagrecimento', 'busy-emagrecimento', 35) +
+                      renderCategoria('Aplicação', '', 'slot-aplicacao', 'busy-aplicacao', 30);
     } else if (window.currentTab === 'historico') {
-        c.innerHTML = `
-        <div class="bg-white p-6 rounded-3xl border shadow-sm">
-            <h2 class="font-black text-xl mb-4 uppercase">Histórico</h2>
-            <div class="relative">
-                <input type="text" id="inp-hist" oninput="autoSugerir(this.value,'sug-hist')" placeholder="Nome do paciente..." autocomplete="off"
-                    class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm">
-                <div id="sug-hist" class="sug-box hidden"></div>
-            </div>
-            <div id="lista-historico" class="mt-6 space-y-3"></div>
-        </div>`;
-
+        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border"><h2 class="font-black text-xl mb-4 uppercase">Histórico</h2><div class="relative"><input type="text" id="inp-hist" oninput="autoSugerir(this.value,'sug-hist')" placeholder="Nome do paciente..." class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm"><div id="sug-hist" class="sug-box hidden"></div></div><div id="lista-historico" class="mt-6 space-y-3"></div></div>`;
     } else if (window.currentTab === 'cadastro') {
-        c.innerHTML = `
-        <div class="p-6 bg-white rounded-3xl border shadow-sm">
-            <h2 class="font-black text-2xl mb-6 uppercase text-center">Cadastro</h2>
-            <div class="space-y-3">
-                <input id="c-nome" placeholder="Nome completo" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <input id="c-tel" placeholder="WhatsApp (com DDD)" type="tel" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <input id="c-nasc" placeholder="Data de nascimento" type="date" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <input id="c-email" placeholder="E-mail" type="email" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <input id="c-altura" placeholder="Altura (cm, ex: 165)" type="number" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm mt-2">SALVAR PACIENTE</button>
-            </div>
-        </div>`;
-
+        c.innerHTML = `<div class="p-6 bg-white rounded-3xl border"><h2 class="font-black text-2xl mb-6 uppercase text-center">Cadastro</h2><div class="space-y-3"><input id="c-nome" placeholder="Nome completo" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-tel" placeholder="WhatsApp (com DDD)" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-nasc" type="date" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-email" placeholder="E-mail" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-altura" placeholder="Altura (cm)" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm mt-2">SALVAR PACIENTE</button></div></div>`;
     } else if (window.currentTab === 'fichas') {
-        c.innerHTML = `
-        <div class="bg-white p-6 rounded-3xl border shadow-sm">
-            <h2 class="font-black text-xl mb-4 uppercase">Fichas</h2>
-            <div class="relative">
-                <input type="text" id="inp-fichas" oninput="autoSugerir(this.value,'sug-fichas')" placeholder="Nome do paciente..." autocomplete="off"
-                    class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm">
-                <div id="sug-fichas" class="sug-box hidden"></div>
-            </div>
-            <div id="ficha-resultado" class="mt-6"></div>
-        </div>`;
-
-    } else if (window.currentTab === 'relatorio') {
-        renderRelatorio();
-    }
+        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border"><h2 class="font-black text-xl mb-4 uppercase">Fichas</h2><div class="relative"><input type="text" id="inp-fichas" oninput="autoSugerir(this.value,'sug-fichas')" placeholder="Nome do paciente..." class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-fichas" class="sug-box hidden"></div></div><div id="ficha-resultado" class="mt-6"></div></div>`;
+    } else if (window.currentTab === 'relatorio') { renderRelatorio(); }
 }
 
-// ── AGENDA ────────────────────────────────────────────────────────────────────
 function renderCategoria(cat, prof, freeClass, busyClass, step) {
     const dataF = getDataSelecionadaBR();
-    const titulo = prof ? `${cat.toUpperCase()} — ${prof}` : cat.toUpperCase();
-    let html = `<h3 class="font-black text-[11px] uppercase tracking-widest mt-8 mb-3 px-1 text-gray-400">${titulo}</h3>`;
+    let html = `<h3 class="font-black text-[11px] uppercase mt-8 mb-3 text-gray-400">${prof ? cat+' — '+prof : cat}</h3>`;
     let t = new Date(); t.setHours(9,0,0,0);
-    while (t.getHours() < 12 || (t.getHours() === 12 && t.getMinutes() === 0)) {
+    while (t.getHours() < 13) {
         const h = t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});
         const ag = agendamentos.find(a => a.data === dataF && a.categoria === cat && a.hora === h);
         if (ag) {
-            const agJson = JSON.stringify(ag).replace(/'/g,"\\'").replace(/"/g,'&quot;');
-            html += `<div onclick="abrirModalEdicao('${h}','${cat}',this)" data-ag="${agJson}" class="slot-card slot-busy ${busyClass}">
-                <div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${h}</span><span>${ag.servico||''}</span></div>
+            html += `<div onclick="abrirModalEdicao('${h}','${cat}',${JSON.stringify(ag).replace(/"/g, '&quot;')})" class="slot-card slot-busy ${busyClass}">
+                <div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${h}</span><span>${ag.servico}</span></div>
                 <p class="text-lg font-black uppercase">${ag.paciente}</p>
             </div>`;
         } else {
-            html += `<div onclick="abrirModal('${h}','${cat}')" class="slot-card ${freeClass} flex justify-between items-center">
-                <span class="font-bold text-gray-400 text-sm">${h} — LIVRE</span>
-                <i class="fas fa-plus text-gray-300"></i>
-            </div>`;
+            html += `<div onclick="abrirModal('${h}','${cat}')" class="slot-card ${freeClass} flex justify-between items-center"><span class="font-bold text-gray-400 text-sm">${h} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
         t.setMinutes(t.getMinutes() + step);
     }
     return html;
 }
 
-// ── MODAL ─────────────────────────────────────────────────────────────────────
 function abrirModal(h, cat) {
-    sTime = h; sCat = cat; editId = null; editPacTel = null;
+    sTime = h; sCat = cat; editId = null;
     document.getElementById('modal-titulo').textContent = `Agendar — ${h}`;
     document.getElementById('busca-pac').value = '';
-    document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('btn-deletar').classList.add('hidden');
     document.getElementById('btn-whats-wrap').classList.add('hidden');
     document.getElementById('modal-agenda').classList.remove('hidden');
 }
 
-function abrirModalEdicao(h, cat, el) {
-    const ag = JSON.parse(el.getAttribute('data-ag').replace(/&quot;/g,'"'));
+function abrirModalEdicao(h, cat, ag) {
     sTime = h; sCat = cat; editId = ag.id;
-    // Busca telefone do paciente
     const pac = pacientes.find(p => p.nome === ag.paciente);
     editPacTel = pac ? pac.telefone : null;
-
     document.getElementById('modal-titulo').textContent = `Editar — ${h}`;
     document.getElementById('busca-pac').value = ag.paciente;
-    document.getElementById('tipo-servico').value = ag.servico || 'Consulta';
-    document.getElementById('sug-modal').classList.add('hidden');
+    document.getElementById('tipo-servico').value = ag.servico;
     document.getElementById('btn-deletar').classList.remove('hidden');
     if (editPacTel) document.getElementById('btn-whats-wrap').classList.remove('hidden');
-    else document.getElementById('btn-whats-wrap').classList.add('hidden');
     document.getElementById('modal-agenda').classList.remove('hidden');
 }
 
@@ -358,236 +266,102 @@ function fecharModal() { document.getElementById('modal-agenda').classList.add('
 function fecharModalFora(e) { if (e.target.id === 'modal-agenda') fecharModal(); }
 
 function abrirWhatsApp() {
-    if (!editPacTel) return;
     const tel = editPacTel.replace(/\D/g,'');
-    const dataF = getDataSelecionadaBR();
-    const msg = encodeURIComponent(`Olá! Lembrando da sua consulta em ${dataF} às ${sTime}. Aguardamos você! 😊`);
-    window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/55${tel}?text=${encodeURIComponent('Lembrando da sua consulta em '+getDataSelecionadaBR()+' às '+sTime)}`, '_blank');
 }
 
-// ── SALVAR / DELETAR ──────────────────────────────────────────────────────────
 async function salvar() {
     const pac = document.getElementById('busca-pac').value.trim();
     if (!pac) return alert('Selecione um paciente!');
-    const dataF = getDataSelecionadaBR();
-    const servico = document.getElementById('tipo-servico').value;
-    fecharModal();
+    const btn = document.getElementById('btn-confirmar');
+    btn.disabled = true; btn.innerText = "SALVANDO...";
+    
     try {
-        await fetch(API_URL, { method:'POST', body: JSON.stringify({
-            action:'addAppointment', data: dataF, hora: sTime,
-            paciente: pac, categoria: sCat, servico, id: editId
-        })});
+        await fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'addAppointment', data: getDataSelecionadaBR(), hora: sTime, paciente: pac, categoria: sCat, servico: document.getElementById('tipo-servico').value, id: editId }) });
+        fecharModal();
         await loadData();
-    } catch(e) { alert('Erro ao salvar. Tente novamente.'); }
+    } catch(e) { alert('Erro ao salvar.'); }
+    btn.disabled = false; btn.innerText = "CONFIRMAR";
 }
 
 async function deletarAgendamento() {
-    if (!editId) return;
     if (!confirm('Cancelar este agendamento?')) return;
-    fecharModal();
     try {
         await fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'deleteAppointment', id: editId }) });
-        await loadData();
+        fecharModal(); await loadData();
     } catch(e) { alert('Erro ao cancelar.'); }
 }
 
-// ── CADASTRO ──────────────────────────────────────────────────────────────────
 async function cadastrar() {
-    const nome   = document.getElementById('c-nome').value.trim();
-    const tel    = document.getElementById('c-tel').value.trim();
-    const nasc   = document.getElementById('c-nasc').value;
-    const email  = document.getElementById('c-email').value.trim();
-    const altura = document.getElementById('c-altura').value.trim();
+    const nome = document.getElementById('c-nome').value.trim();
     if (!nome) return alert('Nome obrigatório!');
     try {
-        await fetch(API_URL, { method:'POST', body: JSON.stringify({
-            action:'addPatient', name: nome, phone: tel,
-            nascimento: nasc ? isoParaBR(nasc) : '',
-            email, altura
-        })});
-        alert(`✅ ${nome} cadastrado!`);
-        await loadData();
-        showTab('agenda');
-    } catch(e) { alert('Erro ao cadastrar.'); }
+        await fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'addPatient', name: nome, phone: document.getElementById('c-tel').value, nascimento: isoParaBR(document.getElementById('c-nasc').value), email: document.getElementById('c-email').value, altura: document.getElementById('c-altura').value })});
+        alert('Cadastrado!'); await loadData(); showTab('agenda');
+    } catch(e) { alert('Erro.'); }
 }
 
-// ── SUGESTÕES ─────────────────────────────────────────────────────────────────
 function autoSugerir(v, cid) {
     const s = document.getElementById(cid);
-    if (!v || v.length < 1) { s.classList.add('hidden'); return; }
-    const f = pacientes.filter(p => p.nome && p.nome.toLowerCase().includes(v.toLowerCase())).slice(0,8);
-    if (f.length === 0) { s.classList.add('hidden'); return; }
-    s.innerHTML = f.map(p => `<div onclick="selecionarPac('${p.nome.replace(/'/g,"\\'")}','${cid}')">${p.nome}</div>`).join('');
-    s.classList.remove('hidden');
+    if (!v) { s.classList.add('hidden'); return; }
+    const f = pacientes.filter(p => p.nome.toLowerCase().includes(v.toLowerCase())).slice(0,8);
+    s.innerHTML = f.map(p => `<div onclick="selecionarPac('${p.nome}','${cid}')">${p.nome}</div>`).join('');
+    s.classList.toggle('hidden', f.length === 0);
 }
 
 function selecionarPac(nome, cid) {
     document.getElementById(cid).classList.add('hidden');
-    if (cid === 'sug-modal') {
-        document.getElementById('busca-pac').value = nome;
-    } else if (cid === 'sug-hist') {
-        document.getElementById('inp-hist').value = nome;
-        verHistorico(nome);
-    } else if (cid === 'sug-fichas') {
-        document.getElementById('inp-fichas').value = nome;
-        verFicha(nome);
-    }
+    if (cid === 'sug-modal') document.getElementById('busca-pac').value = nome;
+    else if (cid === 'sug-hist') { document.getElementById('inp-hist').value = nome; verHistorico(nome); }
+    else if (cid === 'sug-fichas') { document.getElementById('inp-fichas').value = nome; verFicha(nome); }
 }
 
-// ── HISTÓRICO ─────────────────────────────────────────────────────────────────
 function verHistorico(nome) {
-    const lista = agendamentos.filter(a => a.paciente === nome)
-        .sort((a,b) => {
-            const da = a.data.split('/').reverse().join('');
-            const db = b.data.split('/').reverse().join('');
-            return db.localeCompare(da);
-        });
-    const el = document.getElementById('lista-historico');
-    if (lista.length === 0) { el.innerHTML = '<p class="text-gray-400 text-center">Sem histórico.</p>'; return; }
-    el.innerHTML = lista.map(a => `
-        <div class="p-4 border-2 rounded-2xl bg-gray-50">
-            <div class="flex justify-between items-center">
-                <span class="font-black text-sm">${a.data} — ${a.hora}</span>
-                <span class="text-xs font-bold px-2 py-1 rounded-full bg-white border">${a.categoria}</span>
-            </div>
-            <p class="font-bold text-sm mt-1 text-gray-600">${a.servico||'—'}</p>
-        </div>`).join('');
+    const lista = agendamentos.filter(a => a.paciente === nome).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
+    document.getElementById('lista-historico').innerHTML = lista.map(a => `<div class="p-4 border-2 rounded-2xl bg-gray-50"><p class="font-black text-sm">${a.data} — ${a.hora}</p><p class="text-xs font-bold">${a.servico} (${a.categoria})</p></div>`).join('') || 'Sem histórico';
 }
 
-// ── FICHAS ────────────────────────────────────────────────────────────────────
 function verFicha(nome) {
     const pac = pacientes.find(p => p.nome === nome);
-    const hists = agendamentos.filter(a => a.paciente === nome)
-        .sort((a,b) => {
-            const da = a.data.split('/').reverse().join('');
-            const db = b.data.split('/').reverse().join('');
-            return db.localeCompare(da);
-        });
-    const ultimo = hists[0];
+    const hist = agendamentos.filter(a => a.paciente === nome).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
     const el = document.getElementById('ficha-resultado');
-    if (!pac && hists.length === 0) { el.innerHTML = '<p class="text-gray-400 text-center mt-4">Paciente não encontrado.</p>'; return; }
-
-    el.innerHTML = `
-    <div class="border-2 rounded-2xl p-5 bg-gray-50 space-y-2">
-        <p class="font-black text-lg uppercase">${nome}</p>
-        ${pac?.telefone ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-phone mr-1"></i>${pac.telefone}</p>` : ''}
-        ${pac?.email    ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-envelope mr-1"></i>${pac.email}</p>` : ''}
-        ${pac?.nascimento ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-birthday-cake mr-1"></i>${pac.nascimento}</p>` : ''}
-        ${pac?.altura   ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-ruler-vertical mr-1"></i>${pac.altura} cm</p>` : ''}
-        <hr class="my-3">
-        <p class="text-xs uppercase font-black text-gray-400 tracking-widest">Última visita</p>
-        ${ultimo
-            ? `<div class="bg-white border rounded-xl p-3 mt-1">
-                <p class="font-black text-sm">${ultimo.data} — ${ultimo.hora}</p>
-                <p class="text-sm text-gray-500 font-bold">${ultimo.servico||'—'} · ${ultimo.categoria}</p>
-               </div>`
-            : '<p class="text-gray-400 text-sm">Sem visitas registradas.</p>'}
-        <p class="text-xs uppercase font-black text-gray-400 tracking-widest mt-3">Total de visitas: ${hists.length}</p>
-    </div>`;
+    if (!pac) { el.innerHTML = 'Não encontrado'; return; }
+    el.innerHTML = `<div class="border-2 rounded-2xl p-5 bg-gray-50"><p class="font-black text-lg uppercase">${nome}</p><p class="text-sm">Tel: ${pac.telefone}</p><p class="text-sm">Email: ${pac.email}</p><p class="text-sm">Nasc: ${pac.nascimento}</p><p class="text-sm">Alt: ${pac.altura} cm</p><hr class="my-3"><p class="text-xs font-black text-gray-400 uppercase">Última visita</p>${hist[0] ? '<p class="font-bold">'+hist[0].data+'</p>' : 'Nenhuma' }</div>`;
 }
 
-// ── RELATÓRIO ─────────────────────────────────────────────────────────────────
 function gerarSlots(step) {
     const slots = []; let h=9, m=0;
-    while (h < 12 || (h===12 && m===0)) {
-        slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-        m += step; if(m>=60){ h+=Math.floor(m/60); m=m%60; }
-    }
+    while (h < 13) { slots.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')); m+=step; if(m>=60){ h++; m=0; } }
     return slots;
 }
 
 function renderRelatorio() {
-    const iso  = getDataSelecionadaISO();
     const dataF = getDataSelecionadaBR();
-    const permitida = isDataPermitida(iso);
-    const profEsp = profissionalEsportivo(iso);
     const c = document.getElementById('content');
+    if (!isDataPermitida(getDataSelecionadaISO())) { c.innerHTML = '<p class="text-center">Bloqueado</p>'; return; }
 
-    if (!permitida) {
-        c.innerHTML = `<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça ou quinta para gerar o relatório.</p></div>`;
-        return;
-    }
-
-    function secao(cat, prof, slots, corHeader, corRows) {
-        const titulo = prof ? `${cat.toUpperCase()} — ${prof}` : cat.toUpperCase();
-        let rows = '';
-        slots.forEach(h => {
+    const secao = (cat, prof, slots, cor) => {
+        let rows = slots.map(h => {
             const ag = agendamentos.find(a => a.data===dataF && a.categoria===cat && a.hora===h);
             const pac = ag ? pacientes.find(p => p.nome===ag.paciente) : null;
-            const hists = ag ? agendamentos.filter(a => a.paciente===ag.paciente && a.data!==dataF)
-                .sort((a,b)=>b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join(''))) : [];
-            const ultima = hists[0];
-            rows += `<tr>
-                <td style="font-weight:800;color:#555">${h}</td>
-                <td style="font-weight:800">${ag ? ag.paciente.toUpperCase() : ''}</td>
-                <td>${pac?.telefone||''}</td>
-                <td>${pac?.nascimento||''}</td>
-                <td style="font-size:10px">${pac?.email||''}</td>
-                <td>${pac?.altura ? pac.altura+'cm' : ''}</td>
-                <td>${ultima ? ultima.data : ''}</td>
-                <td style="font-size:10px">${ultima ? (ultima.servico||'')+'·'+ultima.categoria : ''}</td>
-                <td style="font-weight:800">${ag ? ag.servico||'' : ''}</td>
-            </tr>`;
-        });
-        return `
-        <tr><td colspan="9" style="background:${corHeader};font-weight:800;font-size:13px;padding:6px 8px">${titulo}</td></tr>
-        <tr style="background:${corRows};font-size:10px;font-weight:700">
-            <th>Horário</th><th>Paciente</th><th>Telefone</th><th>Nascimento</th>
-            <th>Email</th><th>Alt.</th><th>Última visita</th><th>Último proc.</th><th>Hoje</th>
-        </tr>
-        ${rows}`;
-    }
+            const ult = ag ? agendamentos.filter(a => a.paciente===ag.paciente && a.data!==dataF).sort((a,b)=>b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0] : null;
+            return `<tr><td>${h}</td><td>${ag ? ag.paciente.toUpperCase() : ''}</td><td>${pac?.telefone||''}</td><td>${ult ? ult.data : ''}</td><td>${ag ? ag.servico : ''}</td></tr>`;
+        }).join('');
+        return `<tr><td colspan="5" style="background:${cor}; font-weight:800">${cat} — ${prof}</td></tr>${rows}`;
+    };
 
-    const html = `
-    <div class="mb-4 flex justify-between items-center">
-        <h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2>
-        <button onclick="imprimirRelatorio()" class="print-btn bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
-            <i class="fas fa-print"></i> Imprimir
-        </button>
-    </div>
-    <div id="rel-conteudo" style="overflow-x:auto">
-        <table class="rel-table">
-            <thead>
-                <tr><td colspan="9" style="text-align:center;font-weight:900;font-size:15px;padding:8px">
-                    AGENDA LOURDES — ${dataF}
-                </td></tr>
-            </thead>
-            <tbody>
-                ${secao('Esportivo', profEsp, gerarSlots(25), '#fde8d8', '#fff8f5')}
-                ${secao('Emagrecimento', 'Bruno', gerarSlots(35), '#d8eafd', '#f5f9ff')}
-                ${secao('Aplicação', '', gerarSlots(30), '#f3d8fd', '#fdf5ff')}
-            </tbody>
-        </table>
-    </div>`;
-
+    const html = `<div class="mb-4 flex justify-between"><h2>Relatório ${dataF}</h2><button onclick="window.print()" class="bg-black text-white px-4 py-2 rounded-xl">Imprimir</button></div>
+    <table class="rel-table w-full text-[10px]">
+        <thead><tr class="bg-gray-100"><th>Hora</th><th>Paciente</th><th>Tel</th><th>Última</th><th>Hoje</th></tr></thead>
+        <tbody>
+            ${secao('Esportivo', profissionalEsportivo(getDataSelecionadaISO()), gerarSlots(25), '#fde8d8')}
+            ${secao('Emagrecimento', 'Bruno', gerarSlots(35), '#d8eafd')}
+            ${secao('Aplicação', '', gerarSlots(30), '#f3d8fd')}
+        </tbody>
+    </table>`;
     c.innerHTML = html;
-
-    // Também popula o div de impressão
-    document.getElementById('relatorio-print').innerHTML = `
-        <div style="padding:20px;font-family:Arial,sans-serif">
-            <h2 style="text-align:center;font-size:16px;margin-bottom:12px">AGENDA LOURDES — ${dataF}</h2>
-            <table class="rel-table">
-                <tbody>
-                    ${secao('Esportivo', profEsp, gerarSlots(25), '#fde8d8', '#fff8f5')}
-                    ${secao('Emagrecimento', 'Bruno', gerarSlots(35), '#d8eafd', '#f5f9ff')}
-                    ${secao('Aplicação', '', gerarSlots(30), '#f3d8fd', '#fdf5ff')}
-                </tbody>
-            </table>
-        </div>`;
+    document.getElementById('relatorio-print').innerHTML = html;
 }
-
-function imprimirRelatorio() {
-    document.getElementById('relatorio-print').style.display = 'block';
-    window.print();
-    setTimeout(() => { document.getElementById('relatorio-print').style.display = 'none'; }, 1000);
-}
-
-// Fecha sugestões ao clicar fora
-document.addEventListener('click', e => {
-    document.querySelectorAll('.sug-box').forEach(s => {
-        if (!s.contains(e.target)) s.classList.add('hidden');
-    });
-});
 </script>
 </body>
 </html>
