@@ -3,154 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Dr. Jorge</title>
+    <title>Portal Dr. Jorge Salomão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --cat-esportivo: #f97316; --cat-emagrecimento: #3b82f6; --cat-aplicacao: #a855f7; }
-        body { background: #f4f4f9; font-family: 'Inter', sans-serif; color: #000000; margin: 0; padding: 0; }
+        body { background: #ffffff; font-family: 'Quicksand', sans-serif; color: #1a1a1a; margin: 0; padding: 0; }
         
-        /* Cabeçalho */
-        .full-header { width: 100%; background: #fff; border-bottom: 2px solid #ddd; }
-        .full-header img { width: 100%; max-width: 600px; display: block; margin: 0 auto; height: auto; }
+        .full-header { width: 100%; text-align: center; border-bottom: 1px solid #f0f0f0; }
+        .full-header img { width: 100%; max-width: 500px; height: auto; }
 
-        /* Cards da Agenda - Contraste Alto */
-        .slot-card { transition: all 0.2s ease; border-radius: 18px; border: 2px solid #e2e8f0; cursor: pointer; background: #fff; margin-bottom: 12px; }
-        .free-card { border-left: 12px solid #cbd5e1; }
-        .busy-card { color: #ffffff !important; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .busy-card p, .busy-card span { color: #ffffff !important; font-weight: 800; }
+        /* Estilo dos Cards - Bordas Coloridas */
+        .slot-card { transition: all 0.2s ease; border-radius: 16px; border: 1px solid #f0f0f0; cursor: pointer; margin-bottom: 10px; background: #fff; }
         
-        .busy-esportivo { background: var(--cat-esportivo) !important; }
-        .busy-emagrecimento { background: var(--cat-emagrecimento) !important; }
-        .busy-aplicacao { background: var(--cat-aplicacao) !important; }
+        .free-esportivo { border-left: 12px solid var(--cat-esportivo) !important; background: #fffaf7; }
+        .free-emagrecimento { border-left: 12px solid var(--cat-emagrecimento) !important; background: #f7faff; }
+        .free-aplicacao { border-left: 12px solid var(--cat-aplicacao) !important; background: #fbf7ff; }
 
-        /* Inputs e Textos */
-        input, select { color: #000 !important; font-weight: 600 !important; border: 2px solid #ddd !important; }
-        .label-custom { color: #000; font-weight: 800; text-transform: uppercase; font-size: 11px; margin-bottom: 4px; display: block; }
+        /* Quando Agendado - Cor Total */
+        .busy-esportivo { background: var(--cat-esportivo) !important; color: white !important; border: none; }
+        .busy-emagrecimento { background: var(--cat-emagrecimento) !important; color: white !important; border: none; }
+        .busy-aplicacao { background: var(--cat-aplicacao) !important; color: white !important; border: none; }
+        .busy-card p, .busy-card span { color: white !important; font-weight: 700; }
 
-        @media print { .no-print { display: none !important; } .print-area { display: block !important; background: white; } }
+        /* Letras Fortes */
+        .font-strong { color: #000000 !important; font-weight: 700; }
+        .tab-active { color: #4a148c !important; font-weight: 800; border-bottom: 3px solid #4a148c; }
+
+        @media print { .no-print { display: none !important; } .print-area { display: block !important; } }
     </style>
 </head>
 <body class="pb-32">
 
     <header class="full-header no-print">
-        <img src="logo.png" alt="Dr. Jorge Salomão" onerror="this.style.display='none'">
+        <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
         <div class="max-w-xl mx-auto py-4 px-4">
-            <div class="bg-white p-3 rounded-2xl flex items-center gap-3 border-2 border-black shadow-sm">
-                <i class="far fa-calendar-alt text-black"></i>
-                <input type="date" id="data-seletor" onchange="loadData()" class="bg-transparent w-full outline-none text-lg">
+            <div class="bg-gray-50 p-2 rounded-2xl flex items-center gap-3 border border-gray-200">
+                <i class="far fa-calendar-alt text-gray-400"></i>
+                <input type="date" id="data-seletor" onchange="validarData(this.value)" class="bg-transparent w-full outline-none font-strong">
             </div>
         </div>
     </header>
 
     <main id="content" class="p-4 max-w-xl mx-auto"></main>
 
-    <nav class="fixed bottom-6 left-4 right-4 h-20 bg-white rounded-3xl border-2 border-black z-[100] flex items-center justify-around p-2 no-print shadow-2xl">
-        <button onclick="showTab('agenda')" id="tab-agenda" class="flex-1 py-3 flex flex-col items-center gap-1 text-black"><i class="fas fa-calendar-check text-xl"></i><span class="text-[10px] font-bold">AGENDA</span></button>
-        <button onclick="showTab('cadastro')" id="tab-cadastro" class="flex-1 py-3 flex flex-col items-center gap-1 text-black"><i class="fas fa-user-plus text-xl"></i><span class="text-[10px] font-bold">CADASTRO</span></button>
-        <button onclick="showTab('busca')" id="tab-busca" class="flex-1 py-3 flex flex-col items-center gap-1 text-black"><i class="fas fa-search text-xl"></i><span class="text-[10px] font-bold">FICHAS</span></button>
-        <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 py-3 flex flex-col items-center gap-1 text-black"><i class="fas fa-print text-xl"></i><span class="text-[10px] font-bold">RELATÓRIO</span></button>
+    <nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around no-print z-50">
+        <button onclick="showTab('agenda')" id="tab-agenda" class="flex-1 py-3 flex flex-col items-center gap-1"><i class="fas fa-calendar-day"></i><span class="text-[10px]">Agenda</span></button>
+        <button onclick="showTab('cadastro')" id="tab-cadastro" class="flex-1 py-3 flex flex-col items-center gap-1"><i class="fas fa-user-plus"></i><span class="text-[10px]">Cadastro</span></button>
+        <button onclick="showTab('busca')" id="tab-busca" class="flex-1 py-3 flex flex-col items-center gap-1"><i class="fas fa-search"></i><span class="text-[10px]">Fichas</span></button>
+        <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 py-3 flex flex-col items-center gap-1"><i class="fas fa-file-invoice"></i><span class="text-[10px]">Relatório</span></button>
     </nav>
 
-    <div id="modal-agenda" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[32px] p-8">
-            <h2 id="modal-titulo" class="font-extrabold text-2xl mb-2 text-black">AGENDAR</h2>
-            <p id="info-horario" class="text-blue-600 font-bold mb-6"></p>
-            
-            <label class="label-custom">O que vai fazer?</label>
-            <select id="tipo-servico" class="w-full p-4 rounded-2xl mb-4 text-lg">
+    <div id="modal-agenda" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
+            <h2 class="font-strong text-xl mb-4 uppercase" id="m-titulo">Agendar</h2>
+            <select id="tipo-servico" class="w-full p-4 border rounded-xl mb-4 font-strong">
                 <option value="CONSULTA">CONSULTA</option>
                 <option value="RETORNO">RETORNO</option>
                 <option value="APLICAÇÃO">APLICAÇÃO</option>
             </select>
-
-            <label class="label-custom">Paciente</label>
-            <input type="text" id="busca-paciente-modal" oninput="filtrarPacientes(this.value)" placeholder="Digite o nome..." class="w-full p-4 rounded-2xl mb-2">
-            <div id="lista-sugestoes" class="max-h-40 overflow-y-auto border-2 rounded-2xl hidden mb-6 bg-gray-50"></div>
-            
-            <div class="flex flex-col gap-3">
-                <button id="btn-confirmar" class="w-full bg-black text-white p-5 rounded-2xl font-black text-lg shadow-lg">SALVAR HORÁRIO</button>
-                <button onclick="fecharModal()" class="w-full bg-gray-100 p-4 rounded-2xl font-bold text-gray-500 uppercase">Cancelar</button>
+            <input type="text" id="busca-pac" oninput="sugerir(this.value)" placeholder="Nome do paciente..." class="w-full p-4 border rounded-xl mb-2 font-strong">
+            <div id="sugestoes" class="max-h-40 overflow-y-auto border rounded-xl mb-6 hidden"></div>
+            <div class="flex gap-2">
+                <button onclick="fecharModal()" class="flex-1 p-4 bg-gray-100 rounded-xl font-bold">Sair</button>
+                <button id="btn-salvar" class="flex-[2] bg-black text-white p-4 rounded-xl font-strong">SALVAR</button>
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwGmxjKsqV5RswuNPp5T2B079kpOVUB8h3PnrgeRWVWRX25wVKX9Fdmm9oRdILFU4xZ/exec"; 
-        let pacientes = [], agendamentos = [], sTime, sCat, sPac, editId = null;
+        const API_URL = "https://script.google.com/macros/s/AKfycbwGmxjKsqV5RswuNPp5T2B079kpOVUB8h3PnrgeRWVWRX25wVKX9Fdmm9oRdILFU4xZ/exec";
+        let pacientes = [], agendamentos = [], sTime, sCat, editId = null;
 
         window.onload = () => {
             const hoje = new Date();
             document.getElementById('data-seletor').value = hoje.toLocaleDateString('en-CA');
-            showTab('agenda');
-            loadData();
+            showTab('agenda'); loadData();
         };
 
+        function validarData(data) {
+            const d = new Date(data + "T12:00:00").getDay();
+            if(d !== 2 && d !== 4) {
+                alert("Atendimento apenas Terças e Quintas!");
+                return;
+            }
+            loadData();
+        }
+
         async function loadData() {
-            try {
-                const r = await fetch(`${API_URL}?action=getInitialData`);
-                const d = await r.json();
-                pacientes = d.patients || [];
-                agendamentos = d.appointments || [];
-                render();
-            } catch(e) { alert("Erro de conexão. Verifique a URL."); }
+            const r = await fetch(`${API_URL}?action=getInitialData`);
+            const d = await r.json();
+            pacientes = d.patients || [];
+            agendamentos = d.appointments || [];
+            render();
         }
 
         function showTab(tab) {
             window.currentTab = tab;
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
             render();
         }
 
         function render() {
             const container = document.getElementById('content');
-            const dataSel = document.getElementById('data-seletor').value.split('-').reverse().join('/');
-            
+            const dataF = document.getElementById('data-seletor').value.split('-').reverse().join('/');
+
             if (window.currentTab === 'agenda') {
                 container.innerHTML = `
-                    <div class="space-y-8">
-                        ${renderBloco('Esportivo', 'busy-esportivo', 25, dataSel)}
-                        ${renderBloco('Emagrecimento', 'busy-emagrecimento', 35, dataSel)}
-                        ${renderBloco('Aplicação', 'busy-aplicacao', 30, dataSel)}
-                    </div>`;
+                    ${renderSec('Esportivo', 'free-esportivo', 'busy-esportivo', 25, dataF)}
+                    ${renderSec('Emagrecimento', 'free-emagrecimento', 'busy-emagrecimento', 35, dataF)}
+                    ${renderSec('Aplicação', 'free-aplicacao', 'busy-aplicacao', 30, dataF)}`;
             } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `<div class="bg-white p-6 rounded-3xl border-2 border-black">
-                    <h2 class="font-black text-2xl mb-6 uppercase">Novo Cadastro</h2>
-                    <div class="space-y-4">
-                        <div><label class="label-custom">Nome Completo</label><input id="cad-nome" class="w-full p-4 rounded-2xl"></div>
-                        <div><label class="label-custom">WhatsApp</label><input id="cad-tel" class="w-full p-4 rounded-2xl"></div>
-                        <div><label class="label-custom">E-mail</label><input id="cad-email" class="w-full p-4 rounded-2xl"></div>
-                        <div><label class="label-custom">Altura (cm)</label><input id="cad-altura" class="w-full p-4 rounded-2xl"></div>
-                        <div><label class="label-custom">Nascimento</label><input id="cad-nasc" placeholder="DD/MM/AAAA" class="w-full p-4 rounded-2xl"></div>
-                        <button onclick="salvarPaciente()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-xl mt-4">CADASTRAR PACIENTE</button>
-                    </div>
+                container.innerHTML = `<div class="p-6 bg-gray-50 rounded-3xl border">
+                    <h2 class="font-strong text-xl mb-4 uppercase">Novo Paciente</h2>
+                    <input id="c-nome" placeholder="Nome" class="w-full p-4 border rounded-xl mb-3 font-strong">
+                    <input id="c-tel" placeholder="WhatsApp" class="w-full p-4 border rounded-xl mb-3 font-strong">
+                    <input id="c-email" placeholder="E-mail" class="w-full p-4 border rounded-xl mb-3 font-strong">
+                    <input id="c-alt" placeholder="Altura" class="w-full p-4 border rounded-xl mb-3 font-strong">
+                    <input id="c-nasc" placeholder="Nascimento" class="w-full p-4 border rounded-xl mb-6 font-strong">
+                    <button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-xl font-strong">CADASTRAR</button>
                 </div>`;
             } else if (window.currentTab === 'busca') {
-                container.innerHTML = `
-                    <div class="bg-white p-6 rounded-3xl border-2 border-black mb-6">
-                        <label class="label-custom">Pesquisar Paciente</label>
-                        <input type="text" oninput="buscarFicha(this.value)" placeholder="Nome do paciente..." class="w-full p-4 rounded-2xl">
-                    </div>
-                    <div id="resultado-busca"></div>`;
+                container.innerHTML = `<input type="text" oninput="buscarFicha(this.value)" placeholder="Buscar paciente..." class="w-full p-4 border rounded-2xl mb-6 font-strong"><div id="res-busca"></div>`;
             } else if (window.currentTab === 'relatorio') {
-                renderRelatorio(dataSel);
+                renderRelatorio(dataF);
             }
         }
 
-        function renderBloco(cat, busyClass, step, dataF) {
-            let html = `<div class="flex items-center gap-3 mb-4"><h3 class="font-black text-sm uppercase text-black">${cat}</h3><div class="h-1 bg-black/10 flex-1"></div></div>`;
+        function renderSec(cat, freeCl, busyCl, step, dataF) {
+            let html = `<h3 class="font-strong text-[10px] uppercase tracking-widest mt-8 mb-4 text-gray-400">${cat}</h3>`;
             let t = new Date(); t.setHours(9, 0, 0);
             while(t.getHours() < 13) {
                 let h = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 const ag = agendamentos.find(a => a.data.includes(dataF) && a.categoria === cat && a.hora === h);
                 if(ag) {
-                    html += `<div onclick="abrirModal('${h}','${cat}',${JSON.stringify(ag).replace(/"/g, '&quot;')})" class="p-5 slot-card busy-card ${busyClass}">
-                                <div class="flex justify-between items-center"><span class="text-xs uppercase opacity-90">${h}</span><span class="bg-black/20 px-3 py-1 rounded-full text-[10px] font-black">${ag.servico}</span></div>
-                                <p class="text-xl font-extrabold mt-1 uppercase">${ag.paciente}</p>
+                    html += `<div onclick="abrirModal('${h}','${cat}',${JSON.stringify(ag).replace(/"/g, '&quot;')})" class="p-4 slot-card busy-card ${busyCl}">
+                                <div class="flex justify-between text-[10px] uppercase"><span>${h}</span><span>${ag.servico}</span></div>
+                                <p class="text-lg font-strong mt-1 uppercase">${ag.paciente}</p>
                              </div>`;
                 } else {
-                    html += `<div onclick="abrirModal('${h}','${cat}')" class="p-5 slot-card free-card flex justify-between items-center">
-                                <span class="font-extrabold text-black">${h} - LIVRE</span><i class="fas fa-plus-circle text-gray-300"></i>
+                    html += `<div onclick="abrirModal('${h}','${cat}')" class="p-4 slot-card ${freeCl} flex justify-between font-strong text-sm">
+                                <span>${h} - LIVRE</span><i class="fas fa-plus opacity-20"></i>
                              </div>`;
                 }
                 t.setMinutes(t.getMinutes() + step);
@@ -159,93 +154,71 @@
         }
 
         function buscarFicha(v) {
-            const res = document.getElementById('resultado-busca');
-            if(v.length < 2) { res.innerHTML = ""; return; }
-            const encontrados = pacientes.filter(p => p.nome.toLowerCase().includes(v.toLowerCase()));
-            res.innerHTML = encontrados.map(p => {
-                const hist = agendamentos.filter(a => a.paciente === p.nome);
-                return `
-                <div class="bg-black text-white p-6 rounded-[32px] mb-6 shadow-xl">
-                    <h4 class="font-black text-2xl uppercase border-b border-white/20 pb-4 mb-4">${p.nome}</h4>
-                    <div class="space-y-2 text-sm font-bold">
-                        <p><span class="opacity-50">📱 WHATSAPP:</span> ${p.telefone || '--'}</p>
-                        <p><span class="opacity-50">📧 E-MAIL:</span> ${p.email || '--'}</p>
-                        <p><span class="opacity-50">📏 ALTURA:</span> ${p.altura || '--'}</p>
-                        <p><span class="opacity-50">🎂 NASC:</span> ${p.nascimento || '--'}</p>
+            const res = document.getElementById('res-busca');
+            if(v.length < 2) return;
+            const f = pacientes.filter(p => p.nome.toLowerCase().includes(v.toLowerCase()));
+            res.innerHTML = f.map(p => `
+                <div class="bg-gray-900 text-white p-6 rounded-3xl mb-4">
+                    <h4 class="font-strong text-xl border-b border-white/10 pb-2 mb-4 uppercase">${p.nome}</h4>
+                    <div class="text-xs space-y-1 opacity-80 font-strong">
+                        <p>TEL: ${p.telefone}</p><p>EMAIL: ${p.email}</p><p>ALTURA: ${p.altura}</p><p>NASC: ${p.nascimento}</p>
                     </div>
-                    <div class="mt-6">
-                        <p class="text-[10px] font-black opacity-40 uppercase mb-2">Últimos Atendimentos</p>
-                        ${hist.reverse().slice(0,3).map(h => `<div class="flex justify-between border-t border-white/10 py-2"><span>${h.data}</span><span class="text-orange-400 font-black">${h.servico}</span></div>`).join('') || 'Nenhum histórico'}
-                    </div>
-                </div>`;
-            }).join('');
+                </div>`).join('');
         }
 
         function renderRelatorio(dataF) {
             const ags = agendamentos.filter(a => a.data.includes(dataF));
-            document.getElementById('content').innerHTML = `
-                <div class="print-area bg-white p-4 rounded-xl border-2 border-black">
-                    <div class="text-center mb-8 border-b-4 border-black pb-4">
-                        <h2 class="text-3xl font-black uppercase">Mapa de Atendimento</h2>
-                        <p class="font-bold text-xl">${dataF}</p>
-                    </div>
-                    <div class="space-y-6">
-                        ${ags.map(a => {
+            const gerarTab = (cat, cor) => {
+                const lista = ags.filter(a => a.categoria === cat);
+                return `
+                <div class="mb-6 border rounded-xl overflow-hidden">
+                    <div class="p-2 font-strong text-white text-[10px] uppercase" style="background:${cor}">${cat}</div>
+                    <table class="w-full text-[10px]">
+                        ${lista.map(a => {
                             const p = pacientes.find(pac => pac.nome === a.paciente) || {};
-                            return `
-                            <div class="border-b-2 border-gray-200 pb-4">
-                                <div class="flex justify-between font-black text-lg"><span>${a.hora} - ${a.paciente}</span> <span class="text-blue-600">${a.servico}</span></div>
-                                <div class="grid grid-cols-2 gap-2 text-[11px] font-bold mt-2 uppercase text-gray-600">
-                                    <span>📞 Tel: ${p.telefone || '--'}</span>
-                                    <span>📏 Alt: ${p.altura || '--'}</span>
-                                    <span>🎂 Nasc: ${p.nascimento || '--'}</span>
-                                    <span>📧 Email: ${p.email || '--'}</span>
-                                </div>
-                            </div>`;
-                        }).join('') || '<p class="text-center py-10 font-bold">SEM AGENDAMENTOS NESTA DATA.</p>'}
-                    </div>
-                    <button onclick="window.print()" class="no-print w-full bg-black text-white p-6 rounded-2xl font-black mt-10 text-xl shadow-2xl">IMPRIMIR RELATÓRIO</button>
+                            return `<tr class="border-b"><td class="p-2"><b>${a.hora}</b> - ${a.paciente}<br><span class="opacity-50 text-[8px]">${p.email || ''}</span></td><td class="p-2">${p.telefone || ''}</td><td class="p-2">${p.altura || ''}</td><td class="p-2 font-strong">${a.servico}</td></tr>`;
+                        }).join('') || '<tr><td class="p-4 text-center opacity-30">Vazio</td></tr>'}
+                    </table>
+                </div>`;
+            }
+            document.getElementById('content').innerHTML = `
+                <div class="print-area">
+                    <h2 class="text-center font-strong text-xl mb-6 uppercase">Relatório ${dataF}</h2>
+                    ${gerarTab('Esportivo', '#f97316')}${gerarTab('Emagrecimento', '#3b82f6')}${gerarTab('Aplicação', '#a855f7')}
+                    <button onclick="window.print()" class="no-print w-full bg-black text-white p-4 rounded-xl font-strong mt-6">IMPRIMIR</button>
                 </div>`;
         }
 
         function abrirModal(h, cat, ag = null) {
             sTime = h; sCat = cat; editId = ag ? ag.id : null;
-            document.getElementById('info-horario').innerText = `${cat.toUpperCase()} ÀS ${h}`;
+            document.getElementById('m-titulo').innerText = ag ? "Editar" : "Agendar";
             document.getElementById('modal-agenda').classList.remove('hidden');
-            document.getElementById('busca-paciente-modal').value = ag ? ag.paciente : "";
-            document.getElementById('tipo-servico').value = ag ? ag.servico : "CONSULTA";
-            document.getElementById('btn-confirmar').onclick = salvarAgendamento;
+            document.getElementById('busca-pac').value = ag ? ag.paciente : "";
+            document.getElementById('btn-salvar').onclick = salvar;
         }
 
         function fecharModal() { document.getElementById('modal-agenda').classList.add('hidden'); }
-
-        function filtrarPacientes(v) {
-            const l = document.getElementById('lista-sugestoes');
-            if(v.length < 2) { l.classList.add('hidden'); return; }
+        function sugerir(v) {
+            const s = document.getElementById('sugestoes');
+            if(v.length < 2) { s.classList.add('hidden'); return; }
             const f = pacientes.filter(p => p.nome.toLowerCase().includes(v.toLowerCase()));
-            l.innerHTML = f.map(p => `<div onclick="setPac('${p.nome}')" class="p-4 border-b font-black text-black">${p.nome}</div>`).join('');
-            l.classList.remove('hidden');
+            s.innerHTML = f.map(p => `<div onclick="setPac('${p.nome}')" class="p-4 border-b font-strong">${p.nome}</div>`).join('');
+            s.classList.remove('hidden');
         }
+        function setPac(n) { document.getElementById('busca-pac').value = n; document.getElementById('sugestoes').classList.add('hidden'); }
 
-        function setPac(n) {
-            document.getElementById('busca-paciente-modal').value = n;
-            document.getElementById('lista-sugestoes').classList.add('hidden');
-        }
-
-        async function salvarAgendamento() {
-            const pac = document.getElementById('busca-paciente-modal').value;
+        async function salvar() {
+            const pac = document.getElementById('busca-pac').value;
             const data = document.getElementById('data-seletor').value.split('-').reverse().join('/');
             const serv = document.getElementById('tipo-servico').value;
-            if(!pac) return alert("Selecione um paciente!");
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addAppointment', data, hora: sTime, paciente: pac, categoria: sCat, servico: serv, id: editId }) });
             fecharModal(); loadData();
         }
 
-        async function salvarPaciente() {
-            const n = document.getElementById('cad-nome').value, t = document.getElementById('cad-tel').value, e = document.getElementById('cad-email').value, a = document.getElementById('cad-altura').value, d = document.getElementById('cad-nasc').value;
-            if(!n || !t) return alert("Preencha o Nome e WhatsApp!");
+        async function cadastrar() {
+            const n = document.getElementById('c-nome').value, t = document.getElementById('c-tel').value, e = document.getElementById('c-email').value, a = document.getElementById('c-alt').value, d = document.getElementById('c-nasc').value;
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t, email: e, altura: a, nascimento: d }) });
-            alert("✅ Paciente Cadastrado!"); loadData(); showTab('agenda');
+            alert("Cadastrado!"); loadData(); showTab('agenda');
         }
     </script>
 </body>
