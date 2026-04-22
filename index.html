@@ -8,92 +8,88 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Paleta Clean Luxury baseada no Logo */
         :root { 
-            --clean-bg: #ffffff;
-            --main-purple: #6a1b9a; /* Roxo elegante do logo */
-            --cream-accent: #fdfaf5; /* Fundo suave do logo */
-            --text-dark: #2d3436;
+            --main-purple: #4a148c; 
+            --text-dark: #1a1a1a; /* Texto bem escuro para contraste */
             --whatsapp: #25d366;
-            
-            /* Cores de Categoria Mantidas */
-            --cat-esportivo: #f97316; /* Laranja */
-            --cat-emagrecimento: #3b82f6; /* Azul */
-            --cat-aplicacao: #a855f7; /* Roxo Categoria */
+            --cat-esportivo: #f97316; 
+            --cat-emagrecimento: #3b82f6; 
+            --cat-aplicacao: #a855f7; 
         }
         
-        body { background: var(--clean-bg); font-family: 'Quicksand', sans-serif; color: var(--text-dark); }
+        body { background: #ffffff; font-family: 'Quicksand', sans-serif; color: var(--text-dark); }
         
-        /* Elements com Glassmorphism suave */
-        .luxury-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border-radius: 24px; box-shadow: 0 10px 30px rgba(106, 27, 154, 0.05); border: 1px solid rgba(106, 27, 154, 0.03); }
-        .tab-btn { transition: all 0.3s ease; border-radius: 16px; border: 1px solid transparent; }
-        .tab-active { background: var(--cream-accent); color: var(--main-purple) !important; border-color: #f1e4d3; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+        /* Layout Geral */
+        .luxury-card { background: white; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; }
+        .tab-btn { transition: all 0.3s ease; border-radius: 16px; color: #666; }
+        .tab-active { background: #f8f5ff; color: var(--main-purple) !important; font-weight: 700; }
         
-        /* Estilo dos Cards de Horário */
-        .slot-card { transition: all 0.2s ease; border-radius: 20px; background: white; border: 1px solid #f1f1f1; }
-        .slot-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        /* LOGICA DOS CARDS SOLICITADA */
+        .slot-card { transition: all 0.2s ease; border-radius: 20px; border: 2px solid transparent; }
         
-        .status-badge { padding: 4px 12px; border-radius: 99px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
-        
-        /* Botão WhatsApp */
-        .btn-whatsapp { background: var(--whatsapp); color: white; border-radius: 12px; padding: 10px; font-size: 14px; display: flex; items-center: center; transition: all 0.2s; }
-        .btn-whatsapp:active { transform: scale(0.95); opacity: 0.9; }
+        /* Estados Livres (Bordas Coloridas) */
+        .free-esportivo { border-color: rgba(249, 115, 22, 0.2); border-left: 6px solid var(--cat-esportivo); background: #fffaf7; }
+        .free-emagrecimento { border-color: rgba(59, 130, 246, 0.2); border-left: 6px solid var(--cat-emagrecimento); background: #f7faff; }
+        .free-aplicacao { border-color: rgba(168, 85, 247, 0.2); border-left: 6px solid var(--cat-aplicacao); background: #fbf7ff; }
 
-        /* Botões de Categoria Mantidos */
-        .btn-esportivo { background: var(--cat-esportivo); color: white; }
-        .btn-emagrecimento { background: var(--cat-emagrecimento); color: white; }
-        .btn-aplicacao { background: var(--cat-aplicacao); color: white; }
+        /* Estados Ocupados (Totalmente Coloridos) */
+        .busy-esportivo { background: var(--cat-esportivo) !important; color: white !important; border: none; }
+        .busy-emagrecimento { background: var(--cat-emagrecimento) !important; color: white !important; border: none; }
+        .busy-aplicacao { background: var(--cat-aplicacao) !important; color: white !important; border: none; }
 
+        .busy-card span, .busy-card p { color: white !important; }
+        .busy-card .status-badge { background: rgba(255,255,255,0.2) !important; color: white !important; border: none; }
+
+        .btn-whatsapp { background: var(--whatsapp); color: white; border-radius: 12px; padding: 10px; transition: all 0.2s; }
+        
         @media print {
             .no-print { display: none !important; }
-            .print-area { display: block !important; padding: 0; }
-            table { width: 100%; border-collapse: collapse; font-size: 12px; }
-            th, td { border: 1px solid #e0e0e0; padding: 10px; text-align: left; }
-            .header-print { background: var(--cream-accent) !important; -webkit-print-color-adjust: exact; }
+            .print-area { display: block !important; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 8px; }
         }
     </style>
 </head>
 <body class="pb-32">
 
-    <header class="p-6 pt-10 pb-16 no-print text-center border-b border-gray-100">
+    <header class="p-6 pt-10 pb-16 no-print text-center">
         <div class="max-w-xl mx-auto flex flex-col items-center gap-6">
-            <div class="w-48 h-20 bg-center bg-contain bg-no-repeat" style="background-image: url('https://i.imgur.com/8N4N3uK.png');"></div>
+            <h1 class="text-2xl font-black tracking-tight text-slate-900 uppercase">Clínica <span class="text-purple-900">Lourdes</span></h1>
             
             <div class="flex flex-col items-center gap-2">
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Portal de Agendamento Profissional</p>
-                <div class="bg-white p-2 px-5 rounded-full inline-flex items-center gap-3 border shadow-inner">
-                    <i class="far fa-calendar-alt text-gray-400"></i>
-                    <input type="date" id="data-seletor" onchange="render()" class="bg-transparent font-semibold text-sm outline-none border-none text-gray-700 cursor-pointer">
+                <p class="text-[12px] font-extrabold text-slate-800 uppercase tracking-widest">Portal de Agendamento Profissional</p>
+                <div class="bg-slate-50 p-2 px-5 rounded-full inline-flex items-center gap-3 border-2 border-slate-200 shadow-sm">
+                    <i class="far fa-calendar-alt text-slate-900 font-bold"></i>
+                    <input type="date" id="data-seletor" onchange="render()" class="bg-transparent font-black text-sm outline-none border-none text-slate-900 cursor-pointer">
                 </div>
             </div>
         </div>
     </header>
 
-    <nav class="fixed bottom-6 left-4 right-4 h-20 luxury-card z-[100] flex items-center justify-around p-2 no-print shadow-2xl border border-gray-100">
-        <button onclick="showTab('agenda')" id="tab-agenda" class="tab-btn flex-1 py-3 text-gray-400 flex flex-col items-center gap-1.5">
-            <i class="fas fa-calendar-day text-lg"></i><span class="text-[10px] font-bold">Agenda</span>
+    <nav class="fixed bottom-6 left-4 right-4 h-20 luxury-card z-[100] flex items-center justify-around p-2 no-print shadow-2xl">
+        <button onclick="showTab('agenda')" id="tab-agenda" class="tab-btn flex-1 py-3 flex flex-col items-center gap-1.5">
+            <i class="fas fa-calendar-check text-lg"></i><span class="text-[10px] font-bold">Agenda</span>
         </button>
-        <button onclick="showTab('cadastro')" id="tab-cadastro" class="tab-btn flex-1 py-3 text-gray-400 flex flex-col items-center gap-1.5">
-            <i class="fas fa-user-plus text-lg"></i><span class="text-[10px] font-bold">Novo</span>
+        <button onclick="showTab('cadastro')" id="tab-cadastro" class="tab-btn flex-1 py-3 flex flex-col items-center gap-1.5">
+            <i class="fas fa-user-plus text-lg"></i><span class="text-[10px] font-bold">Cadastrar</span>
         </button>
-        <button onclick="showTab('busca')" id="tab-busca" class="tab-btn flex-1 py-3 text-gray-400 flex flex-col items-center gap-1.5">
-            <i class="fas fa-search-location text-lg"></i><span class="text-[10px] font-bold">Fichas</span>
+        <button onclick="showTab('busca')" id="tab-busca" class="tab-btn flex-1 py-3 flex flex-col items-center gap-1.5">
+            <i class="fas fa-search text-lg"></i><span class="text-[10px] font-bold">Pesquisar</span>
         </button>
-        <button onclick="showTab('relatorio')" id="tab-relatorio" class="tab-btn flex-1 py-3 text-gray-400 flex flex-col items-center gap-1.5">
-            <i class="fas fa-file-signature text-lg"></i><span class="text-[10px] font-bold">Relatório</span>
+        <button onclick="showTab('relatorio')" id="tab-relatorio" class="tab-btn flex-1 py-3 flex flex-col items-center gap-1.5">
+            <i class="fas fa-print text-lg"></i><span class="text-[10px] font-bold">Relatório</span>
         </button>
     </nav>
 
     <main id="content" class="p-4 -mt-8 max-w-xl mx-auto relative z-10"></main>
 
-    <div id="modal-agenda" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+    <div id="modal-agenda" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center no-print">
         <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-8 shadow-2xl">
-            <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 sm:hidden"></div>
-            <h2 class="font-bold text-2xl mb-2 text-gray-800">Novo Agendamento</h2>
-            <p id="info-horario" class="text-gray-500 font-semibold mb-6 text-sm"></p>
+            <h2 class="font-bold text-2xl mb-1 text-slate-900">Novo Horário</h2>
+            <p id="info-horario" class="text-slate-500 font-bold mb-6 text-sm"></p>
             
-            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Procedimento</label>
-            <select id="tipo-servico" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl mb-4 font-semibold text-gray-700 outline-none focus:ring-2 ring-gray-200">
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Serviço</label>
+            <select id="tipo-servico" class="w-full p-4 bg-slate-50 border rounded-2xl mb-4 font-bold text-slate-800 outline-none">
                 <option value="CONSULTA">CONSULTA</option>
                 <option value="RETORNO">RETORNO</option>
                 <option value="APLICAÇÃO">APLICAÇÃO</option>
@@ -102,12 +98,12 @@
                 <option value="APLICAÇÃO (C)">APLICAÇÃO CLINICAL</option>
             </select>
 
-            <input type="text" id="busca-paciente-modal" oninput="filtrarModal(this.value)" placeholder="🔍 Buscar nome do paciente..." class="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl mb-2 font-semibold outline-none focus:ring-2 ring-gray-200">
-            <div id="lista-pacientes-modal" class="max-h-40 overflow-y-auto rounded-xl mb-8 bg-gray-50 border border-gray-100"></div>
+            <input type="text" id="busca-paciente-modal" oninput="filtrarModal(this.value)" placeholder="🔍 Nome do paciente..." class="w-full p-4 bg-slate-50 border rounded-2xl mb-2 font-bold outline-none">
+            <div id="lista-pacientes-modal" class="max-h-40 overflow-y-auto rounded-xl mb-8 bg-slate-50 border"></div>
             
             <div class="flex gap-3">
-                <button onclick="fecharModal()" class="flex-1 p-4 bg-gray-100 rounded-2xl font-bold text-gray-500">Cancelar</button>
-                <button id="btn-confirmar" class="flex-2 px-8 bg-gray-800 text-white rounded-2xl font-bold opacity-30 shadow-lg" disabled>Confirmar</button>
+                <button onclick="fecharModal()" class="flex-1 p-4 bg-slate-100 rounded-2xl font-bold text-slate-400">Sair</button>
+                <button id="btn-confirmar" class="flex-2 px-8 bg-slate-900 text-white rounded-2xl font-bold opacity-30 shadow-lg" disabled>Confirmar</button>
             </div>
         </div>
     </div>
@@ -131,7 +127,7 @@
                 pacientes = d.patients || []; 
                 agendamentos = d.appointments || [];
                 render();
-            } catch(e) { console.log("Erro de Conexão"); }
+            } catch(e) { console.log("Erro de conexão"); }
         }
 
         function showTab(tab) {
@@ -159,37 +155,39 @@
 
             if (window.currentTab === 'agenda') {
                 if (diaSemana !== 2 && diaSemana !== 4) {
-                    container.innerHTML = `<div class="p-12 text-center luxury-card mt-10"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border"><i class="fas fa-coffee text-gray-300 text-xl"></i></div><p class="text-gray-800 font-bold">Consultório Fechado</p><p class="text-gray-400 text-xs mt-1">Selecione Terça ou Quinta no topo.</p></div>`;
+                    container.innerHTML = `<div class="p-12 text-center luxury-card mt-10"><p class="text-slate-900 font-black">CONSULTÓRIO FECHADO</p><p class="text-slate-400 text-xs">Selecione Terça ou Quinta.</p></div>`;
                     return;
                 }
                 container.innerHTML = `
-                    <div class="space-y-8">
-                        ${renderSection('Esportivo', 'var(--cat-esportivo)', 25, dataSel)}
-                        ${renderSection('Emagrecimento', 'var(--cat-emagrecimento)', 35, dataSel)}
-                        ${renderSection('Aplicação', 'var(--cat-aplicacao)', 30, dataSel)}
+                    <div class="space-y-10">
+                        ${renderSection('Esportivo', 'free-esportivo', 'busy-esportivo', 25, dataSel)}
+                        ${renderSection('Emagrecimento', 'free-emagrecimento', 'busy-emagrecimento', 35, dataSel)}
+                        ${renderSection('Aplicação', 'free-aplicacao', 'busy-aplicacao', 30, dataSel)}
                     </div>`;
             } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-bold text-2xl mb-6 centrale">Ficha do Novo Paciente</h2><div class="space-y-4"><input type="text" id="n" placeholder="Nome Completo" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none"><input type="tel" id="t" placeholder="WhatsApp (com DDD)" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none"><input type="text" id="d" placeholder="Nascimento (DD/MM/AAAA)" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none"><button onclick="salvarPaciente()" class="w-full bg-gray-800 text-white p-5 rounded-2xl font-bold mt-4 shadow-xl shadow-gray-100">Salvar Cadastro</button></div></div>`;
+                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Cadastro de Paciente</h2><div class="space-y-4"><input type="text" id="n" placeholder="Nome Completo" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="tel" id="t" placeholder="WhatsApp (com DDD)" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="text" id="d" placeholder="Nascimento" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><button onclick="salvarPaciente()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg">SALVAR NO BANCO</button></div></div>`;
             } else if (window.currentTab === 'busca') {
-                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-bold text-2xl mb-6 zentrale">Buscar Prontuário</h2><input type="text" oninput="buscarFicha(this.value)" placeholder="🔍 Digite o nome do paciente..." class="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl outline-none mb-6"><div id="res-busca"></div></div>`;
+                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6 text-slate-800">Localizar Ficha</h2><input type="text" oninput="buscarFicha(this.value)" placeholder="🔍 Digite o nome..." class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold mb-6"><div id="res-busca"></div></div>`;
             } else if (window.currentTab === 'relatorio') { renderRelatorio(dataSel); }
         }
 
-        function renderSection(cat, color, step, dataF) {
-            let html = `<section><div class="flex items-center gap-3 mb-4"><span class="w-2 h-5 rounded-full" style="background:${color}"></span><h3 class="font-bold text-[11px] uppercase tracking-widest text-gray-400">${cat}</h3></div>`;
+        function renderSection(cat, freeClass, busyClass, step, dataF) {
+            let html = `<section><div class="flex items-center gap-3 mb-4"><h3 class="font-black text-[12px] uppercase tracking-[3px] text-slate-900">${cat}</h3><div class="h-[1px] bg-slate-100 flex-1"></div></div>`;
             let t = new Date(); t.setHours(9, 0, 0);
             while(t.getHours() < 12) {
                 let h = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 const ocupado = agendamentos.find(a => cleanDate(a.data) === dataF && a.categoria.trim() === cat.trim() && a.hora.includes(h));
                 
+                const cardClass = ocupado ? `busy-card ${busyClass}` : freeClass;
+
                 html += `
-                    <div class="p-4 mb-3 flex justify-between items-center slot-card">
+                    <div class="p-5 mb-3 flex justify-between items-center slot-card ${cardClass}">
                         <div>
-                            <span class="text-[10px] font-bold text-gray-300 uppercase">${h}</span>
-                            <span class="block font-semibold text-gray-700 text-base">${ocupado ? ocupado.paciente : '<span class="text-gray-300 font-normal">Disponível</span>'}</span>
-                            ${ocupado ? `<span class="status-badge bg-gray-50 text-gray-500 mt-1 inline-block border">${ocupado.servico}</span>` : ''}
+                            <span class="text-[10px] font-black uppercase opacity-60">${h}</span>
+                            <span class="block font-black text-lg">${ocupado ? ocupado.paciente : 'Livre'}</span>
+                            ${ocupado ? `<span class="status-badge mt-1 inline-block">${ocupado.servico}</span>` : ''}
                         </div>
-                        ${ocupado ? `<button onclick="openWhatsApp('${pacientes.find(p=>p.name===ocupado.paciente)?.phone || ''}')" class="btn-whatsapp"><i class="fab fa-whatsapp"></i></button>` : `<button onclick="abrirAgenda('${h}', '${cat}')" class="text-gray-600 font-bold text-[11px] uppercase tracking-wider bg-gray-50 px-4 py-2 rounded-xl border">+ Agendar</button>`}
+                        ${ocupado ? `<button onclick="openWhatsApp('${pacientes.find(p=>p.name===ocupado.paciente)?.phone || ''}')" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white"><i class="fab fa-whatsapp text-lg"></i></button>` : `<button onclick="abrirAgenda('${h}', '${cat}')" class="text-slate-900 font-black text-[11px] uppercase border-2 border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-100">Agendar</button>`}
                     </div>`;
                 t.setMinutes(t.getMinutes() + step);
             }
@@ -202,46 +200,33 @@
             const medicoEsportivo = (diaSemana === 2) ? "Dra. Líbia" : "Dr. Geraldo";
             const filtrar = (cat) => agendamentos.filter(a => cleanDate(a.data) === dataF && a.categoria.trim() === cat.trim());
 
-            const gerarTabela = (titulo, dados, corDestaque) => `
+            const gerarTabela = (titulo, dados, corHex) => `
                 <div class="mb-8 luxury-card overflow-hidden">
-                    <div class="p-4 flex justify-between items-center header-print border-b border-gray-100" style="background-color: var(--cream-accent)">
-                        <span class="font-bold text-xs uppercase tracking-widest" style="color:${corDestaque}">${titulo}</span>
-                        <span class="text-[11px] text-gray-400">${dados.length} pacientes</span>
-                    </div>
+                    <div class="p-4 text-white font-black text-xs uppercase" style="background:${corHex}">${titulo}</div>
                     <table class="w-full text-[11px]">
-                        <thead><tr class="text-gray-400 bg-white">
-                            <th class="p-3">H</th><th class="p-3">Paciente</th><th class="p-3">Tel/WA</th><th class="p-3">Nasc.</th><th class="p-3">Serv.</th>
+                        <thead><tr class="text-slate-400 bg-slate-50 border-b">
+                            <th class="p-3">H</th><th class="p-3">Paciente</th><th class="p-3">Tel</th><th class="p-3">S</th>
                         </tr></thead>
                         <tbody>
                             ${dados.map(a => {
                                 const p = pacientes.find(pac => pac.name === a.paciente) || {};
-                                return `<tr class="border-t border-gray-100 bg-white">
-                                    <td class="p-3 font-bold">${a.hora.includes('T') ? a.hora.split('T')[1].substring(0,5) : a.hora}</td>
-                                    <td class="p-3 font-semibold uppercase text-gray-700">${a.paciente}</td>
-                                    <td class="p-3">
-                                        <div class="flex items-center gap-2">
-                                            <span>${p.phone || ''}</span>
-                                            ${p.phone ? `<i class="fab fa-whatsapp text-green-500 cursor-pointer" onclick="openWhatsApp('${p.phone}')"></i>` : ''}
-                                        </div>
-                                    </td>
-                                    <td class="p-3 text-gray-500">${cleanDate(p.nasc)}</td>
+                                return `<tr class="border-b font-bold text-slate-700">
+                                    <td class="p-3">${a.hora.includes('T') ? a.hora.split('T')[1].substring(0,5) : a.hora}</td>
+                                    <td class="p-3 uppercase">${a.paciente}</td>
+                                    <td class="p-3">${p.phone || ''}</td>
                                     <td class="p-3">${a.servico}</td>
                                 </tr>`;
-                            }).join('') || '<tr><td colspan="5" class="p-6 text-center text-gray-300">Vazio</td></tr>'}
+                            }).join('') || '<tr><td colspan="4" class="p-6 text-center text-slate-300">Vazio</td></tr>'}
                         </tbody>
                     </table>
                 </div>`;
 
             document.getElementById('content').innerHTML = `
-                <div class="flex flex-col gap-4 no-print mb-8 centrale">
-                    <button onclick="window.print()" class="bg-gray-800 text-white p-5 rounded-2xl font-bold shadow-xl flex items-center justify-center gap-3">
-                        <i class="fas fa-print"></i> GERAR PDF / IMPRIMIR MAPA
-                    </button>
-                </div>
+                <button onclick="window.print()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black mb-10 no-print shadow-xl">IMPRIMIR PDF</button>
                 <div class="print-area">
-                    <div class="text-center mb-8">
-                        <h2 class="text-2xl font-bold text-gray-800">Mapa do Dia</h2>
-                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">${dataF}</p>
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl font-black text-slate-900 uppercase">Mapa do Dia</h2>
+                        <p class="font-black text-slate-400 tracking-[5px]">${dataF}</p>
                     </div>
                     ${gerarTabela(`Esportivo: ${medicoEsportivo}`, filtrar('Esportivo'), 'var(--cat-esportivo)')}
                     ${gerarTabela('Emagrecimento: Dr. Bruno', filtrar('Emagrecimento'), 'var(--cat-emagrecimento)')}
@@ -254,25 +239,25 @@
             const p = pacientes.find(p => p.name.toLowerCase().includes(nome.toLowerCase())); if(!p) return;
             const hist = agendamentos.filter(a => a.paciente.trim() === p.name.trim());
             res.innerHTML = `
-                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 mb-6 flex justify-between items-center">
+                <div class="bg-slate-900 p-6 rounded-3xl text-white mb-6 flex justify-between items-center">
                     <div>
-                        <h4 class="text-lg font-semibold uppercase text-gray-700">${p.name}</h4>
-                        <p class="text-xs text-gray-500">Nasc: ${cleanDate(p.nasc)} | Tel: ${p.phone}</p>
+                        <h4 class="text-xl font-black uppercase">${p.name}</h4>
+                        <p class="text-xs opacity-60">Nasc: ${cleanDate(p.nasc)} | Tel: ${p.phone}</p>
                     </div>
-                    <button onclick="openWhatsApp('${p.phone}')" class="btn-whatsapp"><i class="fab fa-whatsapp mr-1"></i> Chamar</button>
+                    <button onclick="openWhatsApp('${p.phone}')" class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center"><i class="fab fa-whatsapp text-xl"></i></button>
                 </div>
                 <div class="space-y-2">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase px-2">Histórico de Visitas</p>
-                    ${hist.map(h => `<div class="bg-white p-3 rounded-xl border border-gray-100 text-xs"><b>${cleanDate(h.data)}</b> - ${h.servico} (${h.hora.includes('T') ? h.hora.split('T')[1].substring(0,5) : h.hora})</div>`).join('') || '<p class="text-center text-gray-300 py-6">Nenhum registro.</p>'}
+                    <p class="text-[10px] font-black text-slate-400 uppercase px-2">Histórico Clínico</p>
+                    ${hist.map(h => `<div class="bg-white p-3 rounded-xl border font-bold text-xs"><b>${cleanDate(h.data)}</b> - ${h.servico}</div>`).join('') || '<p class="text-center text-slate-300 py-6 font-bold">Sem registros.</p>'}
                 </div>`;
         }
 
-        function abrirAgenda(h, c) { selectedTime = h; selectedCat = c; document.getElementById('info-horario').innerText = `Central de Agendamento • ${c} às ${h}`; document.getElementById('modal-agenda').classList.remove('hidden'); }
+        function abrirAgenda(h, c) { selectedTime = h; selectedCat = c; document.getElementById('info-horario').innerText = `${c} • às ${h}`; document.getElementById('modal-agenda').classList.remove('hidden'); }
         function fecharModal() { document.getElementById('modal-agenda').classList.add('hidden'); }
         function filtrarModal(v) {
             const l = document.getElementById('lista-pacientes-modal');
             const f = pacientes.filter(p => p.name.toLowerCase().includes(v.toLowerCase()));
-            l.innerHTML = f.map(p => `<div onclick="selecionarParaAgenda('${p.name}')" class="p-4 border-b border-gray-100 hover:bg-gray-50 font-medium text-sm cursor-pointer">${p.name}</div>`).join('');
+            l.innerHTML = f.map(p => `<div onclick="selecionarParaAgenda('${p.name}')" class="p-4 border-b hover:bg-slate-50 font-bold text-sm cursor-pointer">${p.name}</div>`).join('');
         }
         function selecionarParaAgenda(n) { selectedPac = n; document.getElementById('busca-paciente-modal').value = n; const b = document.getElementById('btn-confirmar'); b.disabled = false; b.classList.replace('opacity-30', 'opacity-100'); b.onclick = confirmarAgendamento; }
         async function confirmarAgendamento() {
@@ -283,9 +268,9 @@
         }
         async function salvarPaciente() {
             const n = document.getElementById('n').value, t = document.getElementById('t').value, d = document.getElementById('d').value;
-            if(!n || !t) return alert("Nome e Telefone são obrigatórios!");
+            if(!n || !t) return alert("Nome e WhatsApp são obrigatórios!");
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t, nascimento: d }) });
-            alert("✨ Paciente Cadastrado!"); loadData();
+            alert("✅ Cadastro Realizado!"); loadData();
         }
     </script>
 </body>
