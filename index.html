@@ -9,26 +9,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --main-purple: #4a148c; 
             --cat-esportivo: #f97316; 
             --cat-emagrecimento: #3b82f6; 
             --cat-aplicacao: #a855f7; 
         }
-        body { background: #ffffff; font-family: 'Quicksand', sans-serif; color: #1a1a1a; }
+        body { background: #ffffff; font-family: 'Quicksand', sans-serif; color: #1a1a1a; margin: 0; padding: 0; }
         .luxury-card { background: white; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; }
         .tab-btn { transition: all 0.3s ease; border-radius: 16px; color: #666; }
-        .tab-active { background: #f8f5ff; color: var(--main-purple) !important; font-weight: 700; }
-        .slot-card { transition: all 0.2s ease; border-radius: 20px; border: 2px solid transparent; cursor: pointer; }
+        .tab-active { background: #f8f5ff; color: #4a148c !important; font-weight: 700; }
         
-        /* Borda para horários livres */
-        .free-esportivo { border-left: 8px solid var(--cat-esportivo); background: #fffaf7; border-color: #f0f0f0; }
-        .free-emagrecimento { border-left: 8px solid var(--cat-emagrecimento); background: #f7faff; border-color: #f0f0f0; }
-        .free-aplicacao { border-left: 8px solid var(--cat-aplicacao); background: #fbf7ff; border-color: #f0f0f0; }
+        .full-header { width: 100%; margin: 0; padding: 0; background: #fff; }
+        .full-header img { width: 100%; display: block; height: auto; border-bottom: 1px solid #eee; }
 
-        /* Cores sólidas para ocupados */
-        .busy-esportivo { background: var(--cat-esportivo) !important; color: white !important; }
-        .busy-emagrecimento { background: var(--cat-emagrecimento) !important; color: white !important; }
-        .busy-aplicacao { background: var(--cat-aplicacao) !important; color: white !important; }
+        .slot-card { transition: all 0.2s ease; border-radius: 20px; border: 1px solid #f0f0f0; cursor: pointer; }
+        .free-esportivo { border-left: 15px solid var(--cat-esportivo) !important; background: #fffaf7; }
+        .free-emagrecimento { border-left: 15px solid var(--cat-emagrecimento) !important; background: #f7faff; }
+        .free-aplicacao { border-left: 15px solid var(--cat-aplicacao) !important; background: #fbf7ff; }
+
+        .busy-esportivo { background: var(--cat-esportivo) !important; color: white !important; border: none; }
+        .busy-emagrecimento { background: var(--cat-emagrecimento) !important; color: white !important; border: none; }
+        .busy-aplicacao { background: var(--cat-aplicacao) !important; color: white !important; border: none; }
         .busy-card span, .busy-card p { color: white !important; }
 
         @media print { .no-print { display: none !important; } .print-area { display: block !important; } }
@@ -36,16 +36,12 @@
 </head>
 <body class="pb-32">
 
-    <header class="w-full bg-white no-print">
-        <div class="max-w-xl mx-auto flex flex-col items-center">
-            <img src="logo.png" alt="Dr. Jorge Salomão" class="w-full max-h-56 object-contain p-4" onerror="this.style.display='none'">
-            
-            <div class="flex flex-col items-center gap-2 pb-8">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[4px]">Portal de Agendamento</p>
-                <div class="bg-slate-50 p-2 px-5 rounded-full inline-flex items-center gap-3 border-2 border-slate-200 shadow-sm">
-                    <i class="far fa-calendar-alt text-slate-900"></i>
-                    <input type="date" id="data-seletor" onchange="render()" class="bg-transparent font-black text-sm outline-none border-none text-slate-900 cursor-pointer">
-                </div>
+    <header class="full-header no-print">
+        <img src="logo.png" alt="Dr. Jorge Salomão" onerror="this.style.display='none'">
+        <div class="max-w-xl mx-auto flex flex-col items-center gap-2 py-4">
+            <div class="bg-slate-50 p-2 px-5 rounded-full inline-flex items-center gap-3 border-2 border-slate-200 shadow-sm">
+                <i class="far fa-calendar-alt text-slate-900"></i>
+                <input type="date" id="data-seletor" onchange="render()" class="bg-transparent font-black text-sm outline-none border-none text-slate-900 cursor-pointer">
             </div>
         </div>
     </header>
@@ -61,12 +57,13 @@
 
     <div id="modal-agenda" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center">
         <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-8 shadow-2xl">
-            <h2 id="modal-titulo" class="font-bold text-2xl mb-1 text-slate-900 uppercase">Agendar</h2>
+            <h2 id="modal-titulo" class="font-bold text-2xl mb-1 text-slate-900 uppercase">Detalhes</h2>
             <p id="info-horario" class="text-slate-500 font-bold mb-4 text-sm"></p>
             
-            <div id="ficha-paciente-edicao" class="hidden bg-slate-50 p-4 rounded-2xl mb-4 border text-xs space-y-1">
-                <p><b>📧 E-mail:</b> <span id="view-email"></span></p>
+            <div id="ficha-paciente-edicao" class="hidden bg-slate-50 p-5 rounded-2xl mb-4 border text-xs space-y-2">
+                <p><b>📧 Email:</b> <span id="view-email"></span></p>
                 <p><b>📏 Altura:</b> <span id="view-altura"></span></p>
+                <p><b>📱 WhatsApp:</b> <span id="view-phone"></span></p>
                 <p><b>🎂 Nasc:</b> <span id="view-nasc"></span></p>
             </div>
 
@@ -77,14 +74,14 @@
                 <option value="APLICAÇÃO">APLICAÇÃO</option>
             </select>
 
-            <input type="text" id="busca-paciente-modal" oninput="filtrarModal(this.value)" placeholder="🔍 Nome do paciente..." class="w-full p-4 bg-slate-50 border rounded-2xl mb-2 font-bold outline-none">
+            <input type="text" id="busca-paciente-modal" oninput="filtrarModal(this.value)" placeholder="🔍 Buscar nome..." class="w-full p-4 bg-slate-50 border rounded-2xl mb-2 font-bold outline-none">
             <div id="lista-pacientes-modal" class="max-h-40 overflow-y-auto rounded-xl mb-6 bg-slate-50 border"></div>
             
             <div class="flex flex-col gap-3">
-                <button id="btn-confirmar" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black opacity-30 shadow-lg" disabled>SALVAR ALTERAÇÃO</button>
+                <button id="btn-confirmar" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black opacity-30 shadow-lg" disabled>SALVAR</button>
                 <div class="flex gap-2">
-                    <button onclick="fecharModal()" class="flex-1 p-4 bg-slate-100 rounded-2xl font-bold text-slate-400 text-sm uppercase">Cancelar</button>
-                    <button id="btn-remover" class="hidden flex-1 p-4 bg-red-50 text-red-500 rounded-2xl font-bold text-sm uppercase">Remover</button>
+                    <button onclick="fecharModal()" class="flex-1 p-4 bg-slate-100 rounded-2xl font-bold text-slate-400 text-sm uppercase">Sair</button>
+                    <button id="btn-remover" class="hidden flex-1 p-4 bg-red-50 text-red-500 rounded-2xl font-bold text-sm uppercase">Excluir</button>
                 </div>
             </div>
         </div>
@@ -128,17 +125,16 @@
             const diaSemana = dataObj.getDay(); 
             const dataSel = dataInput.split('-').reverse().join('/');
             
-            // TRAVA: Apenas Terça (2) e Quinta (4)
             if (window.currentTab === 'agenda') {
                 if (diaSemana !== 2 && diaSemana !== 4) {
-                    container.innerHTML = `<div class="p-12 text-center luxury-card mt-10"><i class="fas fa-door-closed text-4xl text-slate-200 mb-4"></i><p class="text-slate-900 font-black">CONSULTÓRIO FECHADO</p><p class="text-slate-400 text-xs">Atendimento apenas às terças e quintas.</p></div>`;
+                    container.innerHTML = `<div class="p-12 text-center luxury-card mt-10"><p class="text-slate-900 font-black uppercase">Atendimento Terças e Quintas</p></div>`;
                     return;
                 }
                 container.innerHTML = `<div class="space-y-10">${renderSection('Esportivo', 'free-esportivo', 'busy-esportivo', 25, dataSel)}${renderSection('Emagrecimento', 'free-emagrecimento', 'busy-emagrecimento', 35, dataSel)}${renderSection('Aplicação', 'free-aplicacao', 'busy-aplicacao', 30, dataSel)}</div>`;
             } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Cadastro</h2><div class="space-y-4"><input type="text" id="n" placeholder="Nome" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="text" id="d" placeholder="Nascimento" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="email" id="em" placeholder="E-mail" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="text" id="alt" placeholder="Altura (ex: 1,75)" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><button onclick="salvarPaciente()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg">SALVAR NO BANCO</button></div></div>`;
+                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Novo Cadastro</h2><div class="space-y-4"><input type="text" id="n" placeholder="Nome" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="text" id="d" placeholder="Nascimento" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="email" id="em" placeholder="E-mail" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="text" id="alt" placeholder="Altura" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><button onclick="salvarPaciente()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg">CADASTRAR</button></div></div>`;
             } else if (window.currentTab === 'busca') {
-                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Pesquisar Ficha</h2><input type="text" oninput="buscarFicha(this.value)" placeholder="🔍 Digite o nome..." class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold mb-6"><div id="res-busca"></div></div>`;
+                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Fichas</h2><input type="text" oninput="buscarFicha(this.value)" placeholder="🔍 Buscar nome..." class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold mb-6"><div id="res-busca"></div></div>`;
             } else if (window.currentTab === 'relatorio') {
                 renderRelatorio(dataSel);
             }
@@ -150,8 +146,8 @@
             while(t.getHours() < 12) {
                 let h = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 const ocupado = agendamentos.find(a => cleanDate(a.data) === dataF && a.categoria.trim() === cat.trim() && a.hora.includes(h));
-                const cardClass = ocupado ? `busy-card busy-card ${busyClass}` : freeClass;
-                html += `<div onclick='abrirModal("${h}", "${cat}", ${ocupado ? JSON.stringify(ocupado).replace(/"/g, '&quot;') : "null"})' class="p-5 mb-3 flex justify-between items-center slot-card ${cardClass}"><div><span class="text-[10px] font-black uppercase opacity-60">${h}</span><span class="block font-black text-lg">${ocupado ? ocupado.paciente : 'Livre'}</span>${ocupado ? `<span class="status-badge">${ocupado.servico}</span>` : ''}</div><i class="fas ${ocupado ? 'fa-user-check opacity-40' : 'fa-plus text-slate-300'}"></i></div>`;
+                const cardClass = ocupado ? `busy-card ${busyClass}` : freeClass;
+                html += `<div onclick='abrirModal("${h}", "${cat}", ${ocupado ? JSON.stringify(ocupado).replace(/"/g, '&quot;') : "null"})' class="p-5 mb-3 flex justify-between items-center slot-card ${cardClass}"><div><span class="text-[10px] font-black uppercase opacity-60">${h}</span><span class="block font-black text-lg">${ocupado ? ocupado.paciente : 'Livre'}</span></div><i class="fas ${ocupado ? 'fa-check-circle opacity-40' : 'fa-plus text-slate-300'}"></i></div>`;
                 t.setMinutes(t.getMinutes() + step);
             }
             return html + `</section>`;
@@ -159,65 +155,71 @@
 
         function buscarFicha(nome) {
             const res = document.getElementById('res-busca'); if(nome.length < 2) return;
-            const p = pacientes.find(p => p.name.toLowerCase().includes(nome.toLowerCase())); if(!p) return;
-            const hist = agendamentos.filter(a => a.paciente.trim() === p.name.trim()).sort((a,b) => new Date(b.data) - new Date(a.data));
+            const p = pacientes.find(p => p.nome.toLowerCase().includes(nome.toLowerCase())); if(!p) return;
+            const hist = agendamentos.filter(a => a.paciente.trim() === p.nome.trim()).sort((a,b) => new Date(b.data) - new Date(a.data));
             res.innerHTML = `
                 <div class="bg-slate-900 p-6 rounded-3xl text-white mb-6">
-                    <h4 class="text-xl font-black uppercase">${p.name}</h4>
+                    <h4 class="text-xl font-black uppercase">${p.nome}</h4>
                     <div class="text-[11px] opacity-70 mt-3 space-y-1">
                         <p>📧 Email: ${p.email || '--'}</p>
                         <p>📏 Altura: ${p.altura || '--'}</p>
-                        <p>🎂 Nasc: ${cleanDate(p.nasc)}</p>
-                        <p>📱 WhatsApp: ${p.phone}</p>
+                        <p>📱 WhatsApp: ${p.telefone || '--'}</p>
+                        <p>🎂 Nasc: ${cleanDate(p.nascimento)}</p>
                     </div>
                 </div>
                 <div class="space-y-2">
-                    <p class="text-[10px] font-black text-slate-400 uppercase px-2">Histórico na Clínica</p>
-                    ${hist.map(h => `<div class="bg-white p-4 rounded-2xl border font-bold text-xs flex justify-between"><span>${cleanDate(h.data)}</span><span class="text-purple-600">${h.servico}</span></div>`).join('') || '<p class="text-slate-300 text-center py-4">Sem histórico.</p>'}
+                    <p class="text-[10px] font-black text-slate-400 uppercase px-2 tracking-widest">Histórico</p>
+                    ${hist.map(h => `<div class="bg-white p-4 rounded-2xl border font-bold text-xs flex justify-between"><span>${cleanDate(h.data)}</span><span class="text-blue-600 uppercase">${h.servico}</span></div>`).join('') || '<p class="text-slate-300 text-center py-4">Vazio.</p>'}
                 </div>`;
         }
 
         function renderRelatorio(dataF) {
             const filtrar = (cat) => agendamentos.filter(a => cleanDate(a.data) === dataF && a.categoria.trim() === cat.trim());
-            const gerarTabela = (titulo, dados) => `
-                <div class="mb-6 luxury-card p-4">
-                    <h4 class="font-black text-xs uppercase mb-3 border-b pb-2">${titulo}</h4>
-                    <div class="space-y-2 text-[11px]">
-                        ${dados.map(a => `<div class="flex justify-between border-b pb-1"><span><b>${a.hora}</b> - ${a.paciente}</span><span>${a.servico}</span></div>`).join('') || 'Nenhum agendamento'}
+            const gerarTabela = (titulo, dados, cor) => `
+                <div class="mb-6 luxury-card p-5 border-l-[15px]" style="border-left-color: ${cor}">
+                    <h4 class="font-black text-sm uppercase mb-4" style="color: ${cor}">${titulo}</h4>
+                    <div class="space-y-4 text-[12px]">
+                        ${dados.map(a => {
+                            const p = pacientes.find(pac => pac.nome === a.paciente);
+                            return `<div class="border-b pb-3">
+                                <div class="flex justify-between font-black"><span>${a.hora} - ${a.paciente}</span><span>${a.servico}</span></div>
+                                <div class="text-slate-500 font-bold mt-1">WhatsApp: ${p ? p.telefone : '--'}</div>
+                            </div>`;
+                        }).join('') || '<span class="text-slate-300 italic">Vazio</span>'}
                     </div>
                 </div>`;
 
             document.getElementById('content').innerHTML = `
                 <div class="print-area">
                     <div class="text-center mb-8">
-                        <h2 class="text-2xl font-black">Mapa de Atendimento</h2>
+                        <h2 class="text-2xl font-black uppercase">Mapa de Atendimento</h2>
                         <p class="text-slate-400 font-bold">${dataF}</p>
                     </div>
-                    ${gerarTabela('Esportivo', filtrar('Esportivo'))}
-                    ${gerarTabela('Emagrecimento', filtrar('Emagrecimento'))}
-                    ${gerarTabela('Aplicações', filtrar('Aplicação'))}
-                    <button onclick="window.print()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black no-print">IMPRIMIR RELATÓRIO</button>
+                    ${gerarTabela('Esportivo', filtrar('Esportivo'), '#f97316')}
+                    ${gerarTabela('Emagrecimento', filtrar('Emagrecimento'), '#3b82f6')}
+                    ${gerarTabela('Aplicações', filtrar('Aplicação'), '#a855f7')}
+                    <button onclick="window.print()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black no-print mt-6">IMPRIMIR</button>
                 </div>`;
         }
 
-        // Funções de Modal e Salvamento (Mesma lógica robusta anterior)
         function abrirModal(h, cat, dadosOcupado) {
             selectedTime = h; selectedCat = cat;
             document.getElementById('info-horario').innerText = `${cat} às ${h}`;
             document.getElementById('modal-agenda').classList.remove('hidden');
             if(dadosOcupado) {
                 editId = dadosOcupado.id;
-                document.getElementById('modal-titulo').innerText = "Editar Horário";
+                document.getElementById('modal-titulo').innerText = "Editar";
                 document.getElementById('busca-paciente-modal').value = dadosOcupado.paciente;
                 document.getElementById('tipo-servico').value = dadosOcupado.servico;
                 document.getElementById('btn-remover').classList.remove('hidden');
                 document.getElementById('btn-remover').onclick = removerAgendamento;
-                const p = pacientes.find(p => p.name === dadosOcupado.paciente);
+                const p = pacientes.find(p => p.nome === dadosOcupado.paciente);
                 if(p) {
                     document.getElementById('ficha-paciente-edicao').classList.remove('hidden');
                     document.getElementById('view-email').innerText = p.email || '--';
                     document.getElementById('view-altura').innerText = p.altura || '--';
-                    document.getElementById('view-nasc').innerText = cleanDate(p.nasc);
+                    document.getElementById('view-phone').innerText = p.telefone || '--';
+                    document.getElementById('view-nasc').innerText = cleanDate(p.nascimento);
                 }
                 selecionarParaAgenda(dadosOcupado.paciente);
             } else {
@@ -229,11 +231,12 @@
                 document.getElementById('btn-confirmar').disabled = true;
             }
         }
+
         function fecharModal() { document.getElementById('modal-agenda').classList.add('hidden'); }
         function filtrarModal(v) {
             const l = document.getElementById('lista-pacientes-modal');
-            const f = pacientes.filter(p => p.name.toLowerCase().includes(v.toLowerCase()));
-            l.innerHTML = f.map(p => `<div onclick="selecionarParaAgenda('${p.name}')" class="p-4 border-b hover:bg-slate-50 font-bold text-sm cursor-pointer">${p.name}</div>`).join('');
+            const f = pacientes.filter(p => p.nome.toLowerCase().includes(v.toLowerCase()));
+            l.innerHTML = f.map(p => `<div onclick="selecionarParaAgenda('${p.nome}')" class="p-4 border-b hover:bg-slate-50 font-bold text-sm cursor-pointer">${p.nome}</div>`).join('');
         }
         function selecionarParaAgenda(n) {
             selectedPac = n; document.getElementById('busca-paciente-modal').value = n;
@@ -253,9 +256,9 @@
         }
         async function salvarPaciente() {
             const n = document.getElementById('n').value, t = document.getElementById('t').value, d = document.getElementById('d').value, em = document.getElementById('em').value, alt = document.getElementById('alt').value;
-            if(!n || !t) return alert("Preencha Nome e WhatsApp!");
+            if(!n || !t) return alert("Nome e WhatsApp são obrigatórios!");
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t, nascimento: d, email: em, altura: alt }) });
-            alert("✅ Cadastrado!"); loadData();
+            alert("✅ Sucesso!"); loadData();
         }
     </script>
 </body>
