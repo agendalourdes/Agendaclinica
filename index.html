@@ -22,18 +22,18 @@
         .b-blq  { background:#fef2f2; color:#dc2626; }
 
         .slot { border-radius:18px; border:1px solid #f0f0f0; cursor:pointer; margin-bottom:10px; background:#fff; padding:18px 20px; }
-        .sl-esp  { border-left:8px solid var(--esp); }
-        .sl-emag { border-left:8px solid var(--emag); }
-        .sl-aplic{ border-left:8px solid var(--aplic); }
-        .sl-busy { border:none!important; color:#fff!important; }
-        .bg-esp  { background:var(--esp)!important; }
-        .bg-emag { background:var(--emag)!important; }
-        .bg-aplic{ background:var(--aplic)!important; }
+        .sl-esp   { border-left:8px solid var(--esp); }
+        .sl-emag  { border-left:8px solid var(--emag); }
+        .sl-aplic { border-left:8px solid var(--aplic); }
+        .sl-busy  { border:none!important; color:#fff!important; }
+        .bg-esp   { background:var(--esp)!important; }
+        .bg-emag  { background:var(--emag)!important; }
+        .bg-aplic { background:var(--aplic)!important; }
 
         nav button { transition:color .15s; }
         .tab-on { color:var(--roxo)!important; font-weight:800; border-top:3px solid var(--roxo); }
 
-        .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; display:flex; align-items:flex-end; justify-content:center; }
+        .modal-bg  { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; display:flex; align-items:flex-end; justify-content:center; }
         .modal-box { background:#fff; width:100%; max-width:480px; border-radius:28px 28px 0 0; padding:28px 24px 40px; max-height:92vh; overflow-y:auto; }
         @media(min-height:700px){ .modal-bg{align-items:center} .modal-box{border-radius:28px} }
 
@@ -108,9 +108,6 @@
 <div id="print-area"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-//  CONFIG — troque pela sua URL do Apps Script
-// ══════════════════════════════════════════════════════════════
 const API = "https://script.google.com/macros/s/AKfycbxelLqGzMtYQ-DeWPj4SAsqtNFkScV_pnSnRP7xLUchJZlhHwm9kbwV7AUfOWZ7LVDx/exec";
 
 let pacs = [], appts = [];
@@ -118,7 +115,6 @@ let mTime, mCat, mId = null, mTel = null;
 
 // ── INIT ──────────────────────────────────────────────────────
 window.onload = () => {
-    // Abre na próxima terça
     const d = new Date();
     const diff = (2 - d.getDay() + 7) % 7 || 7;
     d.setDate(d.getDate() + diff);
@@ -128,61 +124,87 @@ window.onload = () => {
     loadAll();
 };
 
-// ── API (tudo via GET) ────────────────────────────────────────
-async function get(params) {
+// ── API ───────────────────────────────────────────────────────
+async function api(params) {
     const url = API + '?' + new URLSearchParams(params).toString();
     const r = await fetch(url);
-    return r.json();
+    const text = await r.text();
+    try { return JSON.parse(text); }
+    catch(e) { console.error('Parse error:', text); return { error: text }; }
 }
 
 async function loadAll() {
     showSpinner();
     try {
-        const d = await get({ action: 'getAll' });
+        const d = await api({ action: 'getAll' });
+        if (d.error) { console.error('API error:', d.error); }
         pacs  = d.patients || [];
         appts = (d.appointments || []).map(a => ({
             ...a,
-            data: fixDate(a.data),
-            hora: fixTime(a.hora)
+            data: normDate(a.data),
+            hora: normHora(a.hora)
         }));
-    } catch(e) { console.error('Erro loadAll:', e); }
+    } catch(e) { console.error('loadAll error:', e); }
     render();
 }
 
-// ── DATE HELPERS ──────────────────────────────────────────────
+// ── NORMALIZAÇÃO DE DATA E HORA ───────────────────────────────
+// Garante DD/MM/YYYY
+function normDate(v) {
+    if (!v) return '';
+    v = String(v).trim();
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(v)) return v;
+    // YYYY-MM-DD
+    const m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+    // Formato ISO completo
+    try {
+        const d = new Date(v);
+        if (!isNaN(d)) {
+            return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
+        }
+    } catch(e) {}
+    return v;
+}
+
+// Garante HH:MM
+function normHora(v) {
+    if (!v) return '';
+    v = String(v).trim();
+    if (/^\d{2}:\d{2}$/.test(v)) return v;
+    // HH:MM:SS
+    const m = v.match(/^(\d{2}):(\d{2})/);
+    if (m) return `${m[1]}:${m[2]}`;
+    // Número decimal (fração do dia)
+    const n = parseFloat(v);
+    if (!isNaN(n) && n >= 0 && n < 1) {
+        const tot = Math.round(n * 1440);
+        return `${pad(Math.floor(tot/60))}:${pad(tot%60)}`;
+    }
+    // ISO date com hora
+    try {
+        const d = new Date(v);
+        if (!isNaN(d)) return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+    } catch(e) {}
+    return v;
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+// ── DATAS ─────────────────────────────────────────────────────
 function getISO()  { return document.getElementById('datepicker').value; }
 function getBR()   { const [y,m,d] = getISO().split('-'); return `${d}/${m}/${y}`; }
 function weekday() { return new Date(getISO()+'T12:00:00').getDay(); }
 function allowed() { const w=weekday(); return w===2||w===4; }
 function profEsp() { return weekday()===2 ? 'Líbia' : 'Geraldo'; }
 
-function fixDate(v) {
-    if (!v) return '';
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(v)) return v;
-    try {
-        const d = new Date(v);
-        if (!isNaN(d)) return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
-    } catch(e){}
-    return v;
-}
-function fixTime(v) {
-    if (!v) return '';
-    if (/^\d{2}:\d{2}$/.test(v)) return v;
-    try {
-        const d = new Date(v);
-        if (!isNaN(d)) return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
-    } catch(e){}
-    return v;
-}
-function pad(n) { return String(n).padStart(2,'0'); }
-
 function onDateChange() { updateBadge(); render(); }
 function updateBadge() {
     const b = document.getElementById('day-badge');
     const w = weekday();
-    if      (w===2) { b.textContent='TERÇA';    b.className='badge b-ter'; }
-    else if (w===4) { b.textContent='QUINTA';   b.className='badge b-qui'; }
-    else            { b.textContent='BLOQUEADO';b.className='badge b-blq'; }
+    if      (w===2) { b.textContent='TERÇA';     b.className='badge b-ter'; }
+    else if (w===4) { b.textContent='QUINTA';    b.className='badge b-qui'; }
+    else            { b.textContent='BLOQUEADO'; b.className='badge b-blq'; }
 }
 
 // ── TABS ──────────────────────────────────────────────────────
@@ -192,7 +214,6 @@ function showTab(t) {
     document.getElementById('tab-'+t).classList.add('tab-on');
     render();
 }
-
 function showSpinner() {
     document.getElementById('content').innerHTML = '<div class="spinner"></div>';
 }
@@ -200,44 +221,65 @@ function showSpinner() {
 // ── RENDER ────────────────────────────────────────────────────
 function render() {
     const c = document.getElementById('content');
+
     if (window.TAB === 'agenda') {
-        if (!allowed()) { c.innerHTML=`<div class="mt-12 text-center"><div class="text-5xl mb-3">🚫</div><p class="font-bold text-red-400">Selecione uma terça ou quinta-feira.</p></div>`; return; }
+        if (!allowed()) {
+            c.innerHTML = `<div class="mt-12 text-center">
+                <div class="text-5xl mb-3">🚫</div>
+                <p class="font-bold text-red-400 text-lg">Selecione uma terça ou quinta-feira.</p>
+            </div>`;
+            return;
+        }
         c.innerHTML =
-            catHTML('Esportivo', profEsp(), 'sl-esp','bg-esp', 25) +
-            catHTML('Emagrecimento','Bruno','sl-emag','bg-emag',35) +
-            catHTML('Aplicação','','sl-aplic','bg-aplic',30);
+            catHTML('Esportivo',     profEsp(), 'sl-esp',  'bg-esp',  25) +
+            catHTML('Emagrecimento', 'Bruno',   'sl-emag', 'bg-emag', 35) +
+            catHTML('Aplicação',     '',        'sl-aplic','bg-aplic', 30);
 
     } else if (window.TAB === 'historico') {
-        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm">
+        c.innerHTML = `
+        <div class="bg-white p-6 rounded-3xl border shadow-sm">
             <h2 class="font-black text-xl mb-4 uppercase">Histórico</h2>
             <div class="relative">
-                <input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Nome do paciente..." autocomplete="off"
+                <input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text"
+                    placeholder="Nome do paciente..." autocomplete="off"
                     class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm">
                 <div id="sug-hist" class="sug hidden"></div>
             </div>
-            <div id="hist-list" class="mt-5 space-y-3"></div></div>`;
+            <div id="hist-list" class="mt-5 space-y-3"></div>
+        </div>`;
 
     } else if (window.TAB === 'cadastro') {
-        c.innerHTML = `<div class="p-6 bg-white rounded-3xl border shadow-sm">
+        c.innerHTML = `
+        <div class="p-6 bg-white rounded-3xl border shadow-sm">
             <h2 class="font-black text-2xl mb-6 uppercase text-center">Cadastro</h2>
             <div class="space-y-3">
-                <input id="c-nome"   placeholder="Nome completo *" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <input id="c-tel"    placeholder="WhatsApp (com DDD)" type="tel"    class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <input id="c-nasc"   placeholder="Nascimento (DD/MM/AAAA)"          class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <input id="c-email"  placeholder="E-mail"            type="email"   class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <input id="c-altura" placeholder="Altura (cm)"       type="number"  class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
-                <button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm">SALVAR PACIENTE</button>
-            </div></div>`;
+                <input id="c-nome"   placeholder="Nome completo *"
+                    class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <input id="c-tel"    placeholder="WhatsApp (com DDD)" type="tel"
+                    class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <input id="c-nasc"   placeholder="Nascimento (DD/MM/AAAA)"
+                    class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <input id="c-email"  placeholder="E-mail" type="email"
+                    class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <input id="c-altura" placeholder="Altura (cm)" type="number"
+                    class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <button onclick="cadastrar()"
+                    class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm">SALVAR PACIENTE</button>
+            </div>
+        </div>`;
 
     } else if (window.TAB === 'fichas') {
-        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm">
+        c.innerHTML = `
+        <div class="bg-white p-6 rounded-3xl border shadow-sm">
             <h2 class="font-black text-xl mb-4 uppercase">Fichas</h2>
             <div class="relative">
-                <input id="inp-fichas" oninput="sugerir(this.value,'sug-fichas')" type="text" placeholder="Nome do paciente..." autocomplete="off"
+                <input id="inp-fichas" oninput="sugerir(this.value,'sug-fichas')" type="text"
+                    placeholder="Nome do paciente..." autocomplete="off"
                     class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm">
                 <div id="sug-fichas" class="sug hidden"></div>
             </div>
-            <div id="ficha-res" class="mt-5"></div></div>`;
+            <div id="ficha-res" class="mt-5"></div>
+        </div>`;
 
     } else if (window.TAB === 'relatorio') {
         renderRel();
@@ -250,13 +292,16 @@ function catHTML(cat, prof, slCl, bgCl, step) {
     const titulo = prof ? `${cat.toUpperCase()} — ${prof}` : cat.toUpperCase();
     let html = `<h3 class="font-black text-[10px] uppercase tracking-widest mt-8 mb-3 px-1 text-gray-400">${titulo}</h3>`;
     let h=9, m=0;
-    while (h<12 || (h===12&&m===0)) {
+    while (h < 12 || (h===12 && m===0)) {
         const hora = `${pad(h)}:${pad(m)}`;
-        const ag = appts.find(a => a.data===dataF && a.categoria===cat && a.hora===hora);
+        const ag = appts.find(a =>
+            a.data === dataF &&
+            a.categoria === cat &&
+            normHora(a.hora) === hora
+        );
         if (ag) {
             const esc = JSON.stringify(ag).replace(/"/g,'&quot;');
-            html += `<div onclick="openEdit('${hora}','${cat}','${bgCl}',this)" data-ag="${esc}"
-                class="slot sl-busy ${bgCl}">
+            html += `<div onclick="openEdit('${hora}','${cat}',this)" data-ag="${esc}" class="slot sl-busy ${bgCl}">
                 <div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80">
                     <span>${hora}</span><span>${ag.servico||''}</span>
                 </div>
@@ -268,7 +313,8 @@ function catHTML(cat, prof, slCl, bgCl, step) {
                 <i class="fas fa-plus text-gray-300"></i>
             </div>`;
         }
-        m += step; if(m>=60){h+=Math.floor(m/60);m=m%60;}
+        m += step;
+        if (m >= 60) { h += Math.floor(m/60); m = m%60; }
     }
     return html;
 }
@@ -285,10 +331,10 @@ function openNew(hora, cat) {
     document.getElementById('modal').classList.remove('hidden');
 }
 
-function openEdit(hora, cat, bgCl, el) {
+function openEdit(hora, cat, el) {
     const ag = JSON.parse(el.getAttribute('data-ag').replace(/&quot;/g,'"'));
     mTime=hora; mCat=cat; mId=ag.id;
-    const pac = pacs.find(p => p.nome===ag.paciente);
+    const pac = pacs.find(p => p.nome === ag.paciente);
     mTel = pac?.telefone || null;
     document.getElementById('modal-title').textContent = `Editar — ${hora}`;
     document.getElementById('m-pac').value = ag.paciente;
@@ -300,33 +346,37 @@ function openEdit(hora, cat, bgCl, el) {
 }
 
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-function closeBg(e)   { if(e.target.id==='modal') closeModal(); }
+function closeBg(e)   { if (e.target.id==='modal') closeModal(); }
 
 function openWhats() {
     if (!mTel) return;
     const tel = mTel.replace(/\D/g,'');
     const msg = encodeURIComponent(`Olá! Lembrando da sua consulta em ${getBR()} às ${mTime}. Aguardamos você! 😊`);
-    window.open(`https://wa.me/55${tel}?text=${msg}`,'_blank');
+    window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
 }
 
-// ── SALVAR / DELETAR AGENDAMENTO ──────────────────────────────
+// ── SALVAR / DELETAR ──────────────────────────────────────────
 async function saveAppt() {
     const pac = document.getElementById('m-pac').value.trim();
     if (!pac) { alert('Selecione um paciente!'); return; }
     closeModal();
     showSpinner();
     try {
-        await get({
-            action:   'saveAppt',
-            data:     getBR(),
-            hora:     mTime,
-            paciente: pac,
-            servico:  document.getElementById('m-servico').value,
-            categoria:mCat,
-            id:       mId || ''
+        const r = await api({
+            action:    'saveAppt',
+            data:      getBR(),
+            hora:      mTime,
+            paciente:  pac,
+            servico:   document.getElementById('m-servico').value,
+            categoria: mCat,
+            id:        mId || ''
         });
+        if (r.error) console.error('saveAppt error:', r.error);
         await loadAll();
-    } catch(e) { alert('Erro ao salvar. Verifique a conexão.'); render(); }
+    } catch(e) {
+        alert('Erro ao salvar. Verifique a conexão.');
+        render();
+    }
 }
 
 async function delAppt() {
@@ -335,9 +385,12 @@ async function delAppt() {
     closeModal();
     showSpinner();
     try {
-        await get({ action:'delAppt', id: mId });
+        await api({ action: 'delAppt', id: mId });
         await loadAll();
-    } catch(e) { alert('Erro ao cancelar.'); render(); }
+    } catch(e) {
+        alert('Erro ao cancelar.');
+        render();
+    }
 }
 
 // ── CADASTRO ──────────────────────────────────────────────────
@@ -345,7 +398,7 @@ async function cadastrar() {
     const nome = document.getElementById('c-nome').value.trim();
     if (!nome) { alert('Nome obrigatório!'); return; }
     try {
-        await get({
+        await api({
             action: 'savePac',
             nome,
             tel:    document.getElementById('c-tel').value.trim(),
@@ -363,29 +416,31 @@ async function cadastrar() {
 function sugerir(v, sid) {
     const el = document.getElementById(sid);
     if (!v || v.length < 1) { el.classList.add('hidden'); return; }
-    const f = pacs.filter(p => p.nome && p.nome.toLowerCase().includes(v.toLowerCase())).slice(0,8);
+    const f = pacs.filter(p => p.nome && p.nome.toLowerCase().includes(v.toLowerCase())).slice(0, 8);
     if (!f.length) { el.classList.add('hidden'); return; }
-    el.innerHTML = f.map(p=>`<div onclick="selPac('${p.nome.replace(/'/g,"\\'")}','${sid}')">${p.nome}</div>`).join('');
+    el.innerHTML = f.map(p => `<div onclick="selPac('${p.nome.replace(/'/g,"\\'")}','${sid}')">${p.nome}</div>`).join('');
     el.classList.remove('hidden');
 }
 
 function selPac(nome, sid) {
     document.getElementById(sid).classList.add('hidden');
-    if (sid==='sug-modal')  document.getElementById('m-pac').value = nome;
-    if (sid==='sug-hist')   { document.getElementById('inp-hist').value=nome; showHist(nome); }
-    if (sid==='sug-fichas') { document.getElementById('inp-fichas').value=nome; showFicha(nome); }
+    if (sid === 'sug-modal')  document.getElementById('m-pac').value = nome;
+    if (sid === 'sug-hist')   { document.getElementById('inp-hist').value = nome;   showHist(nome); }
+    if (sid === 'sug-fichas') { document.getElementById('inp-fichas').value = nome; showFicha(nome); }
 }
 
 // ── HISTÓRICO ─────────────────────────────────────────────────
 function showHist(nome) {
-    const lista = appts.filter(a=>a.paciente===nome)
-        .sort((a,b)=>b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
+    const lista = appts
+        .filter(a => a.paciente === nome)
+        .sort((a,b) => b.data.split('/').reverse().join('').localeCompare(
+                       a.data.split('/').reverse().join('')));
     const el = document.getElementById('hist-list');
-    if (!lista.length) { el.innerHTML='<p class="text-gray-400 text-center">Sem histórico.</p>'; return; }
-    el.innerHTML = lista.map(a=>`
+    if (!lista.length) { el.innerHTML = '<p class="text-gray-400 text-center">Sem histórico.</p>'; return; }
+    el.innerHTML = lista.map(a => `
         <div class="p-4 border-2 rounded-2xl bg-gray-50">
             <div class="flex justify-between items-center">
-                <span class="font-black text-sm">${a.data} — ${a.hora}</span>
+                <span class="font-black text-sm">${a.data} — ${normHora(a.hora)}</span>
                 <span class="text-xs font-bold px-2 py-1 rounded-full bg-white border">${a.categoria}</span>
             </div>
             <p class="font-bold text-sm mt-1 text-gray-500">${a.servico||'—'}</p>
@@ -394,31 +449,40 @@ function showHist(nome) {
 
 // ── FICHAS ────────────────────────────────────────────────────
 function showFicha(nome) {
-    const pac = pacs.find(p=>p.nome===nome);
-    const hist = appts.filter(a=>a.paciente===nome)
-        .sort((a,b)=>b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
+    const pac = pacs.find(p => p.nome === nome);
+    const hist = appts
+        .filter(a => a.paciente === nome)
+        .sort((a,b) => b.data.split('/').reverse().join('').localeCompare(
+                       a.data.split('/').reverse().join('')));
     const ult = hist[0];
     const el = document.getElementById('ficha-res');
-    el.innerHTML = `<div class="border-2 rounded-2xl p-5 bg-gray-50 space-y-2">
+    el.innerHTML = `
+    <div class="border-2 rounded-2xl p-5 bg-gray-50 space-y-2">
         <p class="font-black text-lg uppercase">${nome}</p>
-        ${pac?.telefone?`<p class="text-sm font-bold text-gray-500"><i class="fas fa-phone mr-1"></i>${pac.telefone}</p>`:''}
-        ${pac?.email?`<p class="text-sm font-bold text-gray-500"><i class="fas fa-envelope mr-1"></i>${pac.email}</p>`:''}
-        ${pac?.nascimento?`<p class="text-sm font-bold text-gray-500"><i class="fas fa-birthday-cake mr-1"></i>${pac.nascimento}</p>`:''}
-        ${pac?.altura?`<p class="text-sm font-bold text-gray-500"><i class="fas fa-ruler-vertical mr-1"></i>${pac.altura} cm</p>`:''}
+        ${pac?.telefone   ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-phone mr-2"></i>${pac.telefone}</p>` : ''}
+        ${pac?.email      ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-envelope mr-2"></i>${pac.email}</p>` : ''}
+        ${pac?.nascimento ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-birthday-cake mr-2"></i>${pac.nascimento}</p>` : ''}
+        ${pac?.altura     ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-ruler-vertical mr-2"></i>${pac.altura} cm</p>` : ''}
         <hr class="my-3">
         <p class="text-xs uppercase font-black text-gray-400 tracking-widest">Última visita</p>
-        ${ult?`<div class="bg-white border rounded-xl p-3 mt-1">
-            <p class="font-black text-sm">${ult.data} — ${ult.hora}</p>
-            <p class="text-sm text-gray-500 font-bold">${ult.servico||'—'} · ${ult.categoria}</p>
-        </div>`:'<p class="text-gray-400 text-sm mt-1">Nenhuma visita registrada.</p>'}
+        ${ult
+            ? `<div class="bg-white border rounded-xl p-3 mt-1">
+                <p class="font-black text-sm">${ult.data} — ${normHora(ult.hora)}</p>
+                <p class="text-sm text-gray-500 font-bold">${ult.servico||'—'} · ${ult.categoria}</p>
+               </div>`
+            : '<p class="text-gray-400 text-sm mt-1">Nenhuma visita registrada.</p>'}
         <p class="text-xs font-black text-gray-400 mt-2">Total de visitas: ${hist.length}</p>
     </div>`;
 }
 
 // ── RELATÓRIO ─────────────────────────────────────────────────
-function slots(step) {
-    const r=[]; let h=9,m=0;
-    while(h<12||(h===12&&m===0)){ r.push(`${pad(h)}:${pad(m)}`); m+=step; if(m>=60){h+=Math.floor(m/60);m=m%60;} }
+function getSlots(step) {
+    const r = []; let h=9, m=0;
+    while (h<12 || (h===12&&m===0)) {
+        r.push(`${pad(h)}:${pad(m)}`);
+        m += step;
+        if (m>=60) { h+=Math.floor(m/60); m=m%60; }
+    }
     return r;
 }
 
@@ -426,21 +490,23 @@ function secaoRel(cat, prof, step, thBg) {
     const dataF = getBR();
     const titulo = prof ? `${cat} — ${prof}` : cat;
     let rows = '';
-    slots(step).forEach(h => {
-        const ag  = appts.find(a=>a.data===dataF&&a.categoria===cat&&a.hora===h);
-        const pac = ag ? pacs.find(p=>p.nome===ag.paciente) : null;
-        const prev= ag ? appts.filter(a=>a.paciente===ag.paciente&&a.data!==dataF)
-            .sort((a,b)=>b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0] : null;
+    getSlots(step).forEach(h => {
+        const ag  = appts.find(a => a.data===dataF && a.categoria===cat && normHora(a.hora)===h);
+        const pac = ag ? pacs.find(p => p.nome===ag.paciente) : null;
+        const prev = ag ? appts
+            .filter(a => a.paciente===ag.paciente && a.data!==dataF)
+            .sort((a,b) => b.data.split('/').reverse().join('').localeCompare(
+                           a.data.split('/').reverse().join('')))[0] : null;
         rows += `<tr>
             <td style="font-weight:800;color:#555;white-space:nowrap">${h}</td>
-            <td style="font-weight:800">${ag?ag.paciente.toUpperCase():''}</td>
+            <td style="font-weight:800">${ag ? ag.paciente.toUpperCase() : ''}</td>
             <td style="white-space:nowrap">${pac?.telefone||''}</td>
             <td style="white-space:nowrap">${pac?.nascimento||''}</td>
             <td style="font-size:10px">${pac?.email||''}</td>
-            <td style="white-space:nowrap">${pac?.altura?pac.altura+'cm':''}</td>
-            <td style="white-space:nowrap">${prev?prev.data:''}</td>
-            <td style="font-size:10px">${prev?(prev.servico||'')+(prev.categoria?' · '+prev.categoria:''):''}</td>
-            <td style="font-weight:800">${ag?ag.servico||'':''}</td>
+            <td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td>
+            <td style="white-space:nowrap">${prev ? prev.data : ''}</td>
+            <td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td>
+            <td style="font-weight:800">${ag ? ag.servico||'' : ''}</td>
         </tr>`;
     });
     return `
@@ -455,7 +521,10 @@ function secaoRel(cat, prof, step, thBg) {
 
 function renderRel() {
     const c = document.getElementById('content');
-    if (!allowed()) { c.innerHTML=`<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça ou quinta.</p></div>`; return; }
+    if (!allowed()) {
+        c.innerHTML = `<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça ou quinta.</p></div>`;
+        return;
+    }
     const dataF = getBR();
     const tabela = `
     <table class="rtable">
@@ -463,9 +532,9 @@ function renderRel() {
             AGENDA LOURDES — ${dataF}
         </td></tr></thead>
         <tbody>
-            ${secaoRel('Esportivo', profEsp(), 25, '#fde8d8')}
-            ${secaoRel('Emagrecimento','Bruno', 35, '#d8eafd')}
-            ${secaoRel('Aplicação','',          30, '#f3d8fd')}
+            ${secaoRel('Esportivo',     profEsp(), 25, '#fde8d8')}
+            ${secaoRel('Emagrecimento', 'Bruno',   35, '#d8eafd')}
+            ${secaoRel('Aplicação',     '',        30, '#f3d8fd')}
         </tbody>
     </table>`;
 
@@ -483,14 +552,16 @@ function renderRel() {
 }
 
 function imprimir() {
-    document.getElementById('print-area').style.display='block';
+    document.getElementById('print-area').style.display = 'block';
     window.print();
-    setTimeout(()=>{ document.getElementById('print-area').style.display='none'; },1000);
+    setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
 }
 
-// fecha sugestões clicando fora
+// fecha sugestões ao clicar fora
 document.addEventListener('click', e => {
-    document.querySelectorAll('.sug').forEach(s=>{ if(!s.contains(e.target)) s.classList.add('hidden'); });
+    document.querySelectorAll('.sug').forEach(s => {
+        if (!s.contains(e.target)) s.classList.add('hidden');
+    });
 });
 </script>
 </body>
