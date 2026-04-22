@@ -10,42 +10,38 @@
     <style>
         :root { 
             --main-purple: #4a148c; 
-            --text-dark: #1a1a1a;
-            --whatsapp: #25d366;
             --cat-esportivo: #f97316; 
             --cat-emagrecimento: #3b82f6; 
             --cat-aplicacao: #a855f7; 
         }
-        
-        body { background: #ffffff; font-family: 'Quicksand', sans-serif; color: var(--text-dark); }
+        body { background: #ffffff; font-family: 'Quicksand', sans-serif; color: #1a1a1a; }
         .luxury-card { background: white; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; }
         .tab-btn { transition: all 0.3s ease; border-radius: 16px; color: #666; }
         .tab-active { background: #f8f5ff; color: var(--main-purple) !important; font-weight: 700; }
-        
         .slot-card { transition: all 0.2s ease; border-radius: 20px; border: 2px solid transparent; cursor: pointer; }
         
-        /* Estados Livres */
-        .free-esportivo { border-color: rgba(249, 115, 22, 0.1); border-left: 6px solid var(--cat-esportivo); background: #fffaf7; }
-        .free-emagrecimento { border-color: rgba(59, 130, 246, 0.1); border-left: 6px solid var(--cat-emagrecimento); background: #f7faff; }
-        .free-aplicacao { border-color: rgba(168, 85, 247, 0.1); border-left: 6px solid var(--cat-aplicacao); background: #fbf7ff; }
+        /* Borda para horários livres */
+        .free-esportivo { border-left: 8px solid var(--cat-esportivo); background: #fffaf7; border-color: #f0f0f0; }
+        .free-emagrecimento { border-left: 8px solid var(--cat-emagrecimento); background: #f7faff; border-color: #f0f0f0; }
+        .free-aplicacao { border-left: 8px solid var(--cat-aplicacao); background: #fbf7ff; border-color: #f0f0f0; }
 
-        /* Estados Ocupados */
+        /* Cores sólidas para ocupados */
         .busy-esportivo { background: var(--cat-esportivo) !important; color: white !important; }
         .busy-emagrecimento { background: var(--cat-emagrecimento) !important; color: white !important; }
         .busy-aplicacao { background: var(--cat-aplicacao) !important; color: white !important; }
-
         .busy-card span, .busy-card p { color: white !important; }
-        .status-badge { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; }
+
+        @media print { .no-print { display: none !important; } .print-area { display: block !important; } }
     </style>
 </head>
 <body class="pb-32">
 
-    <header class="p-6 pt-10 pb-16 text-center">
-        <div class="max-w-xl mx-auto flex flex-col items-center gap-6">
-            <img src="logo.png" alt="Dr. Jorge Salomão" class="h-32 object-contain" onerror="this.style.display='none'">
+    <header class="w-full bg-white no-print">
+        <div class="max-w-xl mx-auto flex flex-col items-center">
+            <img src="logo.png" alt="Dr. Jorge Salomão" class="w-full max-h-56 object-contain p-4" onerror="this.style.display='none'">
             
-            <div class="flex flex-col items-center gap-2">
-                <p class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Portal de Agendamento Profissional</p>
+            <div class="flex flex-col items-center gap-2 pb-8">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[4px]">Portal de Agendamento</p>
                 <div class="bg-slate-50 p-2 px-5 rounded-full inline-flex items-center gap-3 border-2 border-slate-200 shadow-sm">
                     <i class="far fa-calendar-alt text-slate-900"></i>
                     <input type="date" id="data-seletor" onchange="render()" class="bg-transparent font-black text-sm outline-none border-none text-slate-900 cursor-pointer">
@@ -61,11 +57,11 @@
         <button onclick="showTab('relatorio')" id="tab-relatorio" class="tab-btn flex-1 py-3 flex flex-col items-center gap-1.5"><i class="fas fa-print text-lg"></i><span class="text-[10px] font-bold">Relatório</span></button>
     </nav>
 
-    <main id="content" class="p-4 -mt-8 max-w-xl mx-auto relative z-10"></main>
+    <main id="content" class="p-4 max-w-xl mx-auto relative z-10"></main>
 
     <div id="modal-agenda" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center">
         <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-8 shadow-2xl">
-            <h2 id="modal-titulo" class="font-bold text-2xl mb-1 text-slate-900">Agendar</h2>
+            <h2 id="modal-titulo" class="font-bold text-2xl mb-1 text-slate-900 uppercase">Agendar</h2>
             <p id="info-horario" class="text-slate-500 font-bold mb-4 text-sm"></p>
             
             <div id="ficha-paciente-edicao" class="hidden bg-slate-50 p-4 rounded-2xl mb-4 border text-xs space-y-1">
@@ -75,7 +71,7 @@
             </div>
 
             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Serviço</label>
-            <select id="tipo-servico" class="w-full p-4 bg-slate-50 border rounded-2xl mb-4 font-bold text-slate-800 outline-none">
+            <select id="tipo-servico" class="w-full p-4 bg-slate-100 border rounded-2xl mb-4 font-bold outline-none">
                 <option value="CONSULTA">CONSULTA</option>
                 <option value="RETORNO">RETORNO</option>
                 <option value="APLICAÇÃO">APLICAÇÃO</option>
@@ -85,19 +81,17 @@
             <div id="lista-pacientes-modal" class="max-h-40 overflow-y-auto rounded-xl mb-6 bg-slate-50 border"></div>
             
             <div class="flex flex-col gap-3">
-                <button id="btn-confirmar" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg opacity-30" disabled>SALVAR</button>
+                <button id="btn-confirmar" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black opacity-30 shadow-lg" disabled>SALVAR ALTERAÇÃO</button>
                 <div class="flex gap-2">
-                    <button onclick="fecharModal()" class="flex-1 p-4 bg-slate-100 rounded-2xl font-bold text-slate-400 text-sm">CANCELAR</button>
-                    <button id="btn-remover" class="hidden flex-1 p-4 bg-red-50 text-red-500 rounded-2xl font-bold text-sm">REMOVER</button>
+                    <button onclick="fecharModal()" class="flex-1 p-4 bg-slate-100 rounded-2xl font-bold text-slate-400 text-sm uppercase">Cancelar</button>
+                    <button id="btn-remover" class="hidden flex-1 p-4 bg-red-50 text-red-500 rounded-2xl font-bold text-sm uppercase">Remover</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ======= ATENÇÃO: COLOQUE SEU LINK DA PLANILHA ABAIXO =======
         const API_URL = "https://script.google.com/macros/s/AKfycbwGmxjKsqV5RswuNPp5T2B079kpOVUB8h3PnrgeRWVWRX25wVKX9Fdmm9oRdILFU4xZ/exec"; 
-        
         let pacientes = [], agendamentos = [], selectedTime, selectedCat, selectedPac, editId = null;
 
         window.onload = () => {
@@ -129,30 +123,22 @@
 
         function render() {
             const container = document.getElementById('content');
-            const dataSel = document.getElementById('data-seletor').value.split('-').reverse().join('/');
+            const dataInput = document.getElementById('data-seletor').value;
+            const dataObj = new Date(dataInput + "T12:00:00");
+            const diaSemana = dataObj.getDay(); 
+            const dataSel = dataInput.split('-').reverse().join('/');
             
+            // TRAVA: Apenas Terça (2) e Quinta (4)
             if (window.currentTab === 'agenda') {
-                container.innerHTML = `
-                    <div class="space-y-10">
-                        ${renderSection('Esportivo', 'free-esportivo', 'busy-esportivo', 25, dataSel)}
-                        ${renderSection('Emagrecimento', 'free-emagrecimento', 'busy-emagrecimento', 35, dataSel)}
-                        ${renderSection('Aplicação', 'free-aplicacao', 'busy-aplicacao', 30, dataSel)}
-                    </div>`;
+                if (diaSemana !== 2 && diaSemana !== 4) {
+                    container.innerHTML = `<div class="p-12 text-center luxury-card mt-10"><i class="fas fa-door-closed text-4xl text-slate-200 mb-4"></i><p class="text-slate-900 font-black">CONSULTÓRIO FECHADO</p><p class="text-slate-400 text-xs">Atendimento apenas às terças e quintas.</p></div>`;
+                    return;
+                }
+                container.innerHTML = `<div class="space-y-10">${renderSection('Esportivo', 'free-esportivo', 'busy-esportivo', 25, dataSel)}${renderSection('Emagrecimento', 'free-emagrecimento', 'busy-emagrecimento', 35, dataSel)}${renderSection('Aplicação', 'free-aplicacao', 'busy-aplicacao', 30, dataSel)}</div>`;
             } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `
-                    <div class="luxury-card p-8">
-                        <h2 class="font-black text-xl mb-6">Novo Paciente</h2>
-                        <div class="space-y-4">
-                            <input type="text" id="n" placeholder="Nome Completo" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
-                            <input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
-                            <input type="text" id="d" placeholder="Data de Nascimento" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
-                            <input type="email" id="em" placeholder="E-mail" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
-                            <input type="text" id="alt" placeholder="Altura" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
-                            <button onclick="salvarPaciente()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg">SALVAR NO BANCO</button>
-                        </div>
-                    </div>`;
+                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Cadastro</h2><div class="space-y-4"><input type="text" id="n" placeholder="Nome" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="text" id="d" placeholder="Nascimento" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="email" id="em" placeholder="E-mail" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="text" id="alt" placeholder="Altura (ex: 1,75)" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><button onclick="salvarPaciente()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg">SALVAR NO BANCO</button></div></div>`;
             } else if (window.currentTab === 'busca') {
-                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Fichas</h2><input type="text" oninput="buscarFicha(this.value)" placeholder="🔍 Nome..." class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold mb-6"><div id="res-busca"></div></div>`;
+                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Pesquisar Ficha</h2><input type="text" oninput="buscarFicha(this.value)" placeholder="🔍 Digite o nome..." class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold mb-6"><div id="res-busca"></div></div>`;
             } else if (window.currentTab === 'relatorio') {
                 renderRelatorio(dataSel);
             }
@@ -164,22 +150,61 @@
             while(t.getHours() < 12) {
                 let h = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 const ocupado = agendamentos.find(a => cleanDate(a.data) === dataF && a.categoria.trim() === cat.trim() && a.hora.includes(h));
-                const cardClass = ocupado ? `busy-card ${busyClass}` : freeClass;
-                html += `
-                    <div onclick='abrirModal("${h}", "${cat}", ${ocupado ? JSON.stringify(ocupado).replace(/"/g, '&quot;') : "null"})' class="p-5 mb-3 flex justify-between items-center slot-card ${cardClass}">
-                        <div><span class="text-[10px] font-black uppercase opacity-60">${h}</span><span class="block font-black text-lg">${ocupado ? ocupado.paciente : 'Livre'}</span>${ocupado ? `<span class="status-badge">${ocupado.servico}</span>` : ''}</div>
-                        ${ocupado ? `<i class="fab fa-whatsapp text-lg opacity-40"></i>` : `<span class="text-[10px] font-bold border-2 border-slate-200 px-3 py-1 rounded-lg">AGENDAR</span>`}
-                    </div>`;
+                const cardClass = ocupado ? `busy-card busy-card ${busyClass}` : freeClass;
+                html += `<div onclick='abrirModal("${h}", "${cat}", ${ocupado ? JSON.stringify(ocupado).replace(/"/g, '&quot;') : "null"})' class="p-5 mb-3 flex justify-between items-center slot-card ${cardClass}"><div><span class="text-[10px] font-black uppercase opacity-60">${h}</span><span class="block font-black text-lg">${ocupado ? ocupado.paciente : 'Livre'}</span>${ocupado ? `<span class="status-badge">${ocupado.servico}</span>` : ''}</div><i class="fas ${ocupado ? 'fa-user-check opacity-40' : 'fa-plus text-slate-300'}"></i></div>`;
                 t.setMinutes(t.getMinutes() + step);
             }
             return html + `</section>`;
         }
 
+        function buscarFicha(nome) {
+            const res = document.getElementById('res-busca'); if(nome.length < 2) return;
+            const p = pacientes.find(p => p.name.toLowerCase().includes(nome.toLowerCase())); if(!p) return;
+            const hist = agendamentos.filter(a => a.paciente.trim() === p.name.trim()).sort((a,b) => new Date(b.data) - new Date(a.data));
+            res.innerHTML = `
+                <div class="bg-slate-900 p-6 rounded-3xl text-white mb-6">
+                    <h4 class="text-xl font-black uppercase">${p.name}</h4>
+                    <div class="text-[11px] opacity-70 mt-3 space-y-1">
+                        <p>📧 Email: ${p.email || '--'}</p>
+                        <p>📏 Altura: ${p.altura || '--'}</p>
+                        <p>🎂 Nasc: ${cleanDate(p.nasc)}</p>
+                        <p>📱 WhatsApp: ${p.phone}</p>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-[10px] font-black text-slate-400 uppercase px-2">Histórico na Clínica</p>
+                    ${hist.map(h => `<div class="bg-white p-4 rounded-2xl border font-bold text-xs flex justify-between"><span>${cleanDate(h.data)}</span><span class="text-purple-600">${h.servico}</span></div>`).join('') || '<p class="text-slate-300 text-center py-4">Sem histórico.</p>'}
+                </div>`;
+        }
+
+        function renderRelatorio(dataF) {
+            const filtrar = (cat) => agendamentos.filter(a => cleanDate(a.data) === dataF && a.categoria.trim() === cat.trim());
+            const gerarTabela = (titulo, dados) => `
+                <div class="mb-6 luxury-card p-4">
+                    <h4 class="font-black text-xs uppercase mb-3 border-b pb-2">${titulo}</h4>
+                    <div class="space-y-2 text-[11px]">
+                        ${dados.map(a => `<div class="flex justify-between border-b pb-1"><span><b>${a.hora}</b> - ${a.paciente}</span><span>${a.servico}</span></div>`).join('') || 'Nenhum agendamento'}
+                    </div>
+                </div>`;
+
+            document.getElementById('content').innerHTML = `
+                <div class="print-area">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-black">Mapa de Atendimento</h2>
+                        <p class="text-slate-400 font-bold">${dataF}</p>
+                    </div>
+                    ${gerarTabela('Esportivo', filtrar('Esportivo'))}
+                    ${gerarTabela('Emagrecimento', filtrar('Emagrecimento'))}
+                    ${gerarTabela('Aplicações', filtrar('Aplicação'))}
+                    <button onclick="window.print()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black no-print">IMPRIMIR RELATÓRIO</button>
+                </div>`;
+        }
+
+        // Funções de Modal e Salvamento (Mesma lógica robusta anterior)
         function abrirModal(h, cat, dadosOcupado) {
             selectedTime = h; selectedCat = cat;
             document.getElementById('info-horario').innerText = `${cat} às ${h}`;
             document.getElementById('modal-agenda').classList.remove('hidden');
-            
             if(dadosOcupado) {
                 editId = dadosOcupado.id;
                 document.getElementById('modal-titulo').innerText = "Editar Horário";
@@ -187,7 +212,6 @@
                 document.getElementById('tipo-servico').value = dadosOcupado.servico;
                 document.getElementById('btn-remover').classList.remove('hidden');
                 document.getElementById('btn-remover').onclick = removerAgendamento;
-                
                 const p = pacientes.find(p => p.name === dadosOcupado.paciente);
                 if(p) {
                     document.getElementById('ficha-paciente-edicao').classList.remove('hidden');
@@ -198,64 +222,40 @@
                 selecionarParaAgenda(dadosOcupado.paciente);
             } else {
                 editId = null;
-                document.getElementById('modal-titulo').innerText = "Novo Agendamento";
+                document.getElementById('modal-titulo').innerText = "Agendar";
                 document.getElementById('busca-paciente-modal').value = "";
                 document.getElementById('btn-remover').classList.add('hidden');
                 document.getElementById('ficha-paciente-edicao').classList.add('hidden');
                 document.getElementById('btn-confirmar').disabled = true;
             }
         }
-
         function fecharModal() { document.getElementById('modal-agenda').classList.add('hidden'); }
-
         function filtrarModal(v) {
             const l = document.getElementById('lista-pacientes-modal');
             const f = pacientes.filter(p => p.name.toLowerCase().includes(v.toLowerCase()));
             l.innerHTML = f.map(p => `<div onclick="selecionarParaAgenda('${p.name}')" class="p-4 border-b hover:bg-slate-50 font-bold text-sm cursor-pointer">${p.name}</div>`).join('');
         }
-
         function selecionarParaAgenda(n) {
-            selectedPac = n;
-            document.getElementById('busca-paciente-modal').value = n;
-            const b = document.getElementById('btn-confirmar');
-            b.disabled = false; b.classList.replace('opacity-30', 'opacity-100');
+            selectedPac = n; document.getElementById('busca-paciente-modal').value = n;
+            const b = document.getElementById('btn-confirmar'); b.disabled = false; b.classList.replace('opacity-30', 'opacity-100');
             b.onclick = confirmarAgendamento;
         }
-
         async function confirmarAgendamento() {
             const dSel = document.getElementById('data-seletor').value.split('-').reverse().join('/');
             const srv = document.getElementById('tipo-servico').value;
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addAppointment', data: dSel, hora: selectedTime, paciente: selectedPac, categoria: selectedCat, servico: srv, id: editId }) });
             fecharModal(); loadData();
         }
-
         async function removerAgendamento() {
-            if(!confirm("Deseja cancelar este horário?")) return;
+            if(!confirm("Cancelar horário?")) return;
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteAppointment', id: editId }) });
             fecharModal(); loadData();
         }
-
         async function salvarPaciente() {
-            const n = document.getElementById('n').value, t = document.getElementById('t').value, d = document.getElementById('d').value;
-            const em = document.getElementById('em').value, alt = document.getElementById('alt').value;
+            const n = document.getElementById('n').value, t = document.getElementById('t').value, d = document.getElementById('d').value, em = document.getElementById('em').value, alt = document.getElementById('alt').value;
             if(!n || !t) return alert("Preencha Nome e WhatsApp!");
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t, nascimento: d, email: em, altura: alt }) });
-            alert("✅ Paciente Cadastrado!"); loadData();
-        }
-
-        function buscarFicha(nome) {
-            const res = document.getElementById('res-busca'); if(nome.length < 2) { res.innerHTML = ""; return; }
-            const p = pacientes.find(p => p.name.toLowerCase().includes(nome.toLowerCase())); if(!p) return;
-            res.innerHTML = `
-                <div class="bg-slate-900 p-6 rounded-3xl text-white font-bold">
-                    <p class="text-xl uppercase">${p.name}</p>
-                    <div class="text-xs opacity-70 mt-3 space-y-1">
-                        <p>📧 E-mail: ${p.email || '--'}</p>
-                        <p>📏 Altura: ${p.altura || '--'}</p>
-                        <p>🎂 Nasc: ${cleanDate(p.nasc)}</p>
-                        <p>📱 Tel: ${p.phone}</p>
-                    </div>
-                </div>`;
+            alert("✅ Cadastrado!"); loadData();
         }
     </script>
 </body>
