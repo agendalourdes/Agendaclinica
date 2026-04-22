@@ -17,9 +17,8 @@
         @media print {
             body { background: white !important; }
             .no-print { display: none !important; }
-            .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 11px; color: black; }
-            .print-table th, .print-table td { border: 1px solid #000; padding: 6px; text-align: left; }
-            /* Forçando a cor na impressão */
+            .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10px; color: black; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 4px; text-align: left; }
             .header-esportivo { background-color: #fce4ec !important; -webkit-print-color-adjust: exact; }
             .header-emagrecimento { background-color: #e8f5e9 !important; -webkit-print-color-adjust: exact; }
             .header-aplicacao { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; }
@@ -32,7 +31,7 @@
     <div class="bg-slate-800 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md no-print">
         <div>
             <h1 class="text-lg font-bold italic text-orange-400">Clínica Lourdes</h1>
-            <input type="date" id="data-seletor" onchange="validarData(this.value)" class="bg-slate-700 text-xs p-1 rounded mt-1 border-none text-white outline-none">
+            <input type="date" id="data-seletor" onchange="render()" class="bg-slate-700 text-xs p-1 rounded mt-1 border-none text-white outline-none">
         </div>
         <button onclick="loadData()" class="p-3 bg-slate-700 rounded-full active:bg-blue-600"><i class="fas fa-sync-alt"></i></button>
     </div>
@@ -47,10 +46,20 @@
     <div id="content" class="p-4 max-w-xl mx-auto"></div>
 
     <div id="modal-agenda" class="hidden fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 no-print">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
-            <h2 class="font-bold text-xl mb-4 text-slate-800">Agendar</h2>
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-slate-800">
+            <h2 class="font-bold text-xl mb-4">Agendar</h2>
             <p id="info-horario" class="text-blue-600 font-bold mb-4 bg-blue-50 p-2 rounded-lg text-center"></p>
-            <select id="tipo-servico" class="w-full p-4 border rounded-2xl mb-4 bg-gray-50 font-bold outline-none"><option value="CONSULTA">CONSULTA</option><option value="RETORNO">RETORNO</option><option value="APLICAÇÃO">APLICAÇÃO</option></select>
+            
+            <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Tipo de Serviço</label>
+            <select id="tipo-servico" class="w-full p-4 border rounded-2xl mb-4 bg-gray-50 font-bold outline-none">
+                <option value="CONSULTA">CONSULTA</option>
+                <option value="RETORNO">RETORNO</option>
+                <option value="APLICAÇÃO">APLICAÇÃO</option>
+                <option value="CONSULTA (C)">CONSULTA CLINICAL</option>
+                <option value="RETORNO (C)">RETORNO CLINICAL</option>
+                <option value="APLICAÇÃO (C)">APLICAÇÃO CLINICAL</option>
+            </select>
+
             <input type="text" id="busca-paciente-modal" oninput="filtrarModal(this.value)" placeholder="Nome do paciente..." class="w-full p-4 border rounded-2xl mb-2 bg-gray-50 outline-none">
             <div id="lista-pacientes-modal" class="max-h-32 overflow-y-auto border rounded-xl mb-6 bg-white"></div>
             <div class="flex gap-2">
@@ -72,15 +81,13 @@
             showTab('agenda'); loadData();
         };
 
-        function validarData(dataString) { render(); }
-
         async function loadData() {
             try {
                 const r = await fetch(`${API_URL}?action=getInitialData`);
                 const d = await r.json();
                 pacientes = d.patients || []; agendamentos = d.appointments || [];
                 render();
-            } catch(e) { console.log("Erro"); }
+            } catch(e) { console.log("Erro de conexão"); }
         }
 
         function showTab(tab) {
@@ -97,7 +104,7 @@
 
             if (window.currentTab === 'agenda') {
                 if (diaSemana !== 2 && diaSemana !== 4) {
-                    container.innerHTML = `<div class="p-10 text-center bg-orange-50 rounded-3xl border-2 border-dashed border-orange-200"><p class="text-orange-800 font-bold">Clínica fechada. Selecione Terça ou Quinta.</p></div>`;
+                    container.innerHTML = `<div class="p-10 text-center bg-orange-50 rounded-3xl border-2 border-dashed border-orange-200"><p class="text-orange-800 font-bold">Clínica fechada. Selecione Terça ou Quinta no topo.</p></div>`;
                     return;
                 }
                 container.innerHTML = `<div class="space-y-6">
@@ -106,9 +113,9 @@
                     <section><h3 class="text-purple-600 font-bold text-[10px] uppercase mb-2">Aplicação</h3>${gerarSlots(9, 12, 30, 'card-aplicacao', 'Aplicação', dataSel)}</section>
                 </div>`;
             } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-sm border"><h2 class="font-bold mb-4">Novo Cadastro</h2><input type="text" id="n" placeholder="Nome" class="w-full p-4 border rounded-2xl mb-3 bg-slate-50 outline-none"><input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 border rounded-2xl mb-3 bg-slate-50 outline-none"><input type="text" id="d" placeholder="Nascimento" class="w-full p-4 border rounded-2xl mb-4 bg-slate-50 outline-none"><button onclick="salvarPaciente()" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-bold">Salvar</button></div>`;
+                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-sm border"><h2 class="font-bold mb-4 text-slate-800">Novo Cadastro</h2><input type="text" id="n" placeholder="Nome" class="w-full p-4 border rounded-2xl mb-3 bg-slate-50 outline-none"><input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 border rounded-2xl mb-3 bg-slate-50 outline-none"><input type="text" id="d" placeholder="Nascimento" class="w-full p-4 border rounded-2xl mb-4 bg-slate-50 outline-none"><button onclick="salvarPaciente()" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-bold">Salvar</button></div>`;
             } else if (window.currentTab === 'busca') {
-                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-sm border"><h2 class="font-bold mb-4">Ficha do Paciente</h2><input type="text" id="in-busca" oninput="buscarFicha(this.value)" placeholder="Pesquisar nome..." class="w-full p-4 border rounded-2xl bg-slate-50 outline-none"><div id="res-busca" class="mt-4"></div></div>`;
+                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-sm border"><h2 class="font-bold mb-4 text-slate-800">Ficha do Paciente</h2><input type="text" id="in-busca" oninput="buscarFicha(this.value)" placeholder="Pesquisar nome..." class="w-full p-4 border rounded-2xl bg-slate-50 outline-none"><div id="res-busca" class="mt-4"></div></div>`;
             } else if (window.currentTab === 'relatorio') { renderRelatorio(dataSel); }
         }
 
@@ -133,19 +140,34 @@
             const gerarTabela = (titulo, dados, classe) => `
                 <table class="print-table">
                     <thead>
-                        <tr class="${classe}"><th colspan="6">* ${titulo.toUpperCase()}</th></tr>
-                        <tr style="background:#eee"><th>Hora</th><th>Paciente</th><th>Tel</th><th>Nasc.</th><th>Obs</th><th>Serv.</th></tr>
+                        <tr class="${classe}"><th colspan="7">* ${titulo.toUpperCase()}</th></tr>
+                        <tr style="background:#eee"><th>Hora</th><th>Paciente</th><th>Tel</th><th>Nasc.</th><th>Última Consulta / Proc.</th><th>Obs / Clínica</th><th>Serv.</th></tr>
                     </thead>
                     <tbody>
                         ${dados.length > 0 ? dados.map(a => {
                             const p = pacientes.find(pac => pac.name === a.paciente) || {};
-                            return `<tr><td class="font-bold">${a.hora}</td><td class="uppercase font-bold">${a.paciente}</td><td>${p.phone || ''}</td><td>${p.nasc || ''}</td><td></td><td>${a.servico}</td></tr>`;
-                        }).join('') : '<tr><td colspan="6" class="text-center italic">Vazio</td></tr>'}
+                            const historico = agendamentos.filter(ag => ag.paciente === a.paciente && ag.data !== dataF);
+                            const last = historico.length > 0 ? historico[historico.length - 1] : null;
+                            const ultimaInfo = last ? `${last.data} (${last.servico})` : 'Novo';
+                            
+                            // Detecta se é Clinical Center pelo serviço ou nome
+                            const isClinical = a.servico.includes('(C)') || a.paciente.includes('(C)');
+
+                            return `<tr>
+                                <td class="font-bold">${a.hora}</td>
+                                <td class="uppercase font-bold">${a.paciente}</td>
+                                <td>${p.phone || ''}</td>
+                                <td>${p.nasc || ''}</td>
+                                <td class="text-[9px] text-blue-700">${ultimaInfo}</td>
+                                <td class="font-bold text-center">${isClinical ? 'C' : ''}</td>
+                                <td>${a.servico}</td>
+                            </tr>`;
+                        }).join('') : '<tr><td colspan="7" class="text-center italic">Vazio</td></tr>'}
                     </tbody>
                 </table>`;
 
             document.getElementById('content').innerHTML = `
-                <button onclick="window.print()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold mb-4 no-print shadow-lg">Imprimir Agenda</button>
+                <button onclick="window.print()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold mb-4 no-print shadow-lg"><i class="fas fa-print"></i> Imprimir</button>
                 <div class="bg-white p-2">
                     <h2 class="text-center font-black text-lg mb-4">AGENDA LOURDES - ${dataF}</h2>
                     ${gerarTabela(`Esportivo - ${medicoEsportivo}`, esportivo, 'header-esportivo')}
