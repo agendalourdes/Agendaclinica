@@ -3,174 +3,591 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Clínico</title>
+    <title>Agenda Clínica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --cat-esportivo: #f97316; --cat-emagrecimento: #3b82f6; --cat-aplicacao: #a855f7; }
-        body { background: #fafafa; font-family: 'Quicksand', sans-serif; color: #000; }
-        .full-header { width: 100%; background: #fff; border-bottom: 1px solid #eee; text-align: center; padding: 10px 0; }
-        .full-header img { max-width: 250px; }
-        .slot-card { border-radius: 18px; border: 1px solid #f0f0f0; cursor: pointer; margin-bottom: 10px; background: #fff; padding: 20px; }
-        .free-esportivo { border-left: 10px solid var(--cat-esportivo); }
-        .free-emagrecimento { border-left: 10px solid var(--cat-emagrecimento); }
-        .free-aplicacao { border-left: 10px solid var(--cat-aplicacao); }
-        .busy-card { color: white !important; border: none; }
-        .busy-esportivo { background: var(--cat-esportivo) !important; }
-        .busy-emagrecimento { background: var(--cat-emagrecimento) !important; }
-        .busy-aplicacao { background: var(--cat-aplicacao) !important; }
-        .tab-active { color: #4a148c !important; font-weight: 800; border-bottom: 3px solid #4a148c; }
-        .search-suggestions { position: absolute; width: 100%; top: 100%; z-index: 100; background: white; border: 1px solid #ddd; border-radius: 12px; }
-        .search-suggestions div { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; }
+        :root { --esportivo: #f97316; --emagrecimento: #3b82f6; --aplicacao: #a855f7; --roxo: #4a148c; }
+        * { box-sizing: border-box; }
+        body { background: #fafafa; font-family: 'Quicksand', sans-serif; color: #111; -webkit-tap-highlight-color: transparent; }
+
+        /* HEADER */
+        .full-header { width:100%; background:#fff; border-bottom:1px solid #eee; text-align:center; padding:10px 16px 6px; }
+        .full-header img { max-height:64px; max-width:220px; object-fit:contain; }
+        .date-picker-wrap { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:6px; }
+        .date-picker-wrap input[type=date] { padding:6px 12px; border:2px solid #eee; border-radius:12px; font-family:'Quicksand',sans-serif; font-weight:700; font-size:14px; color:#111; background:#fafafa; }
+        .date-badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; }
+        .badge-terca { background:#f0fdf4; color:#16a34a; }
+        .badge-quinta { background:#fdf4ff; color:#7c3aed; }
+        .badge-bloq  { background:#fef2f2; color:#dc2626; }
+
+        /* SLOTS */
+        .slot-card { border-radius:18px; border:1px solid #f0f0f0; cursor:pointer; margin-bottom:10px; background:#fff; padding:18px 20px; transition:transform .1s; active:transform:scale(.98); }
+        .slot-livre { border-left:8px solid #ddd; }
+        .slot-esportivo  { border-left:8px solid var(--esportivo); }
+        .slot-emagrecimento { border-left:8px solid var(--emagrecimento); }
+        .slot-aplicacao { border-left:8px solid var(--aplicacao); }
+        .slot-busy { border:none !important; color:#fff !important; }
+        .busy-esportivo   { background:var(--esportivo) !important; }
+        .busy-emagrecimento { background:var(--emagrecimento) !important; }
+        .busy-aplicacao   { background:var(--aplicacao) !important; }
+
+        /* TABS */
+        nav button { transition:color .2s; }
+        .tab-active { color:var(--roxo) !important; font-weight:800; }
+        .tab-active .tab-icon { border-bottom:3px solid var(--roxo); padding-bottom:2px; }
+
+        /* MODAL */
+        .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; display:flex; align-items:flex-end; justify-content:center; }
+        .modal-box { background:#fff; width:100%; max-width:480px; border-radius:28px 28px 0 0; padding:28px 24px 40px; }
+        @media(min-height:700px){ .modal-bg { align-items:center; } .modal-box { border-radius:28px; max-height:90vh; overflow-y:auto; } }
+
+        /* SUGGESTIONS */
+        .sug-box { position:absolute; width:100%; top:100%; left:0; z-index:300; background:#fff; border:1px solid #ddd; border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.1); overflow:hidden; }
+        .sug-box div { padding:13px 16px; border-bottom:1px solid #f5f5f5; cursor:pointer; font-weight:700; font-size:14px; }
+        .sug-box div:hover { background:#f5f0ff; }
+
+        /* RELATÓRIO PRINT */
+        @media print {
+            body > *:not(#relatorio-print) { display:none !important; }
+            #relatorio-print { display:block !important; position:static; }
+            .print-btn { display:none !important; }
+        }
+        #relatorio-print { display:none; }
+
+        .rel-table { width:100%; border-collapse:collapse; font-size:11px; }
+        .rel-table th, .rel-table td { border:1px solid #ccc; padding:4px 6px; text-align:left; }
+        .rel-table th { font-weight:800; }
+        .rel-header-esp   { background:#fde8d8; }
+        .rel-header-emag  { background:#d8eafd; }
+        .rel-header-aplic { background:#f3d8fd; }
     </style>
 </head>
-<body class="pb-32">
+<body class="pb-28">
 
-    <header class="full-header">
-        <img src="logo.png">
-        <div class="mt-2"><input type="date" id="data-seletor" onchange="loadData()" class="p-2 border rounded-xl font-bold"></div>
-    </header>
+<!-- HEADER -->
+<header class="full-header">
+    <img src="logo.png" alt="Logo" onerror="this.style.display='none'">
+    <div class="date-picker-wrap">
+        <input type="date" id="data-seletor" onchange="onDateChange()">
+        <span id="day-badge" class="date-badge"></span>
+    </div>
+</header>
 
-    <main id="content" class="p-4 max-w-2xl mx-auto"></main>
+<main id="content" class="p-4 max-w-2xl mx-auto"></main>
 
-    <nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 shadow-lg text-gray-400">
-        <button onclick="showTab('agenda')" id="tab-agenda" class="flex-1 flex flex-col items-center"><i class="fas fa-calendar-day"></i><span class="text-[9px] font-bold">AGENDA</span></button>
-        <button onclick="showTab('historico')" id="tab-historico" class="flex-1 flex flex-col items-center"><i class="fas fa-history"></i><span class="text-[9px] font-bold">HISTÓRICO</span></button>
-        <button onclick="showTab('cadastro')" id="tab-cadastro" class="flex-1 flex flex-col items-center"><i class="fas fa-user-plus"></i><span class="text-[9px] font-bold">CADASTRO</span></button>
-        <button onclick="showTab('busca')" id="tab-busca" class="flex-1 flex flex-col items-center"><i class="fas fa-search"></i><span class="text-[9px] font-bold">FICHAS</span></button>
-    </nav>
+<!-- BOTTOM NAV -->
+<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 shadow-lg text-gray-400 text-[10px] font-bold">
+    <button onclick="showTab('agenda')"    id="tab-agenda"    class="flex-1 flex flex-col items-center gap-1"><span class="tab-icon"><i class="fas fa-calendar-day text-lg"></i></span>AGENDA</button>
+    <button onclick="showTab('historico')" id="tab-historico" class="flex-1 flex flex-col items-center gap-1"><span class="tab-icon"><i class="fas fa-history text-lg"></i></span>HISTÓRICO</button>
+    <button onclick="showTab('cadastro')"  id="tab-cadastro"  class="flex-1 flex flex-col items-center gap-1"><span class="tab-icon"><i class="fas fa-user-plus text-lg"></i></span>CADASTRO</button>
+    <button onclick="showTab('fichas')"    id="tab-fichas"    class="flex-1 flex flex-col items-center gap-1"><span class="tab-icon"><i class="fas fa-search text-lg"></i></span>FICHAS</button>
+    <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1"><span class="tab-icon"><i class="fas fa-file-alt text-lg"></i></span>RELATÓRIO</button>
+</nav>
 
-    <div id="modal-agenda" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[28px] p-8 relative text-black">
-            <h2 class="font-bold text-2xl mb-4 uppercase text-center">Agendar</h2>
-            <select id="tipo-servico" class="w-full p-4 border rounded-2xl mb-4 font-bold bg-gray-50">
-                <option value="Primeira Consulta">Primeira Consulta</option>
-                <option value="Consulta">Consulta</option>
-                <option value="Retorno">Retorno</option>
-                <option value="Aplicação">Aplicação</option>
-                <option value="Consulta Clinical">Consulta Clinical</option>
-                <option value="Retorno Clinical">Retorno Clinical</option>
-                <option value="Aplicação Clinical">Aplicação Clinical</option>
-                <option value="Peneira Consulta">Peneira Consulta</option>
-            </select>
-            <div class="relative mb-6">
-                <input type="text" id="busca-pac" oninput="autoSugerir(this.value, 'sug-modal')" placeholder="Nome do paciente..." class="w-full p-4 border rounded-2xl font-bold bg-gray-50 outline-none">
-                <div id="sug-modal" class="search-suggestions hidden"></div>
-            </div>
-            <div class="flex gap-3">
-                <button onclick="fecharModal()" class="flex-1 p-4 font-bold text-gray-400">SAIR</button>
-                <button onclick="salvar()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold">CONFIRMAR</button>
-            </div>
+<!-- MODAL AGENDAR / EDITAR -->
+<div id="modal-agenda" class="hidden modal-bg" onclick="fecharModalFora(event)">
+    <div class="modal-box">
+        <h2 class="font-black text-xl mb-5 uppercase text-center tracking-wide" id="modal-titulo">Agendar</h2>
+        <select id="tipo-servico" class="w-full p-4 border-2 rounded-2xl mb-4 font-bold bg-gray-50 text-sm">
+            <option>Primeira Consulta</option>
+            <option>Consulta</option>
+            <option>Retorno</option>
+            <option>Aplicação</option>
+            <option>Consulta Clinical</option>
+            <option>Retorno Clinical</option>
+            <option>Aplicação Clinical</option>
+        </select>
+        <div class="relative mb-5">
+            <input type="text" id="busca-pac" oninput="autoSugerir(this.value,'sug-modal')" placeholder="Nome do paciente..." autocomplete="off"
+                class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm">
+            <div id="sug-modal" class="sug-box hidden"></div>
+        </div>
+        <div class="flex gap-3 mt-2">
+            <button onclick="fecharModal()" class="flex-1 p-4 font-bold text-gray-400 rounded-2xl border-2">SAIR</button>
+            <button id="btn-deletar" onclick="deletarAgendamento()" class="hidden flex-1 bg-red-500 text-white p-4 rounded-2xl font-bold">CANCELAR</button>
+            <button onclick="salvar()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold">CONFIRMAR</button>
+        </div>
+        <!-- Botão WhatsApp -->
+        <div id="btn-whats-wrap" class="hidden mt-3">
+            <button onclick="abrirWhatsApp()" class="w-full p-4 font-bold rounded-2xl flex items-center justify-center gap-2" style="background:#25D366;color:#fff;">
+                <i class="fab fa-whatsapp text-xl"></i> Lembrete no WhatsApp
+            </button>
         </div>
     </div>
+</div>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwq10NESr9gx83tuwvASPj8Wc6uKoYXlSb0mrNumWqfapI6FtgjhS43sUQueXdaIXbu/exec"; 
-        let pacientes = [], agendamentos = [], sTime, sCat, editId = null;
+<!-- RELATÓRIO PARA IMPRESSÃO -->
+<div id="relatorio-print"></div>
 
-        window.onload = () => {
-            const hoje = new Date();
-            document.getElementById('data-seletor').value = hoje.toLocaleDateString('en-CA');
-            showTab('agenda'); loadData();
-        };
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxfRKSYKra0hRBLsdJOdGEUcuXNAfCsoJlTqyZMIAegIh_yH2w7L8V7U6uC0OhAvjgi/exec";
 
-        async function loadData() {
-            try {
-                const r = await fetch(`${API_URL}?action=getInitialData`);
-                const d = await r.json();
-                pacientes = d.patients || [];
-                agendamentos = d.appointments || [];
-                render();
-            } catch(e) { console.error(e); }
+let pacientes = [], agendamentos = [];
+let sTime, sCat, editId = null, editPacTel = null;
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+function isoParaBR(iso) {
+    if (!iso) return '';
+    // Se já vier como DD/MM/YYYY, retorna como está
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(iso)) return iso;
+    // Se vier como YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+        const [y,m,d] = iso.split('-');
+        return `${d}/${m}/${y}`;
+    }
+    // Se vier como objeto Date serializado
+    try {
+        const d = new Date(iso);
+        if (!isNaN(d)) {
+            const dd = String(d.getUTCDate()).padStart(2,'0');
+            const mm = String(d.getUTCMonth()+1).padStart(2,'0');
+            const yyyy = d.getUTCFullYear();
+            return `${dd}/${mm}/${yyyy}`;
         }
+    } catch(e){}
+    return iso;
+}
 
-        function showTab(tab) {
-            window.currentTab = tab;
-            document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
-            document.getElementById(`tab-${tab}`).classList.add('tab-active');
-            render();
+function formatarHora(val) {
+    if (!val) return '';
+    if (/^\d{2}:\d{2}$/.test(val)) return val;
+    try {
+        const d = new Date(val);
+        if (!isNaN(d)) {
+            return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
         }
+    } catch(e){}
+    return val;
+}
 
-        function render() {
-            const container = document.getElementById('content');
-            const dataSel = document.getElementById('data-seletor').value;
-            const partes = dataSel.split('-');
-            const dataF = `${partes[2]}/${partes[1]}/${partes[0]}`;
+function getDataSelecionadaBR() {
+    const v = document.getElementById('data-seletor').value; // YYYY-MM-DD
+    const [y,m,d] = v.split('-');
+    return `${d}/${m}/${y}`;
+}
 
-            if (window.currentTab === 'agenda') {
-                container.innerHTML = `
-                    ${renderCategoria('Esportivo', 'free-esportivo', 'busy-esportivo', 25, dataF)}
-                    ${renderCategoria('Emagrecimento', 'free-emagrecimento', 'busy-emagrecimento', 35, dataF)}
-                    ${renderCategoria('Aplicação', 'free-aplicacao', 'busy-aplicacao', 30, dataF)}`;
-            } else if (window.currentTab === 'historico') {
-                container.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm relative"><h2 class="font-bold text-xl mb-4 uppercase">Histórico</h2><input type="text" oninput="autoSugerir(this.value, 'sug-hist')" placeholder="Nome do paciente..." class="w-full p-4 border rounded-2xl font-bold outline-none"><div id="sug-hist" class="search-suggestions hidden"></div><div id="lista-historico" class="mt-8 space-y-4"></div></div>`;
-            } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `<div class="p-8 bg-white rounded-3xl border shadow-sm"><h2 class="font-bold text-2xl mb-6 uppercase text-center">Cadastro</h2><div class="space-y-4"><input id="c-nome" placeholder="Nome" class="w-full p-4 border rounded-2xl font-bold"><input id="c-tel" placeholder="WhatsApp" class="w-full p-4 border rounded-2xl font-bold"><button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-bold">SALVAR</button></div></div>`;
-            }
+function getDataSelecionadaISO() {
+    return document.getElementById('data-seletor').value;
+}
+
+function diaDaSemana(iso) {
+    const d = new Date(iso + 'T12:00:00');
+    return d.getDay(); // 0=dom, 2=ter, 4=qui
+}
+
+function isDataPermitida(iso) {
+    const d = diaDaSemana(iso);
+    return d === 2 || d === 4;
+}
+
+function profissionalEsportivo(iso) {
+    return diaDaSemana(iso) === 2 ? 'Líbia' : 'Geraldo';
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────────────────
+window.onload = () => {
+    // Próxima terça
+    const hoje = new Date();
+    const dia = hoje.getDay();
+    let diff = (2 - dia + 7) % 7;
+    if (diff === 0) diff = 0;
+    hoje.setDate(hoje.getDate() + diff);
+    document.getElementById('data-seletor').value = hoje.toLocaleDateString('en-CA');
+    atualizarBadge();
+    showTab('agenda');
+    loadData();
+};
+
+function onDateChange() {
+    atualizarBadge();
+    render();
+}
+
+function atualizarBadge() {
+    const iso = getDataSelecionadaISO();
+    const badge = document.getElementById('day-badge');
+    const d = diaDaSemana(iso);
+    if (d === 2) { badge.textContent = 'TERÇA'; badge.className = 'date-badge badge-terca'; }
+    else if (d === 4) { badge.textContent = 'QUINTA'; badge.className = 'date-badge badge-quinta'; }
+    else { badge.textContent = 'BLOQUEADO'; badge.className = 'date-badge badge-bloq'; }
+}
+
+async function loadData() {
+    try {
+        const r = await fetch(`${API_URL}?action=getInitialData`);
+        const d = await r.json();
+        pacientes = d.patients || [];
+        agendamentos = (d.appointments || []).map(a => ({
+            ...a,
+            data: isoParaBR(a.data),
+            hora: formatarHora(a.hora)
+        }));
+        render();
+    } catch(e) { console.error('Erro ao carregar:', e); }
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function showTab(tab) {
+    window.currentTab = tab;
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-active'));
+    document.getElementById(`tab-${tab}`).classList.add('tab-active');
+    render();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+    const c = document.getElementById('content');
+    const iso = getDataSelecionadaISO();
+    const permitida = isDataPermitida(iso);
+
+    if (window.currentTab === 'agenda') {
+        if (!permitida) {
+            c.innerHTML = `<div class="mt-10 text-center">
+                <div class="text-5xl mb-4">🚫</div>
+                <p class="font-bold text-lg text-red-500">Data bloqueada</p>
+                <p class="text-gray-400 text-sm mt-2">Selecione uma <b>terça</b> ou <b>quinta</b>-feira.</p>
+            </div>`;
+            return;
         }
+        const profEsp = profissionalEsportivo(iso);
+        c.innerHTML =
+            renderCategoria('Esportivo', profEsp, 'slot-esportivo', 'busy-esportivo', 25) +
+            renderCategoria('Emagrecimento', 'Bruno', 'slot-emagrecimento', 'busy-emagrecimento', 35) +
+            renderCategoria('Aplicação', '', 'slot-aplicacao', 'busy-aplicacao', 30);
 
-        function renderCategoria(cat, freeCl, busyCl, step, dataF) {
-            let html = `<h3 class="font-bold text-[11px] uppercase tracking-widest mt-8 mb-4 text-gray-400 px-2">${cat}</h3>`;
-            let t = new Date(); t.setHours(9, 0, 0);
-            while(t.getHours() < 13) {
-                let h = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                // CORREÇÃO: Comparação exata de data e categoria
-                const ag = agendamentos.find(a => String(a.data).trim() === dataF && a.categoria === cat && a.hora === h);
-                if(ag) {
-                    html += `<div onclick="abrirModal('${h}','${cat}',${JSON.stringify(ag).replace(/"/g, '&quot;')})" class="slot-card busy-card ${busyCl}"><div class="flex justify-between text-[10px] uppercase font-bold"><span>${h}</span><span>${ag.servico}</span></div><p class="text-xl font-bold uppercase mt-1">${ag.paciente}</p></div>`;
-                } else {
-                    html += `<div onclick="abrirModal('${h}','${cat}')" class="slot-card ${freeCl} flex justify-between items-center"><span class="font-bold text-gray-400">${h} - LIVRE</span><i class="fas fa-plus opacity-20"></i></div>`;
-                }
-                t.setMinutes(t.getMinutes() + step);
-            }
-            return html;
+    } else if (window.currentTab === 'historico') {
+        c.innerHTML = `
+        <div class="bg-white p-6 rounded-3xl border shadow-sm">
+            <h2 class="font-black text-xl mb-4 uppercase">Histórico</h2>
+            <div class="relative">
+                <input type="text" id="inp-hist" oninput="autoSugerir(this.value,'sug-hist')" placeholder="Nome do paciente..." autocomplete="off"
+                    class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm">
+                <div id="sug-hist" class="sug-box hidden"></div>
+            </div>
+            <div id="lista-historico" class="mt-6 space-y-3"></div>
+        </div>`;
+
+    } else if (window.currentTab === 'cadastro') {
+        c.innerHTML = `
+        <div class="p-6 bg-white rounded-3xl border shadow-sm">
+            <h2 class="font-black text-2xl mb-6 uppercase text-center">Cadastro</h2>
+            <div class="space-y-3">
+                <input id="c-nome" placeholder="Nome completo" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <input id="c-tel" placeholder="WhatsApp (com DDD)" type="tel" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <input id="c-nasc" placeholder="Data de nascimento" type="date" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <input id="c-email" placeholder="E-mail" type="email" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <input id="c-altura" placeholder="Altura (cm, ex: 165)" type="number" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none">
+                <button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm mt-2">SALVAR PACIENTE</button>
+            </div>
+        </div>`;
+
+    } else if (window.currentTab === 'fichas') {
+        c.innerHTML = `
+        <div class="bg-white p-6 rounded-3xl border shadow-sm">
+            <h2 class="font-black text-xl mb-4 uppercase">Fichas</h2>
+            <div class="relative">
+                <input type="text" id="inp-fichas" oninput="autoSugerir(this.value,'sug-fichas')" placeholder="Nome do paciente..." autocomplete="off"
+                    class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm">
+                <div id="sug-fichas" class="sug-box hidden"></div>
+            </div>
+            <div id="ficha-resultado" class="mt-6"></div>
+        </div>`;
+
+    } else if (window.currentTab === 'relatorio') {
+        renderRelatorio();
+    }
+}
+
+// ── AGENDA ────────────────────────────────────────────────────────────────────
+function renderCategoria(cat, prof, freeClass, busyClass, step) {
+    const dataF = getDataSelecionadaBR();
+    const titulo = prof ? `${cat.toUpperCase()} — ${prof}` : cat.toUpperCase();
+    let html = `<h3 class="font-black text-[11px] uppercase tracking-widest mt-8 mb-3 px-1 text-gray-400">${titulo}</h3>`;
+    let t = new Date(); t.setHours(9,0,0,0);
+    while (t.getHours() < 12 || (t.getHours() === 12 && t.getMinutes() === 0)) {
+        const h = t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});
+        const ag = agendamentos.find(a => a.data === dataF && a.categoria === cat && a.hora === h);
+        if (ag) {
+            const agJson = JSON.stringify(ag).replace(/'/g,"\\'").replace(/"/g,'&quot;');
+            html += `<div onclick="abrirModalEdicao('${h}','${cat}',this)" data-ag="${agJson}" class="slot-card slot-busy ${busyClass}">
+                <div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${h}</span><span>${ag.servico||''}</span></div>
+                <p class="text-lg font-black uppercase">${ag.paciente}</p>
+            </div>`;
+        } else {
+            html += `<div onclick="abrirModal('${h}','${cat}')" class="slot-card ${freeClass} flex justify-between items-center">
+                <span class="font-bold text-gray-400 text-sm">${h} — LIVRE</span>
+                <i class="fas fa-plus text-gray-300"></i>
+            </div>`;
         }
+        t.setMinutes(t.getMinutes() + step);
+    }
+    return html;
+}
 
-        function autoSugerir(v, cid) {
-            const s = document.getElementById(cid);
-            if(v.length < 1) { s.classList.add('hidden'); return; }
-            const f = pacientes.filter(p => p.nome.toLowerCase().includes(v.toLowerCase()));
-            s.innerHTML = f.map(p => `<div onclick="selecionar('${p.nome}', '${cid}')">${p.nome}</div>`).join('');
-            s.classList.remove('hidden');
-        }
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function abrirModal(h, cat) {
+    sTime = h; sCat = cat; editId = null; editPacTel = null;
+    document.getElementById('modal-titulo').textContent = `Agendar — ${h}`;
+    document.getElementById('busca-pac').value = '';
+    document.getElementById('sug-modal').classList.add('hidden');
+    document.getElementById('btn-deletar').classList.add('hidden');
+    document.getElementById('btn-whats-wrap').classList.add('hidden');
+    document.getElementById('modal-agenda').classList.remove('hidden');
+}
 
-        function selecionar(n, cid) {
-            document.getElementById(cid).classList.add('hidden');
-            if(cid === 'sug-modal') document.getElementById('busca-pac').value = n;
-            if(cid === 'sug-hist') verHistorico(n);
-        }
+function abrirModalEdicao(h, cat, el) {
+    const ag = JSON.parse(el.getAttribute('data-ag').replace(/&quot;/g,'"'));
+    sTime = h; sCat = cat; editId = ag.id;
+    // Busca telefone do paciente
+    const pac = pacientes.find(p => p.nome === ag.paciente);
+    editPacTel = pac ? pac.telefone : null;
 
-        function verHistorico(nome) {
-            const lista = agendamentos.filter(a => a.paciente === nome).reverse();
-            document.getElementById('lista-historico').innerHTML = lista.map(a => `<div class="p-4 border rounded-2xl bg-gray-50 text-black font-bold">${a.data} - ${a.hora} - ${a.servico}</div>`).join('') || 'Sem histórico';
-        }
+    document.getElementById('modal-titulo').textContent = `Editar — ${h}`;
+    document.getElementById('busca-pac').value = ag.paciente;
+    document.getElementById('tipo-servico').value = ag.servico || 'Consulta';
+    document.getElementById('sug-modal').classList.add('hidden');
+    document.getElementById('btn-deletar').classList.remove('hidden');
+    if (editPacTel) document.getElementById('btn-whats-wrap').classList.remove('hidden');
+    else document.getElementById('btn-whats-wrap').classList.add('hidden');
+    document.getElementById('modal-agenda').classList.remove('hidden');
+}
 
-        function abrirModal(h, cat, ag = null) {
-            sTime = h; sCat = cat; editId = ag ? ag.id : null;
-            document.getElementById('modal-agenda').classList.remove('hidden');
-            document.getElementById('busca-pac').value = ag ? ag.paciente : "";
-        }
+function fecharModal() { document.getElementById('modal-agenda').classList.add('hidden'); }
+function fecharModalFora(e) { if (e.target.id === 'modal-agenda') fecharModal(); }
 
-        function fecharModal() { document.getElementById('modal-agenda').classList.add('hidden'); }
+function abrirWhatsApp() {
+    if (!editPacTel) return;
+    const tel = editPacTel.replace(/\D/g,'');
+    const dataF = getDataSelecionadaBR();
+    const msg = encodeURIComponent(`Olá! Lembrando da sua consulta em ${dataF} às ${sTime}. Aguardamos você! 😊`);
+    window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
+}
 
-        async function salvar() {
-            const pac = document.getElementById('busca-pac').value;
-            const dataBruta = document.getElementById('data-seletor').value;
-            const partes = dataBruta.split('-');
-            const dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`; // DD/MM/AAAA
-            
-            if(!pac) return alert("Selecione o paciente!");
-            fecharModal();
-            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addAppointment', data: dataFormatada, hora: sTime, paciente: pac, categoria: sCat, servico: document.getElementById('tipo-servico').value, id: editId }) });
-            loadData();
-        }
+// ── SALVAR / DELETAR ──────────────────────────────────────────────────────────
+async function salvar() {
+    const pac = document.getElementById('busca-pac').value.trim();
+    if (!pac) return alert('Selecione um paciente!');
+    const dataF = getDataSelecionadaBR();
+    const servico = document.getElementById('tipo-servico').value;
+    fecharModal();
+    try {
+        await fetch(API_URL, { method:'POST', body: JSON.stringify({
+            action:'addAppointment', data: dataF, hora: sTime,
+            paciente: pac, categoria: sCat, servico, id: editId
+        })});
+        await loadData();
+    } catch(e) { alert('Erro ao salvar. Tente novamente.'); }
+}
 
-        async function cadastrar() {
-            const n = document.getElementById('c-nome').value, t = document.getElementById('c-tel').value;
-            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t }) });
-            alert("Salvo!"); loadData(); showTab('agenda');
-        }
-    </script>
+async function deletarAgendamento() {
+    if (!editId) return;
+    if (!confirm('Cancelar este agendamento?')) return;
+    fecharModal();
+    try {
+        await fetch(API_URL, { method:'POST', body: JSON.stringify({ action:'deleteAppointment', id: editId }) });
+        await loadData();
+    } catch(e) { alert('Erro ao cancelar.'); }
+}
+
+// ── CADASTRO ──────────────────────────────────────────────────────────────────
+async function cadastrar() {
+    const nome   = document.getElementById('c-nome').value.trim();
+    const tel    = document.getElementById('c-tel').value.trim();
+    const nasc   = document.getElementById('c-nasc').value;
+    const email  = document.getElementById('c-email').value.trim();
+    const altura = document.getElementById('c-altura').value.trim();
+    if (!nome) return alert('Nome obrigatório!');
+    try {
+        await fetch(API_URL, { method:'POST', body: JSON.stringify({
+            action:'addPatient', name: nome, phone: tel,
+            nascimento: nasc ? isoParaBR(nasc) : '',
+            email, altura
+        })});
+        alert(`✅ ${nome} cadastrado!`);
+        await loadData();
+        showTab('agenda');
+    } catch(e) { alert('Erro ao cadastrar.'); }
+}
+
+// ── SUGESTÕES ─────────────────────────────────────────────────────────────────
+function autoSugerir(v, cid) {
+    const s = document.getElementById(cid);
+    if (!v || v.length < 1) { s.classList.add('hidden'); return; }
+    const f = pacientes.filter(p => p.nome && p.nome.toLowerCase().includes(v.toLowerCase())).slice(0,8);
+    if (f.length === 0) { s.classList.add('hidden'); return; }
+    s.innerHTML = f.map(p => `<div onclick="selecionarPac('${p.nome.replace(/'/g,"\\'")}','${cid}')">${p.nome}</div>`).join('');
+    s.classList.remove('hidden');
+}
+
+function selecionarPac(nome, cid) {
+    document.getElementById(cid).classList.add('hidden');
+    if (cid === 'sug-modal') {
+        document.getElementById('busca-pac').value = nome;
+    } else if (cid === 'sug-hist') {
+        document.getElementById('inp-hist').value = nome;
+        verHistorico(nome);
+    } else if (cid === 'sug-fichas') {
+        document.getElementById('inp-fichas').value = nome;
+        verFicha(nome);
+    }
+}
+
+// ── HISTÓRICO ─────────────────────────────────────────────────────────────────
+function verHistorico(nome) {
+    const lista = agendamentos.filter(a => a.paciente === nome)
+        .sort((a,b) => {
+            const da = a.data.split('/').reverse().join('');
+            const db = b.data.split('/').reverse().join('');
+            return db.localeCompare(da);
+        });
+    const el = document.getElementById('lista-historico');
+    if (lista.length === 0) { el.innerHTML = '<p class="text-gray-400 text-center">Sem histórico.</p>'; return; }
+    el.innerHTML = lista.map(a => `
+        <div class="p-4 border-2 rounded-2xl bg-gray-50">
+            <div class="flex justify-between items-center">
+                <span class="font-black text-sm">${a.data} — ${a.hora}</span>
+                <span class="text-xs font-bold px-2 py-1 rounded-full bg-white border">${a.categoria}</span>
+            </div>
+            <p class="font-bold text-sm mt-1 text-gray-600">${a.servico||'—'}</p>
+        </div>`).join('');
+}
+
+// ── FICHAS ────────────────────────────────────────────────────────────────────
+function verFicha(nome) {
+    const pac = pacientes.find(p => p.nome === nome);
+    const hists = agendamentos.filter(a => a.paciente === nome)
+        .sort((a,b) => {
+            const da = a.data.split('/').reverse().join('');
+            const db = b.data.split('/').reverse().join('');
+            return db.localeCompare(da);
+        });
+    const ultimo = hists[0];
+    const el = document.getElementById('ficha-resultado');
+    if (!pac && hists.length === 0) { el.innerHTML = '<p class="text-gray-400 text-center mt-4">Paciente não encontrado.</p>'; return; }
+
+    el.innerHTML = `
+    <div class="border-2 rounded-2xl p-5 bg-gray-50 space-y-2">
+        <p class="font-black text-lg uppercase">${nome}</p>
+        ${pac?.telefone ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-phone mr-1"></i>${pac.telefone}</p>` : ''}
+        ${pac?.email    ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-envelope mr-1"></i>${pac.email}</p>` : ''}
+        ${pac?.nascimento ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-birthday-cake mr-1"></i>${pac.nascimento}</p>` : ''}
+        ${pac?.altura   ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-ruler-vertical mr-1"></i>${pac.altura} cm</p>` : ''}
+        <hr class="my-3">
+        <p class="text-xs uppercase font-black text-gray-400 tracking-widest">Última visita</p>
+        ${ultimo
+            ? `<div class="bg-white border rounded-xl p-3 mt-1">
+                <p class="font-black text-sm">${ultimo.data} — ${ultimo.hora}</p>
+                <p class="text-sm text-gray-500 font-bold">${ultimo.servico||'—'} · ${ultimo.categoria}</p>
+               </div>`
+            : '<p class="text-gray-400 text-sm">Sem visitas registradas.</p>'}
+        <p class="text-xs uppercase font-black text-gray-400 tracking-widest mt-3">Total de visitas: ${hists.length}</p>
+    </div>`;
+}
+
+// ── RELATÓRIO ─────────────────────────────────────────────────────────────────
+function gerarSlots(step) {
+    const slots = []; let h=9, m=0;
+    while (h < 12 || (h===12 && m===0)) {
+        slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+        m += step; if(m>=60){ h+=Math.floor(m/60); m=m%60; }
+    }
+    return slots;
+}
+
+function renderRelatorio() {
+    const iso  = getDataSelecionadaISO();
+    const dataF = getDataSelecionadaBR();
+    const permitida = isDataPermitida(iso);
+    const profEsp = profissionalEsportivo(iso);
+    const c = document.getElementById('content');
+
+    if (!permitida) {
+        c.innerHTML = `<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça ou quinta para gerar o relatório.</p></div>`;
+        return;
+    }
+
+    function secao(cat, prof, slots, corHeader, corRows) {
+        const titulo = prof ? `${cat.toUpperCase()} — ${prof}` : cat.toUpperCase();
+        let rows = '';
+        slots.forEach(h => {
+            const ag = agendamentos.find(a => a.data===dataF && a.categoria===cat && a.hora===h);
+            const pac = ag ? pacientes.find(p => p.nome===ag.paciente) : null;
+            const hists = ag ? agendamentos.filter(a => a.paciente===ag.paciente && a.data!==dataF)
+                .sort((a,b)=>b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join(''))) : [];
+            const ultima = hists[0];
+            rows += `<tr>
+                <td style="font-weight:800;color:#555">${h}</td>
+                <td style="font-weight:800">${ag ? ag.paciente.toUpperCase() : ''}</td>
+                <td>${pac?.telefone||''}</td>
+                <td>${pac?.nascimento||''}</td>
+                <td style="font-size:10px">${pac?.email||''}</td>
+                <td>${pac?.altura ? pac.altura+'cm' : ''}</td>
+                <td>${ultima ? ultima.data : ''}</td>
+                <td style="font-size:10px">${ultima ? (ultima.servico||'')+'·'+ultima.categoria : ''}</td>
+                <td style="font-weight:800">${ag ? ag.servico||'' : ''}</td>
+            </tr>`;
+        });
+        return `
+        <tr><td colspan="9" style="background:${corHeader};font-weight:800;font-size:13px;padding:6px 8px">${titulo}</td></tr>
+        <tr style="background:${corRows};font-size:10px;font-weight:700">
+            <th>Horário</th><th>Paciente</th><th>Telefone</th><th>Nascimento</th>
+            <th>Email</th><th>Alt.</th><th>Última visita</th><th>Último proc.</th><th>Hoje</th>
+        </tr>
+        ${rows}`;
+    }
+
+    const html = `
+    <div class="mb-4 flex justify-between items-center">
+        <h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2>
+        <button onclick="imprimirRelatorio()" class="print-btn bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2">
+            <i class="fas fa-print"></i> Imprimir
+        </button>
+    </div>
+    <div id="rel-conteudo" style="overflow-x:auto">
+        <table class="rel-table">
+            <thead>
+                <tr><td colspan="9" style="text-align:center;font-weight:900;font-size:15px;padding:8px">
+                    AGENDA LOURDES — ${dataF}
+                </td></tr>
+            </thead>
+            <tbody>
+                ${secao('Esportivo', profEsp, gerarSlots(25), '#fde8d8', '#fff8f5')}
+                ${secao('Emagrecimento', 'Bruno', gerarSlots(35), '#d8eafd', '#f5f9ff')}
+                ${secao('Aplicação', '', gerarSlots(30), '#f3d8fd', '#fdf5ff')}
+            </tbody>
+        </table>
+    </div>`;
+
+    c.innerHTML = html;
+
+    // Também popula o div de impressão
+    document.getElementById('relatorio-print').innerHTML = `
+        <div style="padding:20px;font-family:Arial,sans-serif">
+            <h2 style="text-align:center;font-size:16px;margin-bottom:12px">AGENDA LOURDES — ${dataF}</h2>
+            <table class="rel-table">
+                <tbody>
+                    ${secao('Esportivo', profEsp, gerarSlots(25), '#fde8d8', '#fff8f5')}
+                    ${secao('Emagrecimento', 'Bruno', gerarSlots(35), '#d8eafd', '#f5f9ff')}
+                    ${secao('Aplicação', '', gerarSlots(30), '#f3d8fd', '#fdf5ff')}
+                </tbody>
+            </table>
+        </div>`;
+}
+
+function imprimirRelatorio() {
+    document.getElementById('relatorio-print').style.display = 'block';
+    window.print();
+    setTimeout(() => { document.getElementById('relatorio-print').style.display = 'none'; }, 1000);
+}
+
+// Fecha sugestões ao clicar fora
+document.addEventListener('click', e => {
+    document.querySelectorAll('.sug-box').forEach(s => {
+        if (!s.contains(e.target)) s.classList.add('hidden');
+    });
+});
+</script>
 </body>
 </html>
