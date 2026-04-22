@@ -22,11 +22,10 @@
             .header-esportivo { background-color: #fce4ec !important; -webkit-print-color-adjust: exact; }
             .header-emagrecimento { background-color: #e8f5e9 !important; -webkit-print-color-adjust: exact; }
             .header-aplicacao { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; }
-            .print-area { display: block !important; }
         }
     </style>
 </head>
-<body class="pb-24">
+<body class="pb-24 text-slate-800">
 
     <div class="bg-slate-800 text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-md no-print">
         <div>
@@ -37,20 +36,18 @@
     </div>
 
     <div class="bg-white sticky top-[72px] z-40 flex shadow-sm border-b overflow-x-auto no-print">
-        <button onclick="showTab('agenda')" id="tab-agenda" class="p-3 flex-1 tab-active text-[10px] uppercase font-bold">Agenda</button>
-        <button onclick="showTab('cadastro')" id="tab-cadastro" class="p-3 flex-1 text-[10px] uppercase font-bold">Cadastrar</button>
-        <button onclick="showTab('busca')" id="tab-busca" class="p-3 flex-1 text-[10px] uppercase font-bold">Ficha</button>
-        <button onclick="showTab('relatorio')" id="tab-relatorio" class="p-3 flex-1 text-[10px] uppercase font-bold">Relatório</button>
+        <button onclick="showTab('agenda')" id="tab-agenda" class="p-3 flex-1 tab-active text-[10px] uppercase font-bold text-center">Agenda</button>
+        <button onclick="showTab('cadastro')" id="tab-cadastro" class="p-3 flex-1 text-[10px] uppercase font-bold text-center">Cadastrar</button>
+        <button onclick="showTab('busca')" id="tab-busca" class="p-3 flex-1 text-[10px] uppercase font-bold text-center">Ficha</button>
+        <button onclick="showTab('relatorio')" id="tab-relatorio" class="p-3 flex-1 text-[10px] uppercase font-bold text-center">Relatório</button>
     </div>
 
     <div id="content" class="p-4 max-w-xl mx-auto"></div>
 
     <div id="modal-agenda" class="hidden fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4 no-print">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-slate-800">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
             <h2 class="font-bold text-xl mb-4">Agendar</h2>
             <p id="info-horario" class="text-blue-600 font-bold mb-4 bg-blue-50 p-2 rounded-lg text-center"></p>
-            
-            <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Tipo de Serviço</label>
             <select id="tipo-servico" class="w-full p-4 border rounded-2xl mb-4 bg-gray-50 font-bold outline-none">
                 <option value="CONSULTA">CONSULTA</option>
                 <option value="RETORNO">RETORNO</option>
@@ -59,7 +56,6 @@
                 <option value="RETORNO (C)">RETORNO CLINICAL</option>
                 <option value="APLICAÇÃO (C)">APLICAÇÃO CLINICAL</option>
             </select>
-
             <input type="text" id="busca-paciente-modal" oninput="filtrarModal(this.value)" placeholder="Nome do paciente..." class="w-full p-4 border rounded-2xl mb-2 bg-gray-50 outline-none">
             <div id="lista-pacientes-modal" class="max-h-32 overflow-y-auto border rounded-xl mb-6 bg-white"></div>
             <div class="flex gap-2">
@@ -71,7 +67,7 @@
 
     <script>
         // ======= COLE O SEU LINK DA PLANILHA ABAIXO =======
-        const API_URL = "https://script.google.com/macros/s/AKfycbya4t1D3bNJV3Bvl0MiRRGvYwukZP-kjnWTHFCHY3bgAVT50gRkE0tEjd8WsODXG9b1/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwGmxjKsqV5RswuNPp5T2B079kpOVUB8h3PnrgeRWVWRX25wVKX9Fdmm9oRdILFU4xZ/exec";
         
         let pacientes = [], agendamentos = [], selectedTime, selectedCat, selectedPac;
 
@@ -85,15 +81,22 @@
             try {
                 const r = await fetch(`${API_URL}?action=getInitialData`);
                 const d = await r.json();
-                pacientes = d.patients || []; agendamentos = d.appointments || [];
+                pacientes = d.patients || []; 
+                agendamentos = d.appointments || [];
                 render();
-            } catch(e) { console.log("Erro de conexão"); }
+            } catch(e) { console.log("Erro"); }
         }
 
         function showTab(tab) {
             document.querySelectorAll('.bg-white button').forEach(b => b.classList.remove('tab-active'));
             document.getElementById(`tab-${tab}`).classList.add('tab-active');
             window.currentTab = tab; render();
+        }
+
+        function cleanDate(d) {
+            if(!d) return '--';
+            if(d.includes('T')) return d.split('T')[0].split('-').reverse().join('/');
+            return d;
         }
 
         function render() {
@@ -104,7 +107,7 @@
 
             if (window.currentTab === 'agenda') {
                 if (diaSemana !== 2 && diaSemana !== 4) {
-                    container.innerHTML = `<div class="p-10 text-center bg-orange-50 rounded-3xl border-2 border-dashed border-orange-200"><p class="text-orange-800 font-bold">Clínica fechada. Selecione Terça ou Quinta no topo.</p></div>`;
+                    container.innerHTML = `<div class="p-10 text-center bg-orange-50 rounded-3xl border-2 border-dashed border-orange-200"><p class="text-orange-800 font-bold">Clínica fechada. Selecione Terça ou Quinta.</p></div>`;
                     return;
                 }
                 container.innerHTML = `<div class="space-y-6">
@@ -113,9 +116,9 @@
                     <section><h3 class="text-purple-600 font-bold text-[10px] uppercase mb-2">Aplicação</h3>${gerarSlots(9, 12, 30, 'card-aplicacao', 'Aplicação', dataSel)}</section>
                 </div>`;
             } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-sm border"><h2 class="font-bold mb-4 text-slate-800">Novo Cadastro</h2><input type="text" id="n" placeholder="Nome" class="w-full p-4 border rounded-2xl mb-3 bg-slate-50 outline-none"><input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 border rounded-2xl mb-3 bg-slate-50 outline-none"><input type="text" id="d" placeholder="Nascimento" class="w-full p-4 border rounded-2xl mb-4 bg-slate-50 outline-none"><button onclick="salvarPaciente()" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-bold">Salvar</button></div>`;
+                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-sm border"><h2 class="font-bold mb-4">Novo Cadastro</h2><input type="text" id="n" placeholder="Nome" class="w-full p-4 border rounded-2xl mb-3 bg-slate-50 outline-none"><input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 border rounded-2xl mb-3 bg-slate-50 outline-none"><input type="text" id="d" placeholder="Nascimento" class="w-full p-4 border rounded-2xl mb-4 bg-slate-50 outline-none"><button onclick="salvarPaciente()" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-bold">Salvar</button></div>`;
             } else if (window.currentTab === 'busca') {
-                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-sm border"><h2 class="font-bold mb-4 text-slate-800">Ficha do Paciente</h2><input type="text" id="in-busca" oninput="buscarFicha(this.value)" placeholder="Pesquisar nome..." class="w-full p-4 border rounded-2xl bg-slate-50 outline-none"><div id="res-busca" class="mt-4"></div></div>`;
+                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-sm border"><h2 class="font-bold mb-4">Ficha do Paciente</h2><input type="text" id="in-busca" oninput="buscarFicha(this.value)" placeholder="Pesquisar nome..." class="w-full p-4 border rounded-2xl bg-slate-50 outline-none"><div id="res-busca" class="mt-4"></div></div>`;
             } else if (window.currentTab === 'relatorio') { renderRelatorio(dataSel); }
         }
 
@@ -123,7 +126,7 @@
             let html = ''; let t = new Date(); t.setHours(9, 0, 0);
             while(t.getHours() < hEnd) {
                 let h = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                const ocupado = agendamentos.find(a => a.hora.includes(h) && a.data.trim() === dataF.trim() && a.categoria.trim() === cat.trim());
+                const ocupado = agendamentos.find(a => cleanDate(a.data) === dataF && a.categoria.trim() === cat.trim() && a.hora.includes(h));
                 html += `<div class="p-4 mb-2 rounded-2xl shadow-sm flex justify-between items-center border card-slot ${css}"><div><span class="text-[10px] font-bold text-gray-400">${h}</span><span class="block font-bold text-slate-800 text-sm">${ocupado ? ocupado.paciente : 'Livre'}</span>${ocupado ? `<span class="text-[9px] text-blue-600 font-bold">${ocupado.servico}</span>` : ''}</div>${ocupado ? '<i class="fas fa-check-circle text-green-500"></i>' : `<button onclick="abrirAgenda('${h}', '${cat}')" class="text-blue-600 font-bold text-[10px]">+ Agendar</button>`}</div>`;
                 t.setMinutes(t.getMinutes() + step);
             } return html;
@@ -133,46 +136,40 @@
             const dataObj = new Date(document.getElementById('data-seletor').value + "T12:00:00");
             const diaSemana = dataObj.getDay();
             const medicoEsportivo = (diaSemana === 2) ? "LÍBIA" : "GERALDO";
-
-            const filtrar = (cat) => agendamentos.filter(a => a.data.trim() === dataF.trim() && a.categoria.trim() === cat.trim());
-            const esportivo = filtrar('Esportivo'), emagrecimento = filtrar('Emagrecimento'), aplicacao = filtrar('Aplicação');
+            const filtrar = (cat) => agendamentos.filter(a => cleanDate(a.data) === dataF && a.categoria.trim() === cat.trim());
 
             const gerarTabela = (titulo, dados, classe) => `
-                <table class="print-table">
+                <table class="print-table w-full mb-4">
                     <thead>
-                        <tr class="${classe}"><th colspan="7">* ${titulo.toUpperCase()}</th></tr>
-                        <tr style="background:#eee"><th>Hora</th><th>Paciente</th><th>Tel</th><th>Nasc.</th><th>Última Consulta / Proc.</th><th>Obs / Clínica</th><th>Serv.</th></tr>
+                        <tr class="${classe}"><th colspan="7" class="p-2">* ${titulo.toUpperCase()}</th></tr>
+                        <tr class="bg-gray-100 text-[9px]"><th>Hora</th><th>Paciente</th><th>Tel</th><th>Nasc.</th><th>Última Consulta</th><th>Obs</th><th>Serv.</th></tr>
                     </thead>
                     <tbody>
                         ${dados.length > 0 ? dados.map(a => {
                             const p = pacientes.find(pac => pac.name === a.paciente) || {};
-                            const historico = agendamentos.filter(ag => ag.paciente === a.paciente && ag.data !== dataF);
-                            const last = historico.length > 0 ? historico[historico.length - 1] : null;
-                            const ultimaInfo = last ? `${last.data} (${last.servico})` : 'Novo';
-                            
-                            // Detecta se é Clinical Center pelo serviço ou nome
-                            const isClinical = a.servico.includes('(C)') || a.paciente.includes('(C)');
-
-                            return `<tr>
-                                <td class="font-bold">${a.hora}</td>
+                            const hist = agendamentos.filter(ag => ag.paciente === a.paciente && cleanDate(ag.data) !== dataF);
+                            const ultima = hist.length > 0 ? `${cleanDate(hist[hist.length-1].data)}` : 'Novo';
+                            const isClinical = a.servico.includes('(C)');
+                            return `<tr class="text-[10px]">
+                                <td class="font-bold">${a.hora.includes('T') ? a.hora.split('T')[1].substring(0,5) : a.hora}</td>
                                 <td class="uppercase font-bold">${a.paciente}</td>
                                 <td>${p.phone || ''}</td>
-                                <td>${p.nasc || ''}</td>
-                                <td class="text-[9px] text-blue-700">${ultimaInfo}</td>
-                                <td class="font-bold text-center">${isClinical ? 'C' : ''}</td>
+                                <td>${cleanDate(p.nasc)}</td>
+                                <td class="text-blue-700">${ultima}</td>
+                                <td class="text-center font-bold">${isClinical ? 'C' : ''}</td>
                                 <td>${a.servico}</td>
                             </tr>`;
-                        }).join('') : '<tr><td colspan="7" class="text-center italic">Vazio</td></tr>'}
+                        }).join('') : '<tr><td colspan="7" class="text-center py-2 italic text-gray-400">Vazio</td></tr>'}
                     </tbody>
                 </table>`;
 
             document.getElementById('content').innerHTML = `
-                <button onclick="window.print()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold mb-4 no-print shadow-lg"><i class="fas fa-print"></i> Imprimir</button>
+                <button onclick="window.print()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold mb-4 no-print shadow-lg">Imprimir Agenda</button>
                 <div class="bg-white p-2">
-                    <h2 class="text-center font-black text-lg mb-4">AGENDA LOURDES - ${dataF}</h2>
-                    ${gerarTabela(`Esportivo - ${medicoEsportivo}`, esportivo, 'header-esportivo')}
-                    ${gerarTabela('Emagrecimento - Bruno', emagrecimento, 'header-emagrecimento')}
-                    ${gerarTabela('Aplicação', aplicacao, 'header-aplicacao')}
+                    <h2 class="text-center font-black text-lg mb-4 italic">AGENDA LOURDES - ${dataF}</h2>
+                    ${gerarTabela(`Esportivo - ${medicoEsportivo}`, filtrar('Esportivo'), 'header-esportivo')}
+                    ${gerarTabela('Emagrecimento - Bruno', filtrar('Emagrecimento'), 'header-emagrecimento')}
+                    ${gerarTabela('Aplicação', filtrar('Aplicação'), 'header-aplicacao')}
                 </div>`;
         }
 
@@ -180,7 +177,8 @@
             const res = document.getElementById('res-busca'); if(nome.length < 2) { res.innerHTML = ""; return; }
             const p = pacientes.find(p => p.name.toLowerCase().includes(nome.toLowerCase())); if(!p) return;
             const hist = agendamentos.filter(a => a.paciente.trim() === p.name.trim());
-            res.innerHTML = `<div class="p-4 bg-blue-50 rounded-2xl mb-4"><p class="font-bold">${p.name}</p><p class="text-xs">Tel: ${p.phone} | Nasc: ${p.nasc || '--'}</p></div>` + hist.map(h => `<div class="p-2 border-b text-xs"><b>${h.data}</b> - ${h.servico} (${h.hora})</div>`).join('') || 'Sem histórico';
+            res.innerHTML = `<div class="p-4 bg-blue-50 rounded-2xl mb-4 border border-blue-100"><p class="font-bold text-blue-900">${p.name}</p><p class="text-xs text-blue-700">Tel: ${p.phone} | Nasc: ${cleanDate(p.nasc)}</p></div>` + 
+                hist.map(h => `<div class="p-2 border-b text-xs"><b>${cleanDate(h.data)}</b> - ${h.servico} (${h.hora.includes('T') ? h.hora.split('T')[1].substring(0,5) : h.hora})</div>`).join('') || 'Sem histórico';
         }
 
         function abrirAgenda(h, c) { selectedTime = h; selectedCat = c; document.getElementById('info-horario').innerText = `${c} às ${h}`; document.getElementById('modal-agenda').classList.remove('hidden'); }
@@ -188,9 +186,10 @@
         function filtrarModal(v) {
             const l = document.getElementById('lista-pacientes-modal');
             const f = pacientes.filter(p => p.name.toLowerCase().includes(v.toLowerCase()));
-            l.innerHTML = f.map(p => `<div onclick="selecionarParaAgenda('${p.name}')" class="p-4 border-b font-bold text-sm">${p.name}</div>`).join('');
+            l.innerHTML = f.map(p => `<div onclick="selecionarParaAgenda('${p.name}')" class="p-4 border-b font-bold text-sm cursor-pointer active:bg-blue-50">${p.name}</div>`).join('');
         }
         function selecionarParaAgenda(n) { selectedPac = n; document.getElementById('busca-paciente-modal').value = n; const b = document.getElementById('btn-confirmar'); b.disabled = false; b.classList.replace('opacity-30', 'opacity-100'); b.onclick = confirmarAgendamento; }
+        
         async function confirmarAgendamento() {
             const dSel = document.getElementById('data-seletor').value.split('-').reverse().join('/');
             const srv = document.getElementById('tipo-servico').value;
@@ -200,7 +199,7 @@
         async function salvarPaciente() {
             const n = document.getElementById('n').value, t = document.getElementById('t').value, d = document.getElementById('d').value;
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t, nascimento: d }) });
-            alert("Salvo!"); loadData();
+            alert("Paciente Cadastrado!"); loadData();
         }
     </script>
 </body>
