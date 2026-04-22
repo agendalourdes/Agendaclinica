@@ -40,11 +40,12 @@
 </head>
 <body class="pb-32">
 
-    <header class="p-6 pt-10 pb-16 no-print text-center">
-        <div class="max-w-xl mx-auto flex flex-col items-center gap-4">
-            <img src="logo.png" alt="Logo Clínica" class="h-24 mb-2 object-contain" onerror="this.src='https://via.placeholder.com/200x80?text=Clinica+Lourdes'">
+    <header class="p-6 pt-10 pb-16 text-center">
+        <div class="max-w-xl mx-auto flex flex-col items-center gap-6">
+            <img src="logo.png" alt="Dr. Jorge Salomão" class="h-32 object-contain" onerror="this.style.display='none'">
+            
             <div class="flex flex-col items-center gap-2">
-                <p class="text-[12px] font-extrabold text-slate-800 uppercase tracking-widest">Portal de Agendamento Profissional</p>
+                <p class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Portal de Agendamento Profissional</p>
                 <div class="bg-slate-50 p-2 px-5 rounded-full inline-flex items-center gap-3 border-2 border-slate-200 shadow-sm">
                     <i class="far fa-calendar-alt text-slate-900"></i>
                     <input type="date" id="data-seletor" onchange="render()" class="bg-transparent font-black text-sm outline-none border-none text-slate-900 cursor-pointer">
@@ -62,7 +63,7 @@
 
     <main id="content" class="p-4 -mt-8 max-w-xl mx-auto relative z-10"></main>
 
-    <div id="modal-agenda" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center no-print">
+    <div id="modal-agenda" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center">
         <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-8 shadow-2xl">
             <h2 id="modal-titulo" class="font-bold text-2xl mb-1 text-slate-900">Agendar</h2>
             <p id="info-horario" class="text-slate-500 font-bold mb-4 text-sm"></p>
@@ -84,17 +85,19 @@
             <div id="lista-pacientes-modal" class="max-h-40 overflow-y-auto rounded-xl mb-6 bg-slate-50 border"></div>
             
             <div class="flex flex-col gap-3">
-                <button id="btn-confirmar" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg opacity-30" disabled>SALVAR ALTERAÇÃO</button>
+                <button id="btn-confirmar" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg opacity-30" disabled>SALVAR</button>
                 <div class="flex gap-2">
                     <button onclick="fecharModal()" class="flex-1 p-4 bg-slate-100 rounded-2xl font-bold text-slate-400 text-sm">CANCELAR</button>
-                    <button id="btn-remover" class="hidden flex-1 p-4 bg-red-50 text-red-500 rounded-2xl font-bold text-sm border border-red-100">REMOVER</button>
+                    <button id="btn-remover" class="hidden flex-1 p-4 bg-red-50 text-red-500 rounded-2xl font-bold text-sm">REMOVER</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwGmxjKsqV5RswuNPp5T2B079kpOVUB8h3PnrgeRWVWRX25wVKX9Fdmm9oRdILFU4xZ/exec"; // Lembre de colocar seu link!
+        // ======= ATENÇÃO: COLOQUE SEU LINK DA PLANILHA ABAIXO =======
+        const API_URL = "https://script.google.com/macros/s/AKfycbwGmxjKsqV5RswuNPp5T2B079kpOVUB8h3PnrgeRWVWRX25wVKX9Fdmm9oRdILFU4xZ/exec"; 
+        
         let pacientes = [], agendamentos = [], selectedTime, selectedCat, selectedPac, editId = null;
 
         window.onload = () => {
@@ -110,7 +113,7 @@
                 pacientes = d.patients || []; 
                 agendamentos = d.appointments || [];
                 render();
-            } catch(e) { console.log("Erro"); }
+            } catch(e) { console.log("Erro de conexão"); }
         }
 
         function showTab(tab) {
@@ -136,21 +139,34 @@
                         ${renderSection('Aplicação', 'free-aplicacao', 'busy-aplicacao', 30, dataSel)}
                     </div>`;
             } else if (window.currentTab === 'cadastro') {
-                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Cadastro</h2><div class="space-y-4"><input type="text" id="n" placeholder="Nome" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="text" id="d" placeholder="Nascimento" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="email" id="em" placeholder="E-mail" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><input type="text" id="alt" placeholder="Altura" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold"><button onclick="salvarPaciente()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg">SALVAR</button></div></div>`;
+                container.innerHTML = `
+                    <div class="luxury-card p-8">
+                        <h2 class="font-black text-xl mb-6">Novo Paciente</h2>
+                        <div class="space-y-4">
+                            <input type="text" id="n" placeholder="Nome Completo" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
+                            <input type="tel" id="t" placeholder="WhatsApp" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
+                            <input type="text" id="d" placeholder="Data de Nascimento" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
+                            <input type="email" id="em" placeholder="E-mail" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
+                            <input type="text" id="alt" placeholder="Altura" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold">
+                            <button onclick="salvarPaciente()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg">SALVAR NO BANCO</button>
+                        </div>
+                    </div>`;
             } else if (window.currentTab === 'busca') {
-                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Pesquisar</h2><input type="text" oninput="buscarFicha(this.value)" placeholder="Nome..." class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold mb-6"><div id="res-busca"></div></div>`;
+                container.innerHTML = `<div class="luxury-card p-8"><h2 class="font-black text-xl mb-6">Fichas</h2><input type="text" oninput="buscarFicha(this.value)" placeholder="🔍 Nome..." class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold mb-6"><div id="res-busca"></div></div>`;
+            } else if (window.currentTab === 'relatorio') {
+                renderRelatorio(dataSel);
             }
         }
 
         function renderSection(cat, freeClass, busyClass, step, dataF) {
-            let html = `<section><div class="flex items-center gap-3 mb-4"><h3 class="font-black text-[12px] uppercase tracking-[3px]">${cat}</h3><div class="h-[1px] bg-slate-100 flex-1"></div></div>`;
+            let html = `<section><div class="flex items-center gap-3 mb-4"><h3 class="font-black text-[12px] uppercase tracking-[3px] text-slate-900">${cat}</h3><div class="h-[1px] bg-slate-100 flex-1"></div></div>`;
             let t = new Date(); t.setHours(9, 0, 0);
             while(t.getHours() < 12) {
                 let h = t.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
                 const ocupado = agendamentos.find(a => cleanDate(a.data) === dataF && a.categoria.trim() === cat.trim() && a.hora.includes(h));
                 const cardClass = ocupado ? `busy-card ${busyClass}` : freeClass;
                 html += `
-                    <div onclick="abrirModal('${h}', '${cat}', ${ocupado ? JSON.stringify(ocupado).replace(/"/g, '&quot;') : 'null'})" class="p-5 mb-3 flex justify-between items-center slot-card ${cardClass}">
+                    <div onclick='abrirModal("${h}", "${cat}", ${ocupado ? JSON.stringify(ocupado).replace(/"/g, '&quot;') : "null"})' class="p-5 mb-3 flex justify-between items-center slot-card ${cardClass}">
                         <div><span class="text-[10px] font-black uppercase opacity-60">${h}</span><span class="block font-black text-lg">${ocupado ? ocupado.paciente : 'Livre'}</span>${ocupado ? `<span class="status-badge">${ocupado.servico}</span>` : ''}</div>
                         ${ocupado ? `<i class="fab fa-whatsapp text-lg opacity-40"></i>` : `<span class="text-[10px] font-bold border-2 border-slate-200 px-3 py-1 rounded-lg">AGENDAR</span>`}
                     </div>`;
@@ -170,8 +186,8 @@
                 document.getElementById('busca-paciente-modal').value = dadosOcupado.paciente;
                 document.getElementById('tipo-servico').value = dadosOcupado.servico;
                 document.getElementById('btn-remover').classList.remove('hidden');
+                document.getElementById('btn-remover').onclick = removerAgendamento;
                 
-                // Mostrar ficha do paciente
                 const p = pacientes.find(p => p.name === dadosOcupado.paciente);
                 if(p) {
                     document.getElementById('ficha-paciente-edicao').classList.remove('hidden');
@@ -213,17 +229,33 @@
             fecharModal(); loadData();
         }
 
+        async function removerAgendamento() {
+            if(!confirm("Deseja cancelar este horário?")) return;
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteAppointment', id: editId }) });
+            fecharModal(); loadData();
+        }
+
         async function salvarPaciente() {
             const n = document.getElementById('n').value, t = document.getElementById('t').value, d = document.getElementById('d').value;
             const em = document.getElementById('em').value, alt = document.getElementById('alt').value;
+            if(!n || !t) return alert("Preencha Nome e WhatsApp!");
             await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPatient', name: n, phone: t, nascimento: d, email: em, altura: alt }) });
-            alert("Cadastrado!"); loadData();
+            alert("✅ Paciente Cadastrado!"); loadData();
         }
 
         function buscarFicha(nome) {
-            const res = document.getElementById('res-busca'); if(nome.length < 2) return;
+            const res = document.getElementById('res-busca'); if(nome.length < 2) { res.innerHTML = ""; return; }
             const p = pacientes.find(p => p.name.toLowerCase().includes(nome.toLowerCase())); if(!p) return;
-            res.innerHTML = `<div class="bg-slate-900 p-6 rounded-3xl text-white font-bold"><p class="text-xl uppercase">${p.name}</p><div class="text-xs opacity-70 mt-3"><p>📧 ${p.email || '--'}</p><p>📏 ${p.altura || '--'}</p><p>🎂 ${cleanDate(p.nasc)}</p><p>📱 ${p.phone}</p></div></div>`;
+            res.innerHTML = `
+                <div class="bg-slate-900 p-6 rounded-3xl text-white font-bold">
+                    <p class="text-xl uppercase">${p.name}</p>
+                    <div class="text-xs opacity-70 mt-3 space-y-1">
+                        <p>📧 E-mail: ${p.email || '--'}</p>
+                        <p>📏 Altura: ${p.altura || '--'}</p>
+                        <p>🎂 Nasc: ${cleanDate(p.nasc)}</p>
+                        <p>📱 Tel: ${p.phone}</p>
+                    </div>
+                </div>`;
         }
     </script>
 </body>
