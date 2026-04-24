@@ -11,7 +11,6 @@
         :root { --esp:#f97316; --emag:#3b82f6; --aplic:#a855f7; --roxo:#4a148c; }
         * { box-sizing:border-box; }
         body { background:#fafafa; font-family:'Quicksand',sans-serif; color:#111; -webkit-tap-highlight-color:transparent; }
-
         .full-header { width:100%; background:#fff; border-bottom:1px solid #eee; text-align:center; padding:10px 16px 8px; }
         .full-header img { max-height:64px; max-width:220px; object-fit:contain; }
         .date-row { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:6px; }
@@ -20,7 +19,6 @@
         .b-ter  { background:#f0fdf4; color:#16a34a; }
         .b-qui  { background:#fdf4ff; color:#7c3aed; }
         .b-blq  { background:#fef2f2; color:#dc2626; }
-
         .slot { border-radius:18px; border:1px solid #f0f0f0; cursor:pointer; margin-bottom:10px; background:#fff; padding:18px 20px; position:relative; }
         .sl-esp   { border-left:8px solid var(--esp); }
         .sl-emag  { border-left:8px solid var(--emag); }
@@ -29,34 +27,24 @@
         .bg-esp   { background:var(--esp)!important; }
         .bg-emag  { background:var(--emag)!important; }
         .bg-aplic { background:var(--aplic)!important; }
-        
         .slot-btns { position:absolute; top:8px; right:8px; display:flex; gap:6px; }
         .slot-btn { width:32px; height:32px; border-radius:8px; border:none; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
         .slot-edit { background:rgba(255,255,255,0.2); color:#fff; }
-
         nav button { transition:color .15s; }
         .tab-on { color:var(--roxo)!important; font-weight:800; border-top:3px solid var(--roxo); }
-
         .modal-bg  { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; display:flex; align-items:flex-end; justify-content:center; }
         .modal-box { background:#fff; width:100%; max-width:480px; border-radius:28px 28px 0 0; padding:28px 24px 40px; max-height:92vh; overflow-y:auto; }
         @media(min-height:700px){ .modal-bg{align-items:center} .modal-box{border-radius:28px} }
-
         .sug { position:absolute; width:100%; top:100%; left:0; z-index:300; background:#fff; border:1px solid #ddd; border-radius:14px; box-shadow:0 8px 24px rgba(0,0,0,.1); overflow:hidden; }
         .sug div { padding:13px 16px; border-bottom:1px solid #f5f5f5; cursor:pointer; font-weight:700; font-size:14px; }
         .sug div:active { background:#f5f0ff; }
-
         .spinner { width:36px; height:36px; border:4px solid #eee; border-top:4px solid var(--roxo); border-radius:50%; animation:spin 1s linear infinite; margin:40px auto; }
         @keyframes spin { to { transform:rotate(360deg); } }
-
-        @media print {
-            body > *:not(#print-area) { display:none!important; }
-            #print-area { display:block!important; }
-        }
+        @media print { body > *:not(#print-area) { display:none!important; } #print-area { display:block!important; } }
         #print-area { display:none; }
         .rtable { width:100%; border-collapse:collapse; font-size:11px; }
         .rtable th, .rtable td { border:1px solid #ccc; padding:4px 6px; }
         .rtable th { font-weight:800; text-align:left; }
-        
         .pac-item { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border:1px solid #ddd; border-radius:12px; margin-bottom:8px; background:#fafafa; }
         .pac-info { flex:1; }
         .pac-name { font-weight:800; font-size:14px; }
@@ -85,7 +73,6 @@
     <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1 pt-2"><i class="fas fa-file-alt text-xl"></i>Relatório</button>
 </nav>
 
-<!-- MODAL AGENDAR/EDITAR -->
 <div id="modal" class="hidden modal-bg" onclick="closeBg(event)">
     <div class="modal-box">
         <h2 id="modal-title" class="font-black text-xl mb-5 uppercase text-center tracking-wide">Agendar</h2>
@@ -103,8 +90,6 @@
                 class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm">
             <div id="sug-modal" class="sug hidden"></div>
         </div>
-        
-        <!-- Para editar agendamento -->
         <div id="edit-fields" class="hidden space-y-3 mb-4">
             <div>
                 <label style="display:block; font-weight:700; font-size:12px; margin-bottom:4px; color:#666;">Nova data</label>
@@ -123,7 +108,6 @@
                 </select>
             </div>
         </div>
-        
         <div class="flex gap-3">
             <button onclick="closeModal()" class="flex-1 p-4 font-bold text-gray-400 rounded-2xl border-2 text-sm">SAIR</button>
             <button id="btn-del" onclick="delAppt()" class="hidden flex-1 bg-red-500 text-white p-4 rounded-2xl font-bold text-sm">CANCELAR</button>
@@ -137,7 +121,6 @@
     </div>
 </div>
 
-<!-- MODAL EDITAR PACIENTE -->
 <div id="modal-pac" class="hidden modal-bg" onclick="closeBgPac(event)">
     <div class="modal-box">
         <h2 class="font-black text-xl mb-5 uppercase text-center tracking-wide">Editar Paciente</h2>
@@ -159,10 +142,8 @@
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbyd5VvBMneYaxo1OdC5wjVnWh6ozpBkmkL_jGUFDbV3kMyBLUhUQRg_MfbZnELnpjaC/exec";
-
 let pacs = [], appts = [];
 let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
-let editPacId = null;
 
 window.onload = () => {
     const d = new Date();
@@ -231,13 +212,11 @@ function cleanDate(v) {
 }
 
 function pad(n) { return String(n).padStart(2,'0'); }
-
 function getISO()  { return document.getElementById('datepicker').value; }
 function getBR()   { const [y,m,d] = getISO().split('-'); return `${d}/${m}/${y}`; }
 function weekday() { return new Date(getISO()+'T12:00:00').getDay(); }
 function allowed() { const w=weekday(); return w===2||w===4; }
 function profEsp() { return weekday()===2 ? 'Líbia' : 'Geraldo'; }
-
 function onDateChange() { updateBadge(); render(); }
 function updateBadge() {
     const b = document.getElementById('day-badge');
@@ -246,41 +225,25 @@ function updateBadge() {
     else if (w===4) { b.textContent='QUINTA';    b.className='badge b-qui'; }
     else            { b.textContent='BLOQUEADO'; b.className='badge b-blq'; }
 }
-
 function showTab(t) {
     window.TAB = t;
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-on'));
     document.getElementById('tab-'+t).classList.add('tab-on');
     render();
 }
-function showSpinner() {
-    document.getElementById('content').innerHTML = '<div class="spinner"></div>';
-}
+function showSpinner() { document.getElementById('content').innerHTML = '<div class="spinner"></div>'; }
 
 function render() {
     const c = document.getElementById('content');
-
     if (window.TAB === 'agenda') {
-        if (!allowed()) {
-            c.innerHTML = `<div class="mt-12 text-center"><div class="text-5xl mb-3">🚫</div><p class="font-bold text-red-400 text-lg">Selecione uma terça ou quinta-feira.</p></div>`;
-            return;
-        }
+        if (!allowed()) { c.innerHTML = `<div class="mt-12 text-center"><div class="text-5xl mb-3">🚫</div><p class="font-bold text-red-400 text-lg">Selecione uma terça ou quinta-feira.</p></div>`; return; }
         c.innerHTML = catHTML('Esportivo', profEsp(), 'sl-esp', 'bg-esp', 25) + catHTML('Emagrecimento', 'Bruno', 'sl-emag', 'bg-emag', 35) + catHTML('Aplicação', '', 'sl-aplic', 'bg-aplic', 30);
-
     } else if (window.TAB === 'historico') {
         c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Histórico</h2><div class="relative"><input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-hist" class="sug hidden"></div></div><div id="hist-list" class="mt-5 space-y-3"></div></div>`;
-
     } else if (window.TAB === 'cadastro') {
-        c.innerHTML = `<div class="p-6 bg-white rounded-3xl border shadow-sm"><h2 class="font-black text-2xl mb-6 uppercase text-center">Novo Paciente</h2><div class="space-y-3"><input id="c-nome" placeholder="Nome completo *" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-tel" placeholder="WhatsApp (com DDD)" type="tel" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-nasc" placeholder="Nascimento (DD/MM/AAAA)" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-email" placeholder="E-mail" type="email" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-altura" placeholder="Altura (cm)" type="number" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm">SALVAR PACIENTE</button></div></div><div class="mt-6 bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Pacientes Cadastrados</h2><div id="pac-lista" class="space-y-2"></div></div>`;
-        setTimeout(() => {
-            const lista = document.getElementById('pac-lista');
-            if (!pacs.length) { lista.innerHTML = '<p class="text-gray-400 text-center">Nenhum paciente.</p>'; return; }
-            lista.innerHTML = pacs.map(p => `<div class="pac-item"><div class="pac-info"><div class="pac-name">${p.nome}</div><div class="pac-detail">${p.telefone} ${p.nascimento ? '· '+cleanDate(p.nascimento) : ''}</div></div><div class="pac-btns"><button onclick="openEditPac('${p.nome.replace(/'/g,"\\'")}','${p.telefone||''}','${p.nascimento||''}','${p.email||''}','${p.altura||''}')" class="btn-edit">✏️ Editar</button></div></div>`).join('');
-        }, 100);
-
+        c.innerHTML = `<div class="p-6 bg-white rounded-3xl border shadow-sm"><h2 class="font-black text-2xl mb-6 uppercase text-center">Novo Paciente</h2><div class="space-y-3"><input id="c-nome" placeholder="Nome completo *" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-tel" placeholder="WhatsApp (com DDD)" type="tel" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-nasc" placeholder="Nascimento (DD/MM/AAAA)" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-email" placeholder="E-mail" type="email" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-altura" placeholder="Altura (cm)" type="number" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm">SALVAR PACIENTE</button></div></div>`;
     } else if (window.TAB === 'fichas') {
         c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Fichas</h2><div class="relative"><input id="inp-fichas" oninput="sugerir(this.value,'sug-fichas')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-fichas" class="sug hidden"></div></div><div id="ficha-res" class="mt-5"></div></div>`;
-
     } else if (window.TAB === 'relatorio') {
         renderRel();
     }
@@ -359,11 +322,9 @@ async function saveAppt() {
     if (!pac) { alert('Selecione um paciente!'); return; }
     closeModal();
     showSpinner();
-    
     let data = mEditData || getBR();
     let hora = mEditHora || mTime;
     let cat = mCat;
-    
     if (mId) {
         const newData = document.getElementById('m-data').value;
         const newHora = document.getElementById('m-hora').value;
@@ -372,7 +333,6 @@ async function saveAppt() {
         if (newHora) hora = newHora;
         if (newCat) cat = newCat;
     }
-    
     try {
         await api({ action: 'saveAppt', data, hora, paciente: pac, servico: document.getElementById('m-servico').value, categoria: cat, id: mId || '' });
         await loadAll();
@@ -422,7 +382,7 @@ async function savePacEdit() {
         await api({ action: 'savePac', nome, tel: document.getElementById('ep-tel').value.trim(), nasc: document.getElementById('ep-nasc').value.trim(), email: document.getElementById('ep-email').value.trim(), altura: document.getElementById('ep-altura').value.trim() });
         alert('✅ Paciente atualizado!');
         await loadAll();
-        showTab('cadastro');
+        showTab('fichas');
     } catch(e) { alert('Erro ao atualizar.'); render(); }
 }
 
@@ -454,7 +414,7 @@ function showFicha(nome) {
     const hist = appts.filter(a => a.paciente === nome).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
     const ult = hist[0];
     const el = document.getElementById('ficha-res');
-    el.innerHTML = `<div class="border-2 rounded-2xl p-5 bg-gray-50 space-y-2"><p class="font-black text-lg uppercase">${nome}</p>${pac?.telefone ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-phone mr-2"></i>${pac.telefone}</p>` : ''}${pac?.email ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-envelope mr-2"></i>${pac.email}</p>` : ''}${pac?.nascimento ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-birthday-cake mr-2"></i>${cleanDate(pac.nascimento)}</p>` : ''}${pac?.altura ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-ruler-vertical mr-2"></i>${pac.altura} cm</p>` : ''}<hr class="my-3"><p class="text-xs uppercase font-black text-gray-400 tracking-widest">Última visita</p>${ult ? `<div class="bg-white border rounded-xl p-3 mt-1"><p class="font-black text-sm">${ult.data} — ${normHora(ult.hora)}</p><p class="text-sm text-gray-500 font-bold">${ult.servico||'—'} · ${ult.categoria}</p></div>` : '<p class="text-gray-400 text-sm mt-1">Nenhuma visita registrada.</p>'}<p class="text-xs font-black text-gray-400 mt-2">Total de visitas: ${hist.length}</p></div>`;
+    el.innerHTML = `<div class="border-2 rounded-2xl p-5 bg-gray-50"><div class="flex items-start justify-between mb-3"><div><p class="font-black text-lg uppercase">${nome}</p></div><button onclick="openEditPac('${nome.replace(/'/g,"\\'")}','${pac?.telefone||''}','${pac?.nascimento||''}','${pac?.email||''}','${pac?.altura||''}')" class="btn-edit">✏️ Editar</button></div><div class="space-y-2">${pac?.telefone ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-phone mr-2"></i>${pac.telefone}</p>` : ''}${pac?.email ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-envelope mr-2"></i>${pac.email}</p>` : ''}${pac?.nascimento ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-birthday-cake mr-2"></i>${cleanDate(pac.nascimento)}</p>` : ''}${pac?.altura ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-ruler-vertical mr-2"></i>${pac.altura} cm</p>` : ''}<hr class="my-3"><p class="text-xs uppercase font-black text-gray-400 tracking-widest">Última visita</p>${ult ? `<div class="bg-white border rounded-xl p-3 mt-1"><p class="font-black text-sm">${ult.data} — ${normHora(ult.hora)}</p><p class="text-sm text-gray-500 font-bold">${ult.servico||'—'} · ${ult.categoria}</p></div>` : '<p class="text-gray-400 text-sm mt-1">Nenhuma visita registrada.</p>'}<p class="text-xs font-black text-gray-400 mt-2">Total de visitas: ${hist.length}</p></div></div>`;
 }
 
 function getSlots(step) {
