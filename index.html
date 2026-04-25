@@ -71,6 +71,7 @@
     <button onclick="showTab('cadastro')"  id="tab-cadastro"  class="flex-1 flex flex-col items-center gap-1 pt-2"><i class="fas fa-user-plus text-xl"></i>Cadastro</button>
     <button onclick="showTab('fichas')"    id="tab-fichas"    class="flex-1 flex flex-col items-center gap-1 pt-2"><i class="fas fa-search text-xl"></i>Fichas</button>
     <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1 pt-2"><i class="fas fa-file-alt text-xl"></i>Relatório</button>
+    <button onclick="showTab('acompanhamento')" id="tab-acompanhamento" class="flex-1 flex flex-col items-center gap-1 pt-2"><i class="fas fa-phone text-xl"></i>Acompanhamento</button>
 </nav>
 
 <div id="modal" class="hidden modal-bg" onclick="closeBg(event)">
@@ -246,6 +247,10 @@ function render() {
         c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Fichas</h2><div class="relative"><input id="inp-fichas" oninput="sugerir(this.value,'sug-fichas')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-fichas" class="sug hidden"></div></div><div id="ficha-res" class="mt-5"></div></div>`;
     } else if (window.TAB === 'relatorio') {
         renderRel();
+    } else if (window.TAB === 'acompanhamento') {
+        renderAcompanhamento();
+    } else if (window.TAB === 'acompanhamento') {
+        renderAcompanhamento();
     }
 }
 
@@ -445,7 +450,77 @@ function renderRel() {
     document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;
 }
 
-function imprimir() {
+function renderAcompanhamento() {
+    const c = document.getElementById('content');
+    const hoje = new Date();
+    
+    // Calcula datas: 25 a 60 dias atrás
+    const data60d = new Date(hoje.getTime() - 60 * 24 * 60 * 60 * 1000);
+    const data25d = new Date(hoje.getTime() - 25 * 24 * 60 * 60 * 1000);
+    
+    function dataToNum(d) {
+        const [dia, mes, ano] = d.split('/');
+        return parseInt(ano + mes + dia);
+    }
+    
+    // Encontra últimas consultas de cada paciente
+    const ultimasConsultas = {};
+    appts.forEach(ag => {
+        const num = dataToNum(ag.data);
+        if (!ultimasConsultas[ag.paciente] || num > dataToNum(ultimasConsultas[ag.paciente].data)) {
+            ultimasConsultas[ag.paciente] = ag;
+        }
+    });
+    
+    // Filtra pacientes com consulta entre 25-60 dias
+    const acompanhar = Object.values(ultimasConsultas)
+        .filter(ag => {
+            const num = dataToNum(ag.data);
+            const num60 = dataToNum(`${pad(data60d.getDate())}/${pad(data60d.getMonth()+1)}/${data60d.getFullYear()}`);
+            const num25 = dataToNum(`${pad(data25d.getDate())}/${pad(data25d.getMonth()+1)}/${data25d.getFullYear()}`);
+            return num >= num60 && num <= num25;
+        })
+        .sort((a, b) => dataToNum(b.data).localeCompare(dataToNum(a.data)));
+    
+    if (!acompanhar.length) {
+        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm text-center"><i class="fas fa-check-circle text-5xl text-green-500 mb-3" style="display:block"></i><p class="font-black text-lg text-green-600">✅ Sem pacientes para acompanhar no período!</p><p class="text-sm text-gray-500 mt-2">Próximos pacientes aparecerão em breve.</p></div>`;
+        return;
+    }
+    
+    let html = `<div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="font-black text-xl mb-2 uppercase">Acompanhamento</h2>
+        <p class="text-xs text-gray-500 mb-4">Pacientes com última consulta entre 25-60 dias</p>
+        <div class="space-y-3">`;
+    
+    acompanhar.forEach(ag => {
+        const pac = pacs.find(p => p.nome === ag.paciente);
+        const tel = pac?.telefone || '';
+        const diasAtrás = Math.floor((new Date() - new Date(ag.data.split('/').reverse().join('-'))) / (1000 * 60 * 60 * 24));
+        
+        html += `<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50">
+            <div class="flex items-start justify-between mb-2">
+                <div>
+                    <p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p>
+                    <p class="text-xs text-gray-600 mt-1">Última consulta: ${ag.data} (${diasAtrás} dias atrás)</p>
+                    ${pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${pac.telefone}</p>` : ''}
+                </div>
+                ${tel ? `<button onclick="enviarWhatsApp('${tel.replace(/\D/g,'')}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 whitespace-nowrap">
+                    <i class="fab fa-whatsapp"></i> Chamar
+                </button>` : ''}
+            </div>
+        </div>`;
+    });
+    
+    html += `</div></div>`;
+    c.innerHTML = html;
+}
+
+function enviarWhatsApp(tel, nome, dataUltConsulta) {
+    const msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${dataUltConsulta}. Que tal agendar uma nova consulta conosco? Nos diga um horário que funciona para você! 📅\n\nAguardamos seu contato! 😊`);
+    window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
+}
+
+
     document.getElementById('print-area').style.display = 'block';
     window.print();
     setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
