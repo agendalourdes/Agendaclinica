@@ -186,6 +186,7 @@ function normHora(v) {
     if (!v) return '';
     v = String(v).trim();
     if (/^\d{2}:\d{2}$/.test(v)) return v;
+    if (v.includes('encaixe')) return v;
     const m = v.match(/^(\d{2}):(\d{2})/);
     if (m) return `${m[1]}:${m[2]}`;
     const n = parseFloat(v);
@@ -264,12 +265,23 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         m += step;
         if (m >= 60) { h += Math.floor(m/60); m = m%60; }
     }
+    // Adiciona 2 slots de encaixe
+    for (let i = 1; i <= 2; i++) {
+        const encaixeId = `encaixe-${cat}-${i}`;
+        const agEncaixe = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
+        if (agEncaixe) {
+            const esc = JSON.stringify(agEncaixe).replace(/"/g,'&quot;');
+            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button></div><div onclick="openEdit('${agEncaixe.hora}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>ENCAIXE</span><span>${agEncaixe.servico||''}</span></div><p class="text-lg font-black uppercase">${agEncaixe.paciente}</p><p class="text-xs text-gray-300 mt-1">${agEncaixe.hora}</p></div></div>`;
+        } else {
+            html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2"><span class="font-bold text-gray-400 text-sm">ENCAIXE ${i} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
+        }
+    }
     return html;
 }
 
 function openNew(hora, cat) {
     mTime=hora; mCat=cat; mId=null; mTel=null; mEditData=null; mEditHora=null;
-    document.getElementById('modal-title').textContent = `Agendar — ${hora}`;
+    document.getElementById('modal-title').textContent = hora.includes('encaixe') ? `Agendar Encaixe` : `Agendar — ${hora}`;
     document.getElementById('m-pac').value = '';
     document.getElementById('m-servico').selectedIndex = 0;
     document.getElementById('sug-modal').classList.add('hidden');
@@ -277,6 +289,12 @@ function openNew(hora, cat) {
     document.getElementById('btn-del').classList.add('hidden');
     document.getElementById('btn-whats').classList.add('hidden');
     document.getElementById('modal').classList.remove('hidden');
+    
+    // Se for encaixe, mostra campo de horário
+    if (hora.includes('encaixe')) {
+        document.getElementById('edit-fields').classList.remove('hidden');
+        document.getElementById('m-hora').value = '';
+    }
 }
 
 function openEdit(hora, cat, el) {
@@ -290,7 +308,7 @@ function openEdit(hora, cat, el) {
     document.getElementById('m-cat').value = ag.categoria;
     const [d,m,a] = ag.data.split('/');
     document.getElementById('m-data').value = `${a}-${m}-${d}`;
-    document.getElementById('m-hora').value = ag.hora;
+    document.getElementById('m-hora').value = ag.hora.includes('encaixe') ? '' : ag.hora;
     document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('edit-fields').classList.remove('hidden');
     document.getElementById('btn-del').classList.remove('hidden');
@@ -301,8 +319,7 @@ function openEdit(hora, cat, el) {
 function openEditAppt(btn) {
     const card = btn.closest('.slot');
     const ag = JSON.parse(card.getAttribute('data-ag').replace(/&quot;/g,'"'));
-    const horaText = card.textContent.match(/(\d{2}:\d{2})/)[1];
-    openEdit(horaText, ag.categoria, card.querySelector('div'));
+    openEdit(ag.hora, ag.categoria, card.querySelector('div'));
 }
 
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
@@ -318,6 +335,14 @@ function openWhats() {
 async function saveAppt() {
     const pac = document.getElementById('m-pac').value.trim();
     if (!pac) { alert('Selecione um paciente!'); return; }
+    
+    // Se for encaixe, precisa ter horário
+    if (mTime.includes('encaixe')) {
+        const horaEncaixe = document.getElementById('m-hora').value;
+        if (!horaEncaixe) { alert('Adicione um horário para o encaixe!'); return; }
+        mTime = horaEncaixe;
+    }
+    
     closeModal();
     showSpinner();
     let data = mEditData || getBR();
@@ -446,8 +471,6 @@ function renderRel() {
 function renderAcompanhamento() {
     const c = document.getElementById('content');
     const hoje = new Date();
-    
-    // Calcula datas: 25 a 60 dias atrás
     const data60d = new Date(hoje.getTime() - 60 * 24 * 60 * 60 * 1000);
     const data25d = new Date(hoje.getTime() - 25 * 24 * 60 * 60 * 1000);
     
@@ -463,19 +486,19 @@ function renderAcompanhamento() {
         return parseInt(ano + mes + dia);
     }
     
-    // Encontra últimas consultas de cada paciente
     const ultimasConsultas = {};
     appts.forEach(ag => {
-        const num = dataToNum(ag.data);
-        if (!ultimasConsultas[ag.paciente] || num > dataToNum(ultimasConsultas[ag.paciente].data)) {
-            ultimasConsultas[ag.paciente] = ag;
+        if (!ag.hora.includes('encaixe')) {
+            const num = dataToNum(ag.data);
+            if (!ultimasConsultas[ag.paciente] || num > dataToNum(ultimasConsultas[ag.paciente].data)) {
+                ultimasConsultas[ag.paciente] = ag;
+            }
         }
     });
     
     const num60 = dateToNum(data60d);
     const num25 = dateToNum(data25d);
     
-    // Filtra pacientes com consulta entre 25-60 dias
     const acompanhar = Object.values(ultimasConsultas)
         .filter(ag => {
             const num = dataToNum(ag.data);
@@ -495,26 +518,11 @@ function renderAcompanhamento() {
         return;
     }
     
-    let html = `<div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="font-black text-xl mb-2 uppercase">Acompanhamento</h2>
-        <p class="text-xs text-gray-500 mb-4">Pacientes com última consulta entre 25-60 dias</p>
-        <div class="space-y-3">`;
+    let html = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-2 uppercase">Acompanhamento</h2><p class="text-xs text-gray-500 mb-4">Pacientes com última consulta entre 25-60 dias</p><div class="space-y-3">`;
     
     acompanhar.forEach(ag => {
         const tel = ag.pac?.telefone || '';
-        
-        html += `<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50">
-            <div class="flex items-start justify-between mb-2">
-                <div class="flex-1">
-                    <p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p>
-                    <p class="text-xs text-gray-600 mt-1">Última consulta: ${ag.data} (${ag.diasAtrás} dias atrás)</p>
-                    ${ag.pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>` : ''}
-                </div>
-                ${tel ? `<button onclick="enviarWhatsApp('${tel.replace(/\D/g,'')}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-2 whitespace-nowrap ml-2">
-                    <i class="fab fa-whatsapp"></i> Chamar
-                </button>` : '<p class="text-xs text-gray-400 ml-2">Sem telefone</p>'}
-            </div>
-        </div>`;
+        html += `<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50"><div class="flex items-start justify-between mb-2"><div class="flex-1"><p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p><p class="text-xs text-gray-600 mt-1">Última consulta: ${ag.data} (${ag.diasAtrás} dias atrás)</p>${ag.pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>` : ''}</div>${tel ? `<button onclick="enviarWhatsApp('${tel.replace(/\D/g,'')}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-2 whitespace-nowrap ml-2"><i class="fab fa-whatsapp"></i> Chamar</button>` : '<p class="text-xs text-gray-400 ml-2">Sem telefone</p>'}</div></div>`;
     });
     
     html += `</div></div>`;
