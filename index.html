@@ -11,8 +11,8 @@
         :root { --esp:#f97316; --emag:#3b82f6; --aplic:#a855f7; --roxo:#4a148c; }
         * { box-sizing:border-box; }
         body { background:#fafafa; font-family:'Quicksand',sans-serif; color:#111; -webkit-tap-highlight-color:transparent; }
-        .full-header { width:100%; background:#fff; border-bottom:1px solid #eee; text-align:center; padding:20px 16px 16px; }
-        .full-header img { width:100%; max-height:140px; object-fit:contain; }
+        .full-header { width:100%; background:#fff; border-bottom:2px solid #eee; text-align:center; padding:24px 16px 20px; }
+        .full-header img { width:100%; max-height:180px; object-fit:contain; margin:0 auto; }
         .date-row { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px; }
         .date-row input[type=date] { padding:6px 12px; border:2px solid #eee; border-radius:12px; font-family:'Quicksand',sans-serif; font-weight:700; font-size:14px; background:#fafafa; }
         .prof-edit { font-size:11px; cursor:pointer; color:#0369a1; font-weight:700; }
@@ -308,6 +308,7 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         }
     });
     
+    // Mostra slots de encaixe APENAS se estiverem vazios
     for (let i = 1; i <= 2; i++) {
         const encaixeId = `encaixe-${cat}-${i}`;
         const agEncaixe = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
@@ -315,7 +316,6 @@ function catHTML(cat, prof, slCl, bgCl, step) {
             html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2"><span class="font-bold text-gray-400 text-sm">ENCAIXE ${i} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
     }
-    return html;
 }
 
 function editProf(data) {
@@ -504,20 +504,18 @@ function secaoRel(cat, prof, step, thBg) {
     
     const agsDaCat = appts.filter(a => a.data===dataF && a.categoria===cat && !a.hora.includes('encaixe')).sort((a,b) => a.hora.localeCompare(b.hora));
     
-    getSlots(step).forEach(h => {
-        const ag  = appts.find(a => a.data===dataF && a.categoria===cat && !a.hora.includes('encaixe') && normHora(a.hora)===h);
-        const pac = ag ? pacs.find(p => p.nome===ag.paciente) : null;
-        const prev = ag ? appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0] : null;
-        rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${h}</td><td style="font-weight:800">${ag ? ag.paciente.toUpperCase() : ''}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag ? ag.servico||'' : ''}</td></tr>`;
+    // Ordena TODOS os agendamentos por hora (slot padrão + customizados)
+    const todosOrdenados = agsDaCat.sort((a, b) => {
+        const horaA = normHora(a.hora);
+        const horaB = normHora(b.hora);
+        return horaA.localeCompare(horaB);
     });
     
-    agsDaCat.forEach(ag => {
-        const isSlotPadrao = getSlots(step).includes(normHora(ag.hora));
-        if (!isSlotPadrao) {
-            const pac = pacs.find(p => p.nome===ag.paciente);
-            const prev = appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0];
-            rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag.servico||''}</td></tr>`;
-        }
+    // Monta a tabela com os horários já ordenados
+    todosOrdenados.forEach(ag => {
+        const pac = pacs.find(p => p.nome===ag.paciente);
+        const prev = appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0];
+        rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag.servico||''}</td></tr>`;
     });
     
     return `<tr><td colspan="9" style="background:${thBg};font-weight:900;font-size:13px;padding:7px 8px;border:1px solid #ccc">* ${titulo.toUpperCase()}</td></tr><tr style="background:${thBg}99;font-size:10px;font-weight:800"><th>Horário</th><th>Paciente</th><th>Telefone</th><th>Nascimento</th><th>Email</th><th>Alt.</th><th>Última visita</th><th>Último proc.</th><th>Hoje</th></tr>${rows}`;
@@ -701,16 +699,17 @@ function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
     if (tipo === 'acompanhamento') {
         msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta conosco? Nos diga um horário que funciona para você! 📅\n\nAguardamos seu contato! 😊`);
     } else {
-        // Mensagem de confirmação com recomendações
-        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta em *${data} às ${hora}* com a gente!\n\n`);
+        // Mensagem de confirmação com especialidade
+        const especialidade = categoria === 'Esportivo' ? 'Nutrição Esportiva' : categoria === 'Emagrecimento' ? 'Emagrecimento' : 'Aplicação de Injetáveis';
+        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta de *${especialidade}*:\n📅 ${data}\n🕐 ${hora}\n\n`);
         
-        // Adiciona desconto se for Aplicação ou Primeira Consulta/Consulta (não Retorno)
-        if (categoria === 'Aplicação' || ['Consulta','Primeira Consulta'].includes(servico)) {
+        // Adiciona desconto se for Aplicação, Retorno ou Primeira Consulta/Consulta
+        if (categoria === 'Aplicação' || ['Consulta','Retorno','Primeira Consulta'].includes(servico)) {
             msg += encodeURIComponent(`🎁 *VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)\n\n`);
         }
         
-        // Adiciona bioimpedância se for Consulta/Retorno (não Aplicação)
-        if (['Consulta','Retorno','Primeira Consulta'].includes(servico)) {
+        // Adiciona bioimpedância se for Primeira Consulta ou Consulta (não Retorno nem Aplicação)
+        if (['Consulta','Primeira Consulta'].includes(servico)) {
             msg += encodeURIComponent(`📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`);
         }
         
