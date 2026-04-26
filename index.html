@@ -11,9 +11,9 @@
         :root { --esp:#f97316; --emag:#3b82f6; --aplic:#a855f7; --roxo:#4a148c; }
         * { box-sizing:border-box; }
         body { background:#fafafa; font-family:'Quicksand',sans-serif; color:#111; -webkit-tap-highlight-color:transparent; }
-        .full-header { width:100%; background:#fff; border-bottom:1px solid #eee; text-align:center; padding:10px 16px 8px; }
-        .full-header img { max-height:64px; max-width:220px; object-fit:contain; }
-        .date-row { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:6px; }
+        .full-header { width:100%; background:#fff; border-bottom:1px solid #eee; text-align:center; padding:20px 16px 16px; }
+        .full-header img { width:100%; max-height:140px; object-fit:contain; }
+        .date-row { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px; }
         .date-row input[type=date] { padding:6px 12px; border:2px solid #eee; border-radius:12px; font-family:'Quicksand',sans-serif; font-weight:700; font-size:14px; background:#fafafa; }
         .prof-edit { font-size:11px; cursor:pointer; color:#0369a1; font-weight:700; }
         .badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; }
@@ -31,6 +31,7 @@
         .slot-btns { position:absolute; top:8px; right:8px; display:flex; gap:6px; }
         .slot-btn { width:32px; height:32px; border-radius:8px; border:none; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
         .slot-edit { background:rgba(255,255,255,0.2); color:#fff; }
+        .slot-status { position:absolute; top:8px; left:8px; font-size:16px; }
         nav button { transition:color .15s; }
         .tab-on { color:var(--roxo)!important; font-weight:800; border-top:3px solid var(--roxo); }
         .modal-bg  { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; display:flex; align-items:flex-end; justify-content:center; }
@@ -67,6 +68,7 @@
     <button onclick="showTab('cadastro')"  id="tab-cadastro"  class="flex-1 flex flex-col items-center gap-1 pt-2 min-w-max"><i class="fas fa-user-plus text-xl"></i>Cadastro</button>
     <button onclick="showTab('fichas')"    id="tab-fichas"    class="flex-1 flex flex-col items-center gap-1 pt-2 min-w-max"><i class="fas fa-search text-xl"></i>Fichas</button>
     <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1 pt-2 min-w-max"><i class="fas fa-file-alt text-xl"></i>Relatório</button>
+    <button onclick="showTab('produtividade')" id="tab-produtividade" class="flex-1 flex flex-col items-center gap-1 pt-2 min-w-max"><i class="fas fa-chart-bar text-xl"></i>Produtividade</button>
     <button onclick="showTab('acompanhamento')" id="tab-acompanhamento" class="flex-1 flex flex-col items-center gap-1 pt-2 min-w-max"><i class="fas fa-phone text-xl"></i>Acompanhamento</button>
 </nav>
 
@@ -111,8 +113,8 @@
             <button onclick="saveAppt()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold text-sm">CONFIRMAR</button>
         </div>
         <div id="btn-whats" class="hidden mt-3">
-            <button onclick="openWhats()" class="w-full p-4 font-bold rounded-2xl flex items-center justify-center gap-2 text-white text-sm" style="background:#25D366">
-                <i class="fab fa-whatsapp text-xl"></i> Lembrete WhatsApp
+            <button onclick="enviarWhatsAppAgendamento()" class="w-full p-4 font-bold rounded-2xl flex items-center justify-center gap-2 text-white text-sm" style="background:#25D366">
+                <i class="fab fa-whatsapp text-xl"></i> WhatsApp
             </button>
         </div>
     </div>
@@ -155,6 +157,7 @@ let pacs = [], appts = [];
 let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
 let profData = {};
 let profEditData = null;
+let confirmacoes = {}; // { "id": {confirmado: true/false, data: "2026-04-28"} }
 
 window.onload = () => {
     const d = new Date();
@@ -264,6 +267,8 @@ function render() {
         c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Fichas</h2><div class="relative"><input id="inp-fichas" oninput="sugerir(this.value,'sug-fichas')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-fichas" class="sug hidden"></div></div><div id="ficha-res" class="mt-5"></div></div>`;
     } else if (window.TAB === 'relatorio') {
         renderRel();
+    } else if (window.TAB === 'produtividade') {
+        renderProdutividade();
     } else if (window.TAB === 'acompanhamento') {
         renderAcompanhamento();
     }
@@ -274,8 +279,7 @@ function catHTML(cat, prof, slCl, bgCl, step) {
     const titulo = prof ? `${cat.toUpperCase()} — <span class="prof-edit" onclick="editProf('${dataF}')">${prof} ✏️</span>` : cat.toUpperCase();
     let html = `<h3 class="font-black text-[10px] uppercase tracking-widest mt-8 mb-3 px-1 text-gray-400">${titulo}</h3>`;
     
-    // Coleta todos os agendamentos da categoria (não só nos slots)
-    const agsDaCat = appts.filter(a => a.data === dataF && a.categoria === cat && !a.hora.includes('encaixe')).sort((a,b) => a.hora.localeCompare(b.hora));
+    const agsDaCat = appts.filter(a => a.data === dataF && a.categoria === cat).sort((a,b) => a.hora.localeCompare(b.hora));
     
     let h=9, m=0;
     const slotsVisualizados = new Set();
@@ -287,7 +291,8 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         
         if (ag) {
             const esc = JSON.stringify(ag).replace(/"/g,'&quot;');
-            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${normHora(ag.hora)}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
+            const statusIcon = confirmacoes[ag.id] ? (confirmacoes[ag.id].confirmado ? '✅' : '❌') : '';
+            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-status">${statusIcon}</div><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${normHora(ag.hora)}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
         } else {
             html += `<div onclick="openNew('${hora}','${cat}')" class="slot ${slCl} flex justify-between items-center"><span class="font-bold text-gray-400 text-sm">${hora} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
@@ -295,21 +300,18 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         if (m >= 60) { h += Math.floor(m/60); m = m%60; }
     }
     
-    // Mostra agendamentos fora dos slots padrões
     agsDaCat.forEach(ag => {
         if (!slotsVisualizados.has(normHora(ag.hora))) {
             const esc = JSON.stringify(ag).replace(/"/g,'&quot;');
-            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${normHora(ag.hora)}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
+            const statusIcon = confirmacoes[ag.id] ? (confirmacoes[ag.id].confirmado ? '✅' : '❌') : '';
+            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-status">${statusIcon}</div><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${normHora(ag.hora)}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
         }
     });
     
     for (let i = 1; i <= 2; i++) {
         const encaixeId = `encaixe-${cat}-${i}`;
         const agEncaixe = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
-        if (agEncaixe) {
-            const esc = JSON.stringify(agEncaixe).replace(/"/g,'&quot;');
-            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button></div><div onclick="openEdit('${agEncaixe.hora}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${agEncaixe.hora}</span><span>${agEncaixe.servico||''}</span></div><p class="text-lg font-black uppercase">${agEncaixe.paciente}</p></div></div>`;
-        } else {
+        if (!agEncaixe) {
             html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2"><span class="font-bold text-gray-400 text-sm">ENCAIXE ${i} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
     }
@@ -366,7 +368,7 @@ function openEdit(hora, cat, el) {
     document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('edit-fields').classList.remove('hidden');
     document.getElementById('btn-del').classList.remove('hidden');
-    document.getElementById('btn-whats').classList.toggle('hidden', !mTel);
+    document.getElementById('btn-whats').classList.add('hidden');
     document.getElementById('modal').classList.remove('hidden');
 }
 
@@ -378,13 +380,6 @@ function openEditAppt(btn) {
 
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 function closeBg(e) { if (e.target.id==='modal') closeModal(); }
-
-function openWhats() {
-    if (!mTel) return;
-    const tel = mTel.replace(/\D/g,'');
-    const msg = encodeURIComponent(`Olá! Lembrando da sua consulta em ${getBR()} às ${mTime}. Aguardamos você! 😊`);
-    window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
-}
 
 async function saveAppt() {
     const pac = document.getElementById('m-pac').value.trim();
@@ -506,12 +501,25 @@ function secaoRel(cat, prof, step, thBg) {
     const dataF = getBR();
     const titulo = prof ? `${cat} — ${prof}` : cat;
     let rows = '';
+    
+    const agsDaCat = appts.filter(a => a.data===dataF && a.categoria===cat && !a.hora.includes('encaixe')).sort((a,b) => a.hora.localeCompare(b.hora));
+    
     getSlots(step).forEach(h => {
-        const ag  = appts.find(a => a.data===dataF && a.categoria===cat && normHora(a.hora)===h);
+        const ag  = appts.find(a => a.data===dataF && a.categoria===cat && !a.hora.includes('encaixe') && normHora(a.hora)===h);
         const pac = ag ? pacs.find(p => p.nome===ag.paciente) : null;
         const prev = ag ? appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0] : null;
         rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${h}</td><td style="font-weight:800">${ag ? ag.paciente.toUpperCase() : ''}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag ? ag.servico||'' : ''}</td></tr>`;
     });
+    
+    agsDaCat.forEach(ag => {
+        const isSlotPadrao = getSlots(step).includes(normHora(ag.hora));
+        if (!isSlotPadrao) {
+            const pac = pacs.find(p => p.nome===ag.paciente);
+            const prev = appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0];
+            rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag.servico||''}</td></tr>`;
+        }
+    });
+    
     return `<tr><td colspan="9" style="background:${thBg};font-weight:900;font-size:13px;padding:7px 8px;border:1px solid #ccc">* ${titulo.toUpperCase()}</td></tr><tr style="background:${thBg}99;font-size:10px;font-weight:800"><th>Horário</th><th>Paciente</th><th>Telefone</th><th>Nascimento</th><th>Email</th><th>Alt.</th><th>Última visita</th><th>Último proc.</th><th>Hoje</th></tr>${rows}`;
 }
 
@@ -523,6 +531,91 @@ function renderRel() {
     const tabela = `<table class="rtable"><thead><tr><td colspan="9" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — ${dataF}</td></tr></thead><tbody>${secaoRel('Esportivo', prof, 25, '#fde8d8')}${secaoRel('Emagrecimento', 'Bruno', 35, '#d8eafd')}${secaoRel('Aplicação', '', 30, '#f3d8fd')}</tbody></table>`;
     c.innerHTML = `<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div><div style="overflow-x:auto">${tabela}</div>`;
     document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;
+}
+
+function renderProdutividade() {
+    const c = document.getElementById('content');
+    const nutricionistas = ['Líbia', 'Geraldo', 'Bruno'];
+    
+    let html = `<div class="bg-white p-6 rounded-3xl border shadow-sm">
+        <h2 class="font-black text-xl mb-4 uppercase">Produtividade — Mês</h2>
+        <div class="mb-4">
+            <label class="text-sm font-bold text-gray-600">Selecione nutricionista:</label>
+            <select id="sel-nutri" onchange="renderProdutividade()" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-2">
+                <option value="">TODOS (relatório imprimível)</option>
+                <option value="Líbia">Líbia</option>
+                <option value="Geraldo">Geraldo</option>
+                <option value="Bruno">Bruno</option>
+            </select>
+        </div>
+        <div id="prod-res"></div>
+    </div>`;
+    
+    c.innerHTML = html;
+    
+    setTimeout(() => {
+        const selNutri = document.getElementById('sel-nutri').value;
+        const hoje = new Date();
+        const mesAtual = hoje.getMonth() + 1;
+        const anoAtual = hoje.getFullYear();
+        
+        function isMesAtual(dataBR) {
+            const [d, m, a] = dataBR.split('/');
+            return parseInt(m) === mesAtual && parseInt(a) === anoAtual;
+        }
+        
+        if (!selNutri) {
+            // Mostra tabela com todos os 3
+            let tabela = `<table class="rtable"><thead><tr><td colspan="3" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">${hoje.toLocaleString('pt-BR', {month:'long', year:'numeric'}).toUpperCase()}</td></tr></thead><tbody>
+                <tr style="background:#f0f0f0;font-size:10px;font-weight:800"><th>Nutricionista</th><th>Consultas</th><th>Média/dia</th></tr>`;
+            
+            nutricionistas.forEach(n => {
+                const consultas = appts.filter(a => {
+                    if (n === 'Líbia' && a.categoria === 'Esportivo') {
+                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
+                        return prof === 'Líbia' && isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
+                    }
+                    if (n === 'Geraldo' && a.categoria === 'Esportivo') {
+                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
+                        return prof === 'Geraldo' && isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
+                    }
+                    if (n === 'Bruno' && a.categoria === 'Emagrecimento') {
+                        return isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
+                    }
+                    return false;
+                }).length;
+                const dias = 8; // ~2 terças + 2 quintas por mês
+                tabela += `<tr><td style="font-weight:800">${n}</td><td style="text-align:center;font-weight:800">${consultas}</td><td style="text-align:center">${(consultas/dias).toFixed(1)}</td></tr>`;
+            });
+            
+            tabela += `</tbody></table>`;
+            document.getElementById('prod-res').innerHTML = `<div style="overflow-x:auto">${tabela}</div><div class="mt-4"><button onclick="imprimirProdutividade()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"><i class="fas fa-print"></i> Imprimir relatório</button></div>`;
+            document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif"><h2 style="text-align:center;margin-bottom:20px;font-weight:bold">PRODUTIVIDADE — ${hoje.toLocaleString('pt-BR', {month:'long', year:'numeric'}).toUpperCase()}</h2>${tabela}</div>`;
+        } else {
+            // Mostra detalhes de um nutricionista
+            const consultas = appts.filter(a => {
+                if (selNutri === 'Líbia' && a.categoria === 'Esportivo') {
+                    const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
+                    return prof === 'Líbia' && isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
+                }
+                if (selNutri === 'Geraldo' && a.categoria === 'Esportivo') {
+                    const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
+                    return prof === 'Geraldo' && isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
+                }
+                if (selNutri === 'Bruno' && a.categoria === 'Emagrecimento') {
+                    return isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
+                }
+                return false;
+            });
+            
+            let html = `<p class="text-center font-black text-lg mt-4">${selNutri}</p><p class="text-center text-sm text-gray-600">Total: ${consultas.length} consulta(s)</p><div class="mt-4 space-y-2">`;
+            consultas.forEach(a => {
+                html += `<div class="p-3 border rounded-xl bg-gray-50"><p class="font-bold text-sm">${a.paciente}</p><p class="text-xs text-gray-600">${a.data} às ${normHora(a.hora)}</p></div>`;
+            });
+            html += `</div>`;
+            document.getElementById('prod-res').innerHTML = html;
+        }
+    }, 100);
 }
 
 function renderAcompanhamento() {
@@ -587,7 +680,7 @@ function renderAcompanhamento() {
                     ${ag.pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>` : ''}
                 </div>
                 <div class="flex flex-col gap-2">
-                    ${tel ? `<button onclick="enviarWhatsApp('${tel.replace(/\D/g,'')}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fab fa-whatsapp"></i> Chamar</button>` : '<p class="text-xs text-gray-400">Sem tel</p>'}
+                    ${tel ? `<button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','','','','acompanhamento')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fab fa-whatsapp"></i> Chamar</button>` : '<p class="text-xs text-gray-400">Sem tel</p>'}
                     <button onclick="delAcompanhamento(${ag.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fas fa-trash"></i> Deletar</button>
                 </div>
             </div>
@@ -598,9 +691,48 @@ function renderAcompanhamento() {
     c.innerHTML = html;
 }
 
-function enviarWhatsApp(tel, nome, dataUltConsulta) {
-    const msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${dataUltConsulta}. Que tal agendar uma nova consulta conosco? Nos diga um horário que funciona para você! 📅\n\nAguardamos seu contato! 😊`);
+function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
+    const pac = pacs.find(p => p.nome === nome);
+    if (!pac?.telefone) { alert('Paciente sem telefone!'); return; }
+    
+    const tel = pac.telefone.replace(/\D/g,'');
+    let msg = '';
+    
+    if (tipo === 'acompanhamento') {
+        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta conosco? Nos diga um horário que funciona para você! 📅\n\nAguardamos seu contato! 😊`);
+    } else {
+        // Mensagem de confirmação com recomendações
+        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta em *${data} às ${hora}* com a gente!\n\n`);
+        
+        // Adiciona desconto se for Aplicação ou Primeira Consulta/Consulta (não Retorno)
+        if (categoria === 'Aplicação' || ['Consulta','Primeira Consulta'].includes(servico)) {
+            msg += encodeURIComponent(`🎁 *VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)\n\n`);
+        }
+        
+        // Adiciona bioimpedância se for Consulta/Retorno (não Aplicação)
+        if (['Consulta','Retorno','Primeira Consulta'].includes(servico)) {
+            msg += encodeURIComponent(`📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`);
+        }
+        
+        msg += encodeURIComponent(`Responda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`);
+    }
+    
     window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
+    
+    // Marca confirmação
+    if (id && tipo !== 'acompanhamento') {
+        confirmacoes[id] = { confirmado: true, data: new Date().toISOString().split('T')[0] };
+        render();
+    }
+}
+
+function enviarWhatsAppAgendamento() {
+    const pac = document.getElementById('m-pac').value.trim();
+    const servico = document.getElementById('m-servico').value;
+    const pacObj = pacs.find(p => p.nome === pac);
+    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
+    closeModal();
+    enviarWhatsApp(null, pac, getBR(), mTime, servico, mCat);
 }
 
 async function delAcompanhamento(id) {
@@ -613,6 +745,12 @@ async function delAcompanhamento(id) {
 }
 
 function imprimir() {
+    document.getElementById('print-area').style.display = 'block';
+    window.print();
+    setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
+}
+
+function imprimirProdutividade() {
     document.getElementById('print-area').style.display = 'block';
     window.print();
     setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
