@@ -150,10 +150,10 @@
 <div id="print-area"></div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxLLAp13ox0Q8ccA_pe_z7T95SvJIUTZwOjfzvjPXCdm46rtDljqt-WuQW4I3dhSBLv/exec";
+const API = "https://script.google.com/macros/s/AKfycbxgiCRjWbDv3b7skWQD35yNYb-FX2_jOI3Z6XXf5xgeJnbITPX6VxjHWWHHwSFcUrnx/exec";
 let pacs = [], appts = [];
 let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
-let profData = {}; // Armazena nutricionistas customizadas por data
+let profData = {};
 let profEditData = null;
 
 window.onload = () => {
@@ -291,7 +291,7 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         const agEncaixe = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
         if (agEncaixe) {
             const esc = JSON.stringify(agEncaixe).replace(/"/g,'&quot;');
-            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button></div><div onclick="openEdit('${agEncaixe.hora}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>ENCAIXE</span><span>${agEncaixe.servico||''}</span></div><p class="text-lg font-black uppercase">${agEncaixe.paciente}</p><p class="text-xs text-gray-300 mt-1">${agEncaixe.hora}</p></div></div>`;
+            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button></div><div onclick="openEdit('${agEncaixe.hora}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${agEncaixe.hora}</span><span>${agEncaixe.servico||''}</span></div><p class="text-lg font-black uppercase">${agEncaixe.paciente}</p></div></div>`;
         } else {
             html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2"><span class="font-bold text-gray-400 text-sm">ENCAIXE ${i} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
@@ -339,7 +339,7 @@ function openEdit(hora, cat, el) {
     mTime=hora; mCat=cat; mId=ag.id; mEditData=ag.data; mEditHora=ag.hora;
     const pac = pacs.find(p => p.nome === ag.paciente);
     mTel = pac?.telefone || null;
-    document.getElementById('modal-title').textContent = `Editar — ${hora}`;
+    document.getElementById('modal-title').textContent = `Editar — ${ag.paciente}`;
     document.getElementById('m-pac').value = ag.paciente;
     document.getElementById('m-servico').value = ag.servico || 'Consulta';
     document.getElementById('m-cat').value = ag.categoria;
@@ -372,16 +372,20 @@ function openWhats() {
 async function saveAppt() {
     const pac = document.getElementById('m-pac').value.trim();
     if (!pac) { alert('Selecione um paciente!'); return; }
+    
+    let horaParaSalvar = mTime;
     if (mTime.includes('encaixe')) {
         const horaEncaixe = document.getElementById('m-hora').value;
         if (!horaEncaixe) { alert('Adicione um horário para o encaixe!'); return; }
-        mTime = horaEncaixe;
+        horaParaSalvar = horaEncaixe;
     }
+    
     closeModal();
     showSpinner();
     let data = mEditData || getBR();
-    let hora = mEditHora || mTime;
+    let hora = mEditHora || horaParaSalvar;
     let cat = mCat;
+    
     if (mId) {
         const newData = document.getElementById('m-data').value;
         const newHora = document.getElementById('m-hora').value;
@@ -390,6 +394,7 @@ async function saveAppt() {
         if (newHora) hora = newHora;
         if (newCat) cat = newCat;
     }
+    
     try {
         await api({ action: 'saveAppt', data, hora, paciente: pac, servico: document.getElementById('m-servico').value, categoria: cat, id: mId || '' });
         await loadAll();
@@ -487,7 +492,7 @@ function secaoRel(cat, prof, step, thBg) {
     getSlots(step).forEach(h => {
         const ag  = appts.find(a => a.data===dataF && a.categoria===cat && normHora(a.hora)===h);
         const pac = ag ? pacs.find(p => p.nome===ag.paciente) : null;
-        const prev = ag ? appts.filter(a => a.paciente===ag.paciente && a.data!==dataF).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0] : null;
+        const prev = ag ? appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0] : null;
         rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${h}</td><td style="font-weight:800">${ag ? ag.paciente.toUpperCase() : ''}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag ? ag.servico||'' : ''}</td></tr>`;
     });
     return `<tr><td colspan="9" style="background:${thBg};font-weight:900;font-size:13px;padding:7px 8px;border:1px solid #ccc">* ${titulo.toUpperCase()}</td></tr><tr style="background:${thBg}99;font-size:10px;font-weight:800"><th>Horário</th><th>Paciente</th><th>Telefone</th><th>Nascimento</th><th>Email</th><th>Alt.</th><th>Última visita</th><th>Último proc.</th><th>Hoje</th></tr>${rows}`;
