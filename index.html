@@ -279,18 +279,27 @@ function catHTML(cat, prof, slCl, bgCl, step) {
     const titulo = prof ? `${cat.toUpperCase()} — <span class="prof-edit" onclick="editProf('${dataF}')">${prof} ✏️</span>` : cat.toUpperCase();
     let html = `<h3 class="font-black text-[10px] uppercase tracking-widest mt-8 mb-3 px-1 text-gray-400">${titulo}</h3>`;
     
-    const agsDaCat = appts.filter(a => a.data === dataF && a.categoria === cat).sort((a,b) => {
+    // Separa agendamentos normais de encaixes
+    const agsNormais = appts.filter(a => a.data === dataF && a.categoria === cat && !a.hora.includes('encaixe')).sort((a,b) => {
         const horaA = normHora(a.hora);
         const horaB = normHora(b.hora);
         return horaA.localeCompare(horaB);
     });
+    
+    // Encontra quais encaixes foram agendados (têm ID de paciente)
+    const encaixesAgendados = [];
+    for (let i = 1; i <= 2; i++) {
+        const encaixeId = `encaixe-${cat}-${i}`;
+        const ag = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
+        if (ag) encaixesAgendados.push(i);
+    }
     
     let h=9, m=0;
     const slotsVisualizados = new Set();
     
     while (h < 12 || (h===12 && m===0)) {
         const hora = `${pad(h)}:${pad(m)}`;
-        const ag = appts.find(a => a.data === dataF && a.categoria === cat && normHora(a.hora) === hora);
+        const ag = agsNormais.find(a => normHora(a.hora) === hora);
         slotsVisualizados.add(hora);
         
         if (ag) {
@@ -304,18 +313,19 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         if (m >= 60) { h += Math.floor(m/60); m = m%60; }
     }
     
-    agsDaCat.forEach(ag => {
-        if (!slotsVisualizados.has(normHora(ag.hora)) && !ag.hora.includes('encaixe')) {
+    // Mostra agendamentos customizados (fora dos slots padrões)
+    agsNormais.forEach(ag => {
+        if (!slotsVisualizados.has(normHora(ag.hora))) {
             const esc = JSON.stringify(ag).replace(/"/g,'&quot;');
             const statusIcon = confirmacoes[ag.id] ? (confirmacoes[ag.id].confirmado ? '✅' : '❌') : '';
             html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-status">${statusIcon}</div><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${normHora(ag.hora)}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
         }
     });
     
+    // Mostra ENCAIXE LIVRE apenas se não foi agendado
     for (let i = 1; i <= 2; i++) {
-        const encaixeId = `encaixe-${cat}-${i}`;
-        const agEncaixe = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
-        if (!agEncaixe) {
+        if (!encaixesAgendados.includes(i)) {
+            const encaixeId = `encaixe-${cat}-${i}`;
             html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2"><span class="font-bold text-gray-400 text-sm">ENCAIXE ${i} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
     }
