@@ -15,6 +15,7 @@
         .full-header img { max-height:64px; max-width:220px; object-fit:contain; }
         .date-row { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:6px; }
         .date-row input[type=date] { padding:6px 12px; border:2px solid #eee; border-radius:12px; font-family:'Quicksand',sans-serif; font-weight:700; font-size:14px; background:#fafafa; }
+        .prof-edit { font-size:11px; cursor:pointer; color:#0369a1; font-weight:700; }
         .badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; }
         .b-ter  { background:#f0fdf4; color:#16a34a; }
         .b-qui  { background:#fdf4ff; color:#7c3aed; }
@@ -134,12 +135,26 @@
     </div>
 </div>
 
+<div id="modal-prof" class="hidden modal-bg" onclick="closeBgProf(event)">
+    <div class="modal-box">
+        <h2 class="font-black text-xl mb-5 uppercase text-center tracking-wide">Editar Profissional</h2>
+        <p class="text-sm text-gray-600 mb-4">Nutricionista Esportivo para <span id="prof-data-label"></span>:</p>
+        <input id="prof-nome" placeholder="Nome do profissional" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none mb-4">
+        <div class="flex gap-3">
+            <button onclick="closeProf()" class="flex-1 p-4 font-bold text-gray-400 rounded-2xl border-2 text-sm">CANCELAR</button>
+            <button onclick="saveProf()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold text-sm">SALVAR</button>
+        </div>
+    </div>
+</div>
+
 <div id="print-area"></div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxLLAp13ox0Q8ccA_pe_z7T95SvJIUTZwOjfzvjPXCdm46rtDljqt-WuQW4I3dhSBLv/exec";
 let pacs = [], appts = [];
 let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
+let profData = {}; // Armazena nutricionistas customizadas por data
+let profEditData = null;
 
 window.onload = () => {
     const d = new Date();
@@ -213,7 +228,13 @@ function getISO()  { return document.getElementById('datepicker').value; }
 function getBR()   { const [y,m,d] = getISO().split('-'); return `${d}/${m}/${y}`; }
 function weekday() { return new Date(getISO()+'T12:00:00').getDay(); }
 function allowed() { const w=weekday(); return w===2||w===4; }
-function profEsp() { return weekday()===2 ? 'Líbia' : 'Geraldo'; }
+
+function getEsportivoProf() {
+    const w = weekday();
+    const dataF = getBR();
+    return profData[dataF] || (w===2 ? 'Líbia' : 'Geraldo');
+}
+
 function onDateChange() { updateBadge(); render(); }
 function updateBadge() {
     const b = document.getElementById('day-badge');
@@ -234,7 +255,7 @@ function render() {
     const c = document.getElementById('content');
     if (window.TAB === 'agenda') {
         if (!allowed()) { c.innerHTML = `<div class="mt-12 text-center"><div class="text-5xl mb-3">🚫</div><p class="font-bold text-red-400 text-lg">Selecione uma terça ou quinta-feira.</p></div>`; return; }
-        c.innerHTML = catHTML('Esportivo', profEsp(), 'sl-esp', 'bg-esp', 25) + catHTML('Emagrecimento', 'Bruno', 'sl-emag', 'bg-emag', 35) + catHTML('Aplicação', '', 'sl-aplic', 'bg-aplic', 30);
+        c.innerHTML = catHTML('Esportivo', getEsportivoProf(), 'sl-esp', 'bg-esp', 25) + catHTML('Emagrecimento', 'Bruno', 'sl-emag', 'bg-emag', 35) + catHTML('Aplicação', '', 'sl-aplic', 'bg-aplic', 30);
     } else if (window.TAB === 'historico') {
         c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Histórico</h2><div class="relative"><input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-hist" class="sug hidden"></div></div><div id="hist-list" class="mt-5 space-y-3"></div></div>`;
     } else if (window.TAB === 'cadastro') {
@@ -250,7 +271,7 @@ function render() {
 
 function catHTML(cat, prof, slCl, bgCl, step) {
     const dataF = getBR();
-    const titulo = prof ? `${cat.toUpperCase()} — ${prof}` : cat.toUpperCase();
+    const titulo = prof ? `${cat.toUpperCase()} — <span class="prof-edit" onclick="editProf('${dataF}')">${prof} ✏️</span>` : cat.toUpperCase();
     let html = `<h3 class="font-black text-[10px] uppercase tracking-widest mt-8 mb-3 px-1 text-gray-400">${titulo}</h3>`;
     let h=9, m=0;
     while (h < 12 || (h===12 && m===0)) {
@@ -265,7 +286,6 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         m += step;
         if (m >= 60) { h += Math.floor(m/60); m = m%60; }
     }
-    // Adiciona 2 slots de encaixe
     for (let i = 1; i <= 2; i++) {
         const encaixeId = `encaixe-${cat}-${i}`;
         const agEncaixe = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
@@ -279,6 +299,25 @@ function catHTML(cat, prof, slCl, bgCl, step) {
     return html;
 }
 
+function editProf(data) {
+    profEditData = data;
+    const atual = profData[data] || (new Date(data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
+    document.getElementById('prof-data-label').textContent = data;
+    document.getElementById('prof-nome').value = atual;
+    document.getElementById('modal-prof').classList.remove('hidden');
+}
+
+function closeProf() { document.getElementById('modal-prof').classList.add('hidden'); }
+function closeBgProf(e) { if (e.target.id==='modal-prof') closeProf(); }
+
+function saveProf() {
+    const nome = document.getElementById('prof-nome').value.trim();
+    if (!nome) { alert('Nome obrigatório!'); return; }
+    profData[profEditData] = nome;
+    closeProf();
+    render();
+}
+
 function openNew(hora, cat) {
     mTime=hora; mCat=cat; mId=null; mTel=null; mEditData=null; mEditHora=null;
     document.getElementById('modal-title').textContent = hora.includes('encaixe') ? `Agendar Encaixe` : `Agendar — ${hora}`;
@@ -289,8 +328,6 @@ function openNew(hora, cat) {
     document.getElementById('btn-del').classList.add('hidden');
     document.getElementById('btn-whats').classList.add('hidden');
     document.getElementById('modal').classList.remove('hidden');
-    
-    // Se for encaixe, mostra campo de horário
     if (hora.includes('encaixe')) {
         document.getElementById('edit-fields').classList.remove('hidden');
         document.getElementById('m-hora').value = '';
@@ -335,14 +372,11 @@ function openWhats() {
 async function saveAppt() {
     const pac = document.getElementById('m-pac').value.trim();
     if (!pac) { alert('Selecione um paciente!'); return; }
-    
-    // Se for encaixe, precisa ter horário
     if (mTime.includes('encaixe')) {
         const horaEncaixe = document.getElementById('m-hora').value;
         if (!horaEncaixe) { alert('Adicione um horário para o encaixe!'); return; }
         mTime = horaEncaixe;
     }
-    
     closeModal();
     showSpinner();
     let data = mEditData || getBR();
@@ -463,7 +497,8 @@ function renderRel() {
     const c = document.getElementById('content');
     if (!allowed()) { c.innerHTML = `<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça ou quinta.</p></div>`; return; }
     const dataF = getBR();
-    const tabela = `<table class="rtable"><thead><tr><td colspan="9" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — ${dataF}</td></tr></thead><tbody>${secaoRel('Esportivo', profEsp(), 25, '#fde8d8')}${secaoRel('Emagrecimento', 'Bruno', 35, '#d8eafd')}${secaoRel('Aplicação', '', 30, '#f3d8fd')}</tbody></table>`;
+    const prof = getEsportivoProf();
+    const tabela = `<table class="rtable"><thead><tr><td colspan="9" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — ${dataF}</td></tr></thead><tbody>${secaoRel('Esportivo', prof, 25, '#fde8d8')}${secaoRel('Emagrecimento', 'Bruno', 35, '#d8eafd')}${secaoRel('Aplicação', '', 30, '#f3d8fd')}</tbody></table>`;
     c.innerHTML = `<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div><div style="overflow-x:auto">${tabela}</div>`;
     document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;
 }
@@ -522,7 +557,19 @@ function renderAcompanhamento() {
     
     acompanhar.forEach(ag => {
         const tel = ag.pac?.telefone || '';
-        html += `<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50"><div class="flex items-start justify-between mb-2"><div class="flex-1"><p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p><p class="text-xs text-gray-600 mt-1">Última consulta: ${ag.data} (${ag.diasAtrás} dias atrás)</p>${ag.pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>` : ''}</div>${tel ? `<button onclick="enviarWhatsApp('${tel.replace(/\D/g,'')}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-2 whitespace-nowrap ml-2"><i class="fab fa-whatsapp"></i> Chamar</button>` : '<p class="text-xs text-gray-400 ml-2">Sem telefone</p>'}</div></div>`;
+        html += `<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50">
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex-1">
+                    <p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p>
+                    <p class="text-xs text-gray-600 mt-1">Última consulta: ${ag.data} (${ag.diasAtrás} dias atrás)</p>
+                    ${ag.pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>` : ''}
+                </div>
+                <div class="flex flex-col gap-2">
+                    ${tel ? `<button onclick="enviarWhatsApp('${tel.replace(/\D/g,'')}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fab fa-whatsapp"></i> Chamar</button>` : '<p class="text-xs text-gray-400">Sem tel</p>'}
+                    <button onclick="delAcompanhamento(${ag.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fas fa-trash"></i> Deletar</button>
+                </div>
+            </div>
+        </div>`;
     });
     
     html += `</div></div>`;
@@ -532,6 +579,15 @@ function renderAcompanhamento() {
 function enviarWhatsApp(tel, nome, dataUltConsulta) {
     const msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${dataUltConsulta}. Que tal agendar uma nova consulta conosco? Nos diga um horário que funciona para você! 📅\n\nAguardamos seu contato! 😊`);
     window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
+}
+
+async function delAcompanhamento(id) {
+    if (!confirm('Deletar este agendamento?')) return;
+    showSpinner();
+    try {
+        await api({ action: 'delAppt', id: id });
+        await loadAll();
+    } catch(e) { alert('Erro ao deletar.'); render(); }
 }
 
 function imprimir() {
