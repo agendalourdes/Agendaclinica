@@ -282,43 +282,34 @@ function catHTML(cat, prof, slCl, bgCl, step) {
     // Pega TODOS os agendamentos (não encaixes)
     const agsNormais = appts.filter(a => a.data === dataF && a.categoria === cat && !a.hora.includes('encaixe'));
     
-    // Pega TODOS os horários possíveis (slots padrões)
-    const horariosSlots = [];
-    let h=9, m=0;
-    while (h < 12 || (h===12 && m===0)) {
-        horariosSlots.push(`${pad(h)}:${pad(m)}`);
-        m += step;
-        if (m >= 60) { h += Math.floor(m/60); m = m%60; }
-    }
+    // Ordena por hora cronológica
+    agsNormais.sort((a, b) => normHora(a.hora).localeCompare(normHora(b.hora)));
     
-    // Cria lista de TODOS os horários que devem aparecer (slots + agendamentos customizados)
-    const todosHorarios = new Set(horariosSlots);
-    agsNormais.forEach(ag => todosHorarios.add(normHora(ag.hora)));
-    
-    // Ordena tudo por hora cronológica
-    const horariosOrdenados = Array.from(todosHorarios).sort((a, b) => a.localeCompare(b));
-    
-    // Renderiza cada horário em ordem
-    horariosOrdenados.forEach(hora => {
-        const ag = agsNormais.find(a => normHora(a.hora) === hora);
-        
-        if (ag) {
-            const esc = JSON.stringify(ag).replace(/"/g,'&quot;');
-            const statusIcon = confirmacoes[ag.id] ? (confirmacoes[ag.id].confirmado ? '✅' : '❌') : '';
-            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-status">${statusIcon}</div><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${hora}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
-        } else {
-            html += `<div onclick="openNew('${hora}','${cat}')" class="slot ${slCl} flex justify-between items-center"><span class="font-bold text-gray-400 text-sm">${hora} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
-        }
+    // Mostra cada agendamento em ordem
+    agsNormais.forEach(ag => {
+        const esc = JSON.stringify(ag).replace(/"/g,'&quot;');
+        const statusIcon = confirmacoes[ag.id] ? (confirmacoes[ag.id].confirmado ? '✅' : '❌') : '';
+        html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-status">${statusIcon}</div><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${normHora(ag.hora)}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
     });
     
-    // Mostra ENCAIXE LIVRE apenas se não foi agendado
+    // Conta quantos encaixes foram agendados (verificando QUALQUER registro com hora = encaixe-cat-N)
+    // Se nenhum tiver, mostra 2 encaixes livres. Se 1 estiver agendado, mostra só 1 livre, etc
+    let encaixesAgendados = 0;
     for (let i = 1; i <= 2; i++) {
         const encaixeId = `encaixe-${cat}-${i}`;
-        const agEncaixe = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
-        if (!agEncaixe) {
-            html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2"><span class="font-bold text-gray-400 text-sm">ENCAIXE ${i} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
-        }
+        const existeEncaixe = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
+        if (existeEncaixe) encaixesAgendados++;
     }
+    
+    // Mostra ENCAIXE LIVRE apenas para os slots que ainda estão vazios
+    const totalEncaixes = 2;
+    const encaixesLivres = totalEncaixes - encaixesAgendados;
+    
+    for (let i = 1; i <= encaixesLivres; i++) {
+        const encaixeId = `encaixe-${cat}-${encaixesAgendados + i}`;
+        html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2"><span class="font-bold text-gray-400 text-sm">ENCAIXE ${encaixesAgendados + i} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
+    }
+    
     return html;
 }
 
