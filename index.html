@@ -157,7 +157,7 @@ let pacs = [], appts = [];
 let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
 let profData = {};
 let profEditData = null;
-let confirmacoes = {}; // { "id": {confirmado: true/false, data: "2026-04-28"} }
+let confirmacoes = {};
 
 window.onload = () => {
     const d = new Date();
@@ -279,7 +279,11 @@ function catHTML(cat, prof, slCl, bgCl, step) {
     const titulo = prof ? `${cat.toUpperCase()} — <span class="prof-edit" onclick="editProf('${dataF}')">${prof} ✏️</span>` : cat.toUpperCase();
     let html = `<h3 class="font-black text-[10px] uppercase tracking-widest mt-8 mb-3 px-1 text-gray-400">${titulo}</h3>`;
     
-    const agsDaCat = appts.filter(a => a.data === dataF && a.categoria === cat).sort((a,b) => a.hora.localeCompare(b.hora));
+    const agsDaCat = appts.filter(a => a.data === dataF && a.categoria === cat).sort((a,b) => {
+        const horaA = normHora(a.hora);
+        const horaB = normHora(b.hora);
+        return horaA.localeCompare(horaB);
+    });
     
     let h=9, m=0;
     const slotsVisualizados = new Set();
@@ -308,7 +312,6 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         }
     });
     
-    // Mostra slots de encaixe APENAS se estiverem vazios
     for (let i = 1; i <= 2; i++) {
         const encaixeId = `encaixe-${cat}-${i}`;
         const agEncaixe = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
@@ -316,6 +319,7 @@ function catHTML(cat, prof, slCl, bgCl, step) {
             html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2"><span class="font-bold text-gray-400 text-sm">ENCAIXE ${i} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
     }
+    return html;
 }
 
 function editProf(data) {
@@ -502,17 +506,13 @@ function secaoRel(cat, prof, step, thBg) {
     const titulo = prof ? `${cat} — ${prof}` : cat;
     let rows = '';
     
-    const agsDaCat = appts.filter(a => a.data===dataF && a.categoria===cat && !a.hora.includes('encaixe')).sort((a,b) => a.hora.localeCompare(b.hora));
-    
-    // Ordena TODOS os agendamentos por hora (slot padrão + customizados)
-    const todosOrdenados = agsDaCat.sort((a, b) => {
+    const agsDaCat = appts.filter(a => a.data===dataF && a.categoria===cat && !a.hora.includes('encaixe')).sort((a,b) => {
         const horaA = normHora(a.hora);
         const horaB = normHora(b.hora);
         return horaA.localeCompare(horaB);
     });
     
-    // Monta a tabela com os horários já ordenados
-    todosOrdenados.forEach(ag => {
+    agsDaCat.forEach(ag => {
         const pac = pacs.find(p => p.nome===ag.paciente);
         const prev = appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0];
         rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag.servico||''}</td></tr>`;
@@ -563,7 +563,6 @@ function renderProdutividade() {
         }
         
         if (!selNutri) {
-            // Mostra tabela com todos os 3
             let tabela = `<table class="rtable"><thead><tr><td colspan="3" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">${hoje.toLocaleString('pt-BR', {month:'long', year:'numeric'}).toUpperCase()}</td></tr></thead><tbody>
                 <tr style="background:#f0f0f0;font-size:10px;font-weight:800"><th>Nutricionista</th><th>Consultas</th><th>Média/dia</th></tr>`;
             
@@ -582,7 +581,7 @@ function renderProdutividade() {
                     }
                     return false;
                 }).length;
-                const dias = 8; // ~2 terças + 2 quintas por mês
+                const dias = 8;
                 tabela += `<tr><td style="font-weight:800">${n}</td><td style="text-align:center;font-weight:800">${consultas}</td><td style="text-align:center">${(consultas/dias).toFixed(1)}</td></tr>`;
             });
             
@@ -590,7 +589,6 @@ function renderProdutividade() {
             document.getElementById('prod-res').innerHTML = `<div style="overflow-x:auto">${tabela}</div><div class="mt-4"><button onclick="imprimirProdutividade()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"><i class="fas fa-print"></i> Imprimir relatório</button></div>`;
             document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif"><h2 style="text-align:center;margin-bottom:20px;font-weight:bold">PRODUTIVIDADE — ${hoje.toLocaleString('pt-BR', {month:'long', year:'numeric'}).toUpperCase()}</h2>${tabela}</div>`;
         } else {
-            // Mostra detalhes de um nutricionista
             const consultas = appts.filter(a => {
                 if (selNutri === 'Líbia' && a.categoria === 'Esportivo') {
                     const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
@@ -699,16 +697,13 @@ function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
     if (tipo === 'acompanhamento') {
         msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta conosco? Nos diga um horário que funciona para você! 📅\n\nAguardamos seu contato! 😊`);
     } else {
-        // Mensagem de confirmação com especialidade
         const especialidade = categoria === 'Esportivo' ? 'Nutrição Esportiva' : categoria === 'Emagrecimento' ? 'Emagrecimento' : 'Aplicação de Injetáveis';
         msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta de *${especialidade}*:\n📅 ${data}\n🕐 ${hora}\n\n`);
         
-        // Adiciona desconto se for Aplicação, Retorno ou Primeira Consulta/Consulta
         if (categoria === 'Aplicação' || ['Consulta','Retorno','Primeira Consulta'].includes(servico)) {
             msg += encodeURIComponent(`🎁 *VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)\n\n`);
         }
         
-        // Adiciona bioimpedância se for Primeira Consulta ou Consulta (não Retorno nem Aplicação)
         if (['Consulta','Primeira Consulta'].includes(servico)) {
             msg += encodeURIComponent(`📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`);
         }
@@ -718,7 +713,6 @@ function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
     
     window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
     
-    // Marca confirmação
     if (id && tipo !== 'acompanhamento') {
         confirmacoes[id] = { confirmado: true, data: new Date().toISOString().split('T')[0] };
         render();
