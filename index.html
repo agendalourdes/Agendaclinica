@@ -350,6 +350,7 @@ function openNew(hora, cat) {
     mTime=hora; mCat=cat; mId=null; mTel=null; mEditData=null; mEditHora=null;
     document.getElementById('modal-title').textContent = hora.includes('encaixe') ? `Agendar Encaixe` : `Agendar — ${hora}`;
     document.getElementById('m-pac').value = '';
+    document.getElementById('m-obs').value = '';
     document.getElementById('m-servico').selectedIndex = 0;
     document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('edit-fields').classList.add('hidden');
@@ -371,6 +372,7 @@ function openEdit(hora, cat, el) {
     document.getElementById('m-pac').value = ag.paciente;
     document.getElementById('m-servico').value = ag.servico || 'Consulta';
     document.getElementById('m-cat').value = ag.categoria;
+    document.getElementById('m-obs').value = observacoes[ag.id] || '';
     const [d,m,a] = ag.data.split('/');
     document.getElementById('m-data').value = `${a}-${m}-${d}`;
     document.getElementById('m-hora').value = ag.hora.includes('encaixe') ? '' : ag.hora;
