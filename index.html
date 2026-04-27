@@ -11,9 +11,9 @@
         :root { --esp:#f97316; --emag:#3b82f6; --aplic:#a855f7; --roxo:#4a148c; }
         * { box-sizing:border-box; }
         body { background:#fafafa; font-family:'Quicksand',sans-serif; color:#111; -webkit-tap-highlight-color:transparent; }
-        .full-header { width:100%; background:#fff; border-bottom:2px solid #eee; text-align:center; padding:0; }
-        .full-header img { width:100%; max-height:240px; object-fit:contain; display:block; }
-        .date-row { display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 16px; }
+        .full-header { width:100%; background:#fff; border-bottom:2px solid #eee; text-align:center; padding:0; margin:0; }
+        .full-header img { width:100%; height:300px; object-fit:cover; display:block; margin:0; }
+        .date-row { display:flex; align-items:center; justify-content:center; gap:8px; padding:16px 16px 12px; }
         .date-row input[type=date] { padding:6px 12px; border:2px solid #eee; border-radius:12px; font-family:'Quicksand',sans-serif; font-weight:700; font-size:14px; background:#fafafa; }
         .prof-edit { font-size:11px; cursor:pointer; color:#0369a1; font-weight:700; }
         .badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; }
@@ -89,6 +89,7 @@
                 class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm">
             <div id="sug-modal" class="sug hidden"></div>
         </div>
+        <textarea id="m-obs" placeholder="Observações (aparecerá no relatório)" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm mb-4" rows="3"></textarea>
         <div id="edit-fields" class="hidden space-y-3 mb-4">
             <div>
                 <label style="display:block; font-weight:700; font-size:12px; margin-bottom:4px; color:#666;">Nova data</label>
@@ -158,6 +159,7 @@ let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
 let profData = {};
 let profEditData = null;
 let confirmacoes = {};
+let observacoes = {}; // {id: "observação texto"}
 
 window.onload = () => {
     const d = new Date();
@@ -313,11 +315,13 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         }
     });
     
-    // Mostra ENCAIXE LIVRE apenas se não foi agendado nenhum encaixe
-    const temEncaixeAgendado = appts.find(a => a.data === dataF && a.categoria === cat && a.hora.includes('encaixe'));
-    
-    if (!temEncaixeAgendado) {
-        html += `<div onclick="openNew('encaixe-${cat}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2"><span class="font-bold text-gray-400 text-sm">ENCAIXE — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
+    // Mostra 2 cards ENCAIXE em branco - cada um representa 1 encaixe disponível
+    for (let i = 1; i <= 2; i++) {
+        const encaixeId = `encaixe-${cat}-${i}`;
+        const jFoiAgendado = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
+        if (!jFoiAgendado) {
+            html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2" style="min-height:70px;background:#fafafa;cursor:pointer;"></div>`;
+        }
     }
     
     return html;
@@ -395,6 +399,12 @@ async function saveAppt() {
         const horaEncaixe = document.getElementById('m-hora').value;
         if (!horaEncaixe) { alert('Adicione um horário para o encaixe!'); return; }
         horaParaSalvar = horaEncaixe;
+    }
+    
+    // Salva observação
+    const obs = document.getElementById('m-obs').value.trim();
+    if (obs && mId) {
+        observacoes[mId] = obs;
     }
     
     closeModal();
@@ -516,10 +526,11 @@ function secaoRel(cat, prof, step, thBg) {
     agsDaCat.forEach(ag => {
         const pac = pacs.find(p => p.nome===ag.paciente);
         const prev = appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0];
-        rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag.servico||''}</td></tr>`;
+        const obs = observacoes[ag.id] || '';
+        rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag.servico||''}</td><td style="font-size:10px">${obs}</td></tr>`;
     });
     
-    return `<tr><td colspan="9" style="background:${thBg};font-weight:900;font-size:13px;padding:7px 8px;border:1px solid #ccc">* ${titulo.toUpperCase()}</td></tr><tr style="background:${thBg}99;font-size:10px;font-weight:800"><th>Horário</th><th>Paciente</th><th>Telefone</th><th>Nascimento</th><th>Email</th><th>Alt.</th><th>Última visita</th><th>Último proc.</th><th>Hoje</th></tr>${rows}`;
+    return `<tr><td colspan="10" style="background:${thBg};font-weight:900;font-size:13px;padding:7px 8px;border:1px solid #ccc">* ${titulo.toUpperCase()}</td></tr><tr style="background:${thBg}99;font-size:10px;font-weight:800"><th>Horário</th><th>Paciente</th><th>Telefone</th><th>Nascimento</th><th>Email</th><th>Alt.</th><th>Última visita</th><th>Último proc.</th><th>Hoje</th><th>Observação</th></tr>${rows}`;
 }
 
 function renderRel() {
@@ -701,12 +712,14 @@ function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
         const especialidade = categoria === 'Esportivo' ? 'Nutrição Esportiva' : categoria === 'Emagrecimento' ? 'Emagrecimento' : 'Aplicação de Injetáveis';
         msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta de *${especialidade}*:\n📅 ${data}\n🕐 ${hora}\n\n`);
         
-        if (categoria === 'Aplicação' || ['Consulta','Retorno','Primeira Consulta'].includes(servico)) {
-            msg += encodeURIComponent(`🎁 *VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)\n\n`);
+        // Bioimpedância: APENAS Primeira Consulta e Consulta (não Retorno, não Clinical)
+        if (servico === 'Primeira Consulta' || servico === 'Consulta') {
+            msg += encodeURIComponent(`📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`);
         }
         
-        if (['Consulta','Primeira Consulta'].includes(servico)) {
-            msg += encodeURIComponent(`📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`);
+        // Desconto: Consulta + Primeira Consulta + Retorno + Aplicação (TODOS menos Clinical)
+        if (!servico.includes('Clinical')) {
+            msg += encodeURIComponent(`🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n`);
         }
         
         msg += encodeURIComponent(`Responda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`);
