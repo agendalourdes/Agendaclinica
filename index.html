@@ -153,7 +153,7 @@
 <div id="print-area"></div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxgiCRjWbDv3b7skWQD35yNYb-FX2_jOI3Z6XXf5xgeJnbITPX6VxjHWWHHwSFcUrnx/exec";
+const API = "https://script.google.com/macros/s/AKfycbxbQ6DWl0icD0RzGkSuI7KSYyNi8FuXP1X7yxL7Np3Y_ReneHcSNxORTXy2OPzmkobg/exec";
 let pacs = [], appts = [];
 let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
 let profData = {};
@@ -161,7 +161,17 @@ let profEditData = null;
 let confirmacoes = {};
 let observacoes = {}; // {id: "observação texto"}
 
+let observacoes = {};
+
 window.onload = () => {
+    // Carrega observações salvas
+    const obsArmazenadas = localStorage.getItem('obsClinca');
+    if (obsArmazenadas) {
+        try {
+            observacoes = JSON.parse(obsArmazenadas);
+        } catch(e) {}
+    }
+    
     const d = new Date();
     const diff = (2 - d.getDay() + 7) % 7 || 7;
     d.setDate(d.getDate() + diff);
@@ -403,10 +413,12 @@ async function saveAppt() {
         horaParaSalvar = horaEncaixe;
     }
     
-    // Salva observação
+    // Salva observação com chave estável (data+paciente+hora)
     const obs = document.getElementById('m-obs').value.trim();
-    if (obs && mId) {
-        observacoes[mId] = obs;
+    if (obs) {
+        const chaveObs = `${data}|${pac}|${hora}`;
+        observacoes[chaveObs] = obs;
+        localStorage.setItem('obsClinca', JSON.stringify(observacoes));
     }
     
     closeModal();
@@ -528,7 +540,8 @@ function secaoRel(cat, prof, step, thBg) {
     agsDaCat.forEach(ag => {
         const pac = pacs.find(p => p.nome===ag.paciente);
         const prev = appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0];
-        const obs = observacoes[ag.id] || '';
+        const chaveObs = `${ag.data}|${ag.paciente}|${normHora(ag.hora)}`;
+        const obs = observacoes[chaveObs] || '';
         rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag.servico||''}</td><td style="font-size:10px">${obs}</td></tr>`;
     });
     
@@ -550,15 +563,25 @@ function renderProdutividade() {
     const nutricionistas = ['Líbia', 'Geraldo', 'Bruno'];
     
     let html = `<div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="font-black text-xl mb-4 uppercase">Produtividade — Mês</h2>
-        <div class="mb-4">
-            <label class="text-sm font-bold text-gray-600">Selecione nutricionista:</label>
-            <select id="sel-nutri" onchange="renderProdutividade()" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-2">
-                <option value="">TODOS (relatório imprimível)</option>
-                <option value="Líbia">Líbia</option>
-                <option value="Geraldo">Geraldo</option>
-                <option value="Bruno">Bruno</option>
-            </select>
+        <h2 class="font-black text-xl mb-4 uppercase">Produtividade</h2>
+        <div class="mb-4 space-y-3">
+            <div>
+                <label class="text-sm font-bold text-gray-600">Data Inicial</label>
+                <input type="date" id="data-inicio" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1" onchange="renderProdutividade()">
+            </div>
+            <div>
+                <label class="text-sm font-bold text-gray-600">Data Final</label>
+                <input type="date" id="data-fim" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1" onchange="renderProdutividade()">
+            </div>
+            <div>
+                <label class="text-sm font-bold text-gray-600">Selecione nutricionista:</label>
+                <select id="sel-nutri" onchange="renderProdutividade()" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1">
+                    <option value="">TODOS (relatório imprimível)</option>
+                    <option value="Líbia">Líbia</option>
+                    <option value="Geraldo">Geraldo</option>
+                    <option value="Bruno">Bruno</option>
+                </select>
+            </div>
         </div>
         <div id="prod-res"></div>
     </div>`;
@@ -566,63 +589,110 @@ function renderProdutividade() {
     c.innerHTML = html;
     
     setTimeout(() => {
+        const dataInicio = document.getElementById('data-inicio').value;
+        const dataFim = document.getElementById('data-fim').value;
         const selNutri = document.getElementById('sel-nutri').value;
-        const hoje = new Date();
-        const mesAtual = hoje.getMonth() + 1;
-        const anoAtual = hoje.getFullYear();
         
-        function isMesAtual(dataBR) {
+        // Se não tiver datas, usa o mês atual
+        let dataInicioNum, dataFimNum;
+        if (!dataInicio || !dataFim) {
+            const hoje = new Date();
+            const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+            const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+            
+            dataInicioNum = parseInt(`${primeiroDia.getFullYear()}${String(primeiroDia.getMonth()+1).padStart(2,'0')}${String(primeiroDia.getDate()).padStart(2,'0')}`);
+            dataFimNum = parseInt(`${ultimoDia.getFullYear()}${String(ultimoDia.getMonth()+1).padStart(2,'0')}${String(ultimoDia.getDate()).padStart(2,'0')}`);
+            
+            document.getElementById('data-inicio').value = primeiroDia.toLocaleDateString('en-CA');
+            document.getElementById('data-fim').value = ultimoDia.toLocaleDateString('en-CA');
+        } else {
+            const [aI, mI, dI] = dataInicio.split('-');
+            const [aF, mF, dF] = dataFim.split('-');
+            dataInicioNum = parseInt(`${aI}${mI}${dI}`);
+            dataFimNum = parseInt(`${aF}${mF}${dF}`);
+        }
+        
+        function dataToNum(dataBR) {
             const [d, m, a] = dataBR.split('/');
-            return parseInt(m) === mesAtual && parseInt(a) === anoAtual;
+            return parseInt(`${a}${String(m).padStart(2,'0')}${String(d).padStart(2,'0')}`);
         }
         
         if (!selNutri) {
-            let tabela = `<table class="rtable"><thead><tr><td colspan="3" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">${hoje.toLocaleString('pt-BR', {month:'long', year:'numeric'}).toUpperCase()}</td></tr></thead><tbody>
-                <tr style="background:#f0f0f0;font-size:10px;font-weight:800"><th>Nutricionista</th><th>Consultas</th><th>Média/dia</th></tr>`;
+            // Mostra tabela com todos os 3
+            let tabela = `<table class="rtable"><thead><tr><td colspan="4" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">PRODUTIVIDADE — ${dataInicio} até ${dataFim}</td></tr></thead><tbody>
+                <tr style="background:#f0f0f0;font-size:10px;font-weight:800"><th>Nutricionista</th><th>Consultas</th><th>Retornos</th><th>Total</th></tr>`;
             
             nutricionistas.forEach(n => {
-                const consultas = appts.filter(a => {
-                    if (n === 'Líbia' && a.categoria === 'Esportivo') {
-                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
-                        return prof === 'Líbia' && isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
+                let consultas = 0, retornos = 0;
+                
+                appts.forEach(a => {
+                    const dataNum = dataToNum(a.data);
+                    if (dataNum >= dataInicioNum && dataNum <= dataFimNum && !a.hora.includes('encaixe')) {
+                        if (n === 'Líbia' && a.categoria === 'Esportivo') {
+                            const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
+                            if (prof === 'Líbia') {
+                                if (['Primeira Consulta','Consulta'].includes(a.servico)) consultas++;
+                                if (a.servico === 'Retorno') retornos++;
+                            }
+                        }
+                        if (n === 'Geraldo' && a.categoria === 'Esportivo') {
+                            const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
+                            if (prof === 'Geraldo') {
+                                if (['Primeira Consulta','Consulta'].includes(a.servico)) consultas++;
+                                if (a.servico === 'Retorno') retornos++;
+                            }
+                        }
+                        if (n === 'Bruno' && a.categoria === 'Emagrecimento') {
+                            if (['Primeira Consulta','Consulta'].includes(a.servico)) consultas++;
+                            if (a.servico === 'Retorno') retornos++;
+                        }
                     }
-                    if (n === 'Geraldo' && a.categoria === 'Esportivo') {
-                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
-                        return prof === 'Geraldo' && isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
-                    }
-                    if (n === 'Bruno' && a.categoria === 'Emagrecimento') {
-                        return isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
-                    }
-                    return false;
-                }).length;
-                const dias = 8;
-                tabela += `<tr><td style="font-weight:800">${n}</td><td style="text-align:center;font-weight:800">${consultas}</td><td style="text-align:center">${(consultas/dias).toFixed(1)}</td></tr>`;
+                });
+                
+                const total = consultas + retornos;
+                tabela += `<tr><td style="font-weight:800">${n}</td><td style="text-align:center;font-weight:800">${consultas}</td><td style="text-align:center;font-weight:800">${retornos}</td><td style="text-align:center;font-weight:800">${total}</td></tr>`;
             });
             
             tabela += `</tbody></table>`;
             document.getElementById('prod-res').innerHTML = `<div style="overflow-x:auto">${tabela}</div><div class="mt-4"><button onclick="imprimirProdutividade()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"><i class="fas fa-print"></i> Imprimir relatório</button></div>`;
-            document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif"><h2 style="text-align:center;margin-bottom:20px;font-weight:bold">PRODUTIVIDADE — ${hoje.toLocaleString('pt-BR', {month:'long', year:'numeric'}).toUpperCase()}</h2>${tabela}</div>`;
+            document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif"><h2 style="text-align:center;margin-bottom:20px;font-weight:bold">PRODUTIVIDADE — ${dataInicio} até ${dataFim}</h2>${tabela}</div>`;
         } else {
-            const consultas = appts.filter(a => {
-                if (selNutri === 'Líbia' && a.categoria === 'Esportivo') {
-                    const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
-                    return prof === 'Líbia' && isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
+            // Mostra detalhes de um nutricionista
+            let consultas = 0, retornos = 0;
+            const detalhe = [];
+            
+            appts.forEach(a => {
+                const dataNum = dataToNum(a.data);
+                if (dataNum >= dataInicioNum && dataNum <= dataFimNum && !a.hora.includes('encaixe')) {
+                    if (selNutri === 'Líbia' && a.categoria === 'Esportivo') {
+                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
+                        if (prof === 'Líbia') {
+                            if (['Primeira Consulta','Consulta'].includes(a.servico)) { consultas++; detalhe.push({...a, tipo: 'Consulta'}); }
+                            if (a.servico === 'Retorno') { retornos++; detalhe.push({...a, tipo: 'Retorno'}); }
+                        }
+                    }
+                    if (selNutri === 'Geraldo' && a.categoria === 'Esportivo') {
+                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
+                        if (prof === 'Geraldo') {
+                            if (['Primeira Consulta','Consulta'].includes(a.servico)) { consultas++; detalhe.push({...a, tipo: 'Consulta'}); }
+                            if (a.servico === 'Retorno') { retornos++; detalhe.push({...a, tipo: 'Retorno'}); }
+                        }
+                    }
+                    if (selNutri === 'Bruno' && a.categoria === 'Emagrecimento') {
+                        if (['Primeira Consulta','Consulta'].includes(a.servico)) { consultas++; detalhe.push({...a, tipo: 'Consulta'}); }
+                        if (a.servico === 'Retorno') { retornos++; detalhe.push({...a, tipo: 'Retorno'}); }
+                    }
                 }
-                if (selNutri === 'Geraldo' && a.categoria === 'Esportivo') {
-                    const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
-                    return prof === 'Geraldo' && isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
-                }
-                if (selNutri === 'Bruno' && a.categoria === 'Emagrecimento') {
-                    return isMesAtual(a.data) && !a.hora.includes('encaixe') && ['Primeira Consulta','Consulta','Retorno'].includes(a.servico);
-                }
-                return false;
             });
             
-            let html = `<p class="text-center font-black text-lg mt-4">${selNutri}</p><p class="text-center text-sm text-gray-600">Total: ${consultas.length} consulta(s)</p><div class="mt-4 space-y-2">`;
-            consultas.forEach(a => {
-                html += `<div class="p-3 border rounded-xl bg-gray-50"><p class="font-bold text-sm">${a.paciente}</p><p class="text-xs text-gray-600">${a.data} às ${normHora(a.hora)}</p></div>`;
+            const total = consultas + retornos;
+            let html = `<div class="mt-4"><p class="text-center font-black text-lg">${selNutri}</p><p class="text-center text-sm text-gray-600 mb-4">Período: ${dataInicio} até ${dataFim}</p><div class="grid grid-cols-3 gap-2 mb-4"><div class="p-3 bg-blue-100 rounded-xl text-center"><p class="text-xs text-gray-600">Consultas</p><p class="font-black text-lg text-blue-600">${consultas}</p></div><div class="p-3 bg-orange-100 rounded-xl text-center"><p class="text-xs text-gray-600">Retornos</p><p class="font-black text-lg text-orange-600">${retornos}</p></div><div class="p-3 bg-purple-100 rounded-xl text-center"><p class="text-xs text-gray-600">Total</p><p class="font-black text-lg text-purple-600">${total}</p></div></div><div class="space-y-2">`;
+            
+            detalhe.forEach(a => {
+                html += `<div class="p-3 border rounded-xl bg-gray-50"><p class="font-bold text-sm">${a.paciente}</p><p class="text-xs text-gray-600">${a.data} — ${a.tipo}</p></div>`;
             });
-            html += `</div>`;
+            
+            html += `</div></div>`;
             document.getElementById('prod-res').innerHTML = html;
         }
     }, 100);
