@@ -165,6 +165,11 @@ window.onload = () => {
         try { observacoes = JSON.parse(obsArmazenadas); } catch(e) {}
     }
     
+    const faltososArmazenados = localStorage.getItem('faltosos');
+    if (faltososArmazenados) {
+        try { faltosos = JSON.parse(faltososArmazenados); } catch(e) {}
+    }
+    
     const d = new Date();
     const diff = (2 - d.getDay() + 7) % 7 || 7;
     d.setDate(d.getDate() + diff);
@@ -396,50 +401,48 @@ function openEditAppt(btn) {
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 function closeBg(e) { if (e.target.id==='modal') closeModal(); }
 
-function enviarConfirmacao() {
-    const pac = document.getElementById('m-pac').value.trim();
+function enviarConfirmacaoDirecta(pac, data, hora, servico, categoria) {
     const pacObj = pacs.find(p => p.nome === pac);
     if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
     
     const tel = pacObj.telefone.replace(/\D/g,'');
+    
+    let tipoConsulta = '';
+    if (categoria === 'Esportivo') {
+        tipoConsulta = 'CONSULTA NUTRIÇÃO ESPORTIVA';
+    } else if (categoria === 'Emagrecimento') {
+        tipoConsulta = 'CONSULTA EMAGRECIMENTO';
+    } else if (categoria === 'Aplicação') {
+        tipoConsulta = 'APLICAÇÃO DE INJETÁVEIS';
+    }
+    
+    let msg = `*Seu agendamento foi realizado com sucesso!*\n\n`;
+    msg += `📅 DATA: ${data}\n`;
+    msg += `🕐 HORÁRIO: ${hora}\n\n`;
+    msg += `*${tipoConsulta}*\n\n`;
+    msg += `Com os profissionais:\n`;
+    msg += `👨‍⚕️ Dr. Jorge Vieira Salomão (Médico Nutrólogo)\n`;
+    msg += `👩‍⚕️ Líbia Cardoso (Nutricionista)\n`;
+    msg += `👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n`;
+    msg += `📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n`;
+    msg += `📍 Nosso endereço:\n`;
+    msg += `Rua dos Timbiras, 2237 / 5º andar - Lourdes\n\n`;
+    msg += `💰 Valor da consulta: R$ 290,00\n`;
+    msg += `🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\n`;
+    msg += `Obrigada e até lá! ❤️`;
+    
+    const msgEnc = encodeURIComponent(msg);
+    window.open(`https://wa.me/55${tel}?text=${msgEnc}`, '_blank');
+}
+
+function enviarConfirmacao() {
+    const pac = document.getElementById('m-pac').value.trim();
     const data = document.getElementById('m-data').value ? document.getElementById('m-data').value.split('-').reverse().join('/') : getBR();
     const hora = document.getElementById('m-hora').value || mTime;
     const servico = document.getElementById('m-servico').value;
     const categoria = document.getElementById('m-cat').value || mCat;
     
-    let msg = `*Seu agendamento foi realizado com sucesso!*\n\n`;
-    msg += `📅 DATA: ${data}\n`;
-    msg += `🕐 HORÁRIO: ${hora}\n\n`;
-    
-    if (servico === 'Primeira Consulta' || servico === 'Consulta') {
-        msg += `*CONSULTA NUTRIÇÃO ESPORTIVA*\n`;
-    } else if (servico === 'Retorno') {
-        msg += `*RETORNO NUTRIÇÃO ESPORTIVA*\n`;
-    } else if (servico === 'Aplicação') {
-        msg += `*APLICAÇÃO DE INJETÁVEIS*\n`;
-    } else if (servico.includes('Clinical')) {
-        msg += `*${servico.toUpperCase()}*\n`;
-    }
-    
-    msg += `\nCom os profissionais:\n`;
-    msg += `👨‍⚕️ Dr. Jorge Vieira Salomão (Médico Nutrólogo)\n`;
-    msg += `👩‍⚕️ Líbia Cardoso (Nutricionista)\n`;
-    msg += `👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n`;
-    
-    msg += `📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n`;
-    
-    msg += `📍 Nosso endereço:\n`;
-    msg += `Rua dos Timbiras, 2237 / 5º andar - Lourdes\n\n`;
-    
-    msg += `💰 Valor da consulta: R$ 290,00\n`;
-    msg += `🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\n`;
-    
-    msg += `Obrigada e até lá! ❤️`;
-    
-    const msgEnc = encodeURIComponent(msg);
-    window.open(`https://wa.me/55${tel}?text=${msgEnc}`, '_blank');
-    
-    setTimeout(() => closeModal(), 500);
+    enviarConfirmacaoDirecta(pac, data, hora, servico, categoria);
 }
 
 async function saveAppt() {
@@ -456,6 +459,7 @@ async function saveAppt() {
     let data = mEditData || getBR();
     let hora = mEditHora || horaParaSalvar;
     let cat = mCat;
+    const servico = document.getElementById('m-servico').value;
     
     if (mId) {
         const newData = document.getElementById('m-data').value;
@@ -464,12 +468,6 @@ async function saveAppt() {
         if (newData) { const [y,m,d] = newData.split('-'); data = `${d}/${m}/${y}`; }
         if (newHora) hora = newHora;
         if (newCat) cat = newCat;
-        
-        // Edit: mostra botão de deletar
-        document.getElementById('btn-confirmacao').classList.add('hidden');
-    } else {
-        // New: mostra botão de confirmação
-        document.getElementById('btn-confirmacao').classList.remove('hidden');
     }
     
     const obs = document.getElementById('m-obs').value.trim();
@@ -479,18 +477,20 @@ async function saveAppt() {
         localStorage.setItem('obsClinca', JSON.stringify(observacoes));
     }
     
+    closeModal();
     showSpinner();
+    
     try {
-        await api({ action: 'saveAppt', data, hora, paciente: pac, servico: document.getElementById('m-servico').value, categoria: cat, id: mId || '' });
+        await api({ action: 'saveAppt', data, hora, paciente: pac, servico: servico, categoria: cat, id: mId || '' });
         await loadAll();
         
+        // Se é novo agendamento, pergunta se quer enviar confirmação
         if (!mId) {
-            // Reopen modal to show confirmation button
-            openNew(horaParaSalvar, cat);
-            document.getElementById('m-pac').value = pac;
-            document.getElementById('m-servico').value = document.querySelector('#m-servico').value;
-            document.getElementById('m-obs').value = obs;
-            document.getElementById('btn-confirmacao').classList.remove('hidden');
+            setTimeout(() => {
+                if (confirm('Deseja enviar a confirmação de consulta para o paciente?')) {
+                    enviarConfirmacaoDirecta(pac, data, hora, servico, cat);
+                }
+            }, 500);
         }
     } catch(e) { alert('Erro ao salvar.'); render(); }
 }
@@ -601,7 +601,7 @@ function renderRel() {
     const dataF = getBR();
     const prof = getEsportivoProf();
     const tabela = `<table class="rtable"><thead><tr><td colspan="10" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — ${dataF}</td></tr></thead><tbody>${secaoRel('Esportivo', prof, 25, '#fde8d8')}${secaoRel('Emagrecimento', 'Bruno', 35, '#d8eafd')}${secaoRel('Aplicação', '', 30, '#f3d8fd')}</tbody></table>`;
-    c.innerHTML = `<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><div class="flex gap-2"><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-print"></i> Imprimir</button><button onclick="compartilharRelatorio()" class="bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-share-alt"></i> Compartilhar</button></div></div><div style="overflow-x:auto">${tabela}</div>`;
+    c.innerHTML = `<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div><div style="overflow-x:auto">${tabela}</div>`;
     document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;
 }
 
@@ -819,29 +819,19 @@ async function delAcompanhamento(id) {
     } catch(e) { alert('Erro ao deletar.'); render(); }
 }
 
-function compartilharRelatorio() {
-    const dataF = getBR();
-    const link = `${window.location.origin}${window.location.pathname}?shared=true&data=${dataF}`;
-    
-    if (navigator.share) {
-        navigator.share({
-            title: `Relatório - ${dataF}`,
-            text: `Veja o relatório de agendamentos`,
-            url: link
-        });
-    } else {
-        const texto = `Relatório - ${dataF}\n\n${link}`;
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(link);
-            alert('Link copiado! Cole em qualquer lugar para compartilhar.');
-        }
-    }
-}
-
 function imprimir() {
     document.getElementById('print-area').style.display = 'block';
     window.print();
     setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
+}
+
+let faltosos = {};
+
+function marcarFalta(id) {
+    if (!confirm('Marcar paciente como FALTOU?')) return;
+    faltosos[id] = true;
+    localStorage.setItem('faltosos', JSON.stringify(faltosos));
+    render();
 }
 
 function imprimirProdutividade() {
