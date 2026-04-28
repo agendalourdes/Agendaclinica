@@ -11,9 +11,9 @@
         :root { --esp:#f97316; --emag:#3b82f6; --aplic:#a855f7; --roxo:#4a148c; }
         * { box-sizing:border-box; }
         body { background:#fafafa; font-family:'Quicksand',sans-serif; color:#111; -webkit-tap-highlight-color:transparent; }
-        .full-header { width:100%; background:#fff; border-bottom:2px solid #eee; text-align:center; padding:0; margin:0; }
-        .full-header img { width:100%; height:300px; object-fit:cover; display:block; margin:0; }
-        .date-row { display:flex; align-items:center; justify-content:center; gap:8px; padding:16px 16px 12px; }
+        .full-header { width:100%; background:#fff; border-bottom:2px solid #eee; text-align:center; padding:0; }
+        .full-header img { width:100%; height:240px; object-fit:cover; display:block; }
+        .date-row { display:flex; align-items:center; justify-content:center; gap:8px; padding:12px 16px; }
         .date-row input[type=date] { padding:6px 12px; border:2px solid #eee; border-radius:12px; font-family:'Quicksand',sans-serif; font-weight:700; font-size:14px; background:#fafafa; }
         .prof-edit { font-size:11px; cursor:pointer; color:#0369a1; font-weight:700; }
         .badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; }
@@ -85,8 +85,7 @@
             <option>Aplicação Clinical</option>
         </select>
         <div class="relative mb-5">
-            <input type="text" id="m-pac" oninput="sugerir(this.value,'sug-modal')" placeholder="Nome do paciente..." autocomplete="off"
-                class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm">
+            <input type="text" id="m-pac" oninput="sugerir(this.value,'sug-modal')" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm">
             <div id="sug-modal" class="sug hidden"></div>
         </div>
         <textarea id="m-obs" placeholder="Observações (aparecerá no relatório)" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm mb-4" rows="3"></textarea>
@@ -112,11 +111,6 @@
             <button onclick="closeModal()" class="flex-1 p-4 font-bold text-gray-400 rounded-2xl border-2 text-sm">SAIR</button>
             <button id="btn-del" onclick="delAppt()" class="hidden flex-1 bg-red-500 text-white p-4 rounded-2xl font-bold text-sm">CANCELAR</button>
             <button onclick="saveAppt()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold text-sm">CONFIRMAR</button>
-        </div>
-        <div id="btn-whats" class="hidden mt-3">
-            <button onclick="enviarWhatsAppAgendamento()" class="w-full p-4 font-bold rounded-2xl flex items-center justify-center gap-2 text-white text-sm" style="background:#25D366">
-                <i class="fab fa-whatsapp text-xl"></i> WhatsApp
-            </button>
         </div>
     </div>
 </div>
@@ -159,17 +153,12 @@ let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
 let profData = {};
 let profEditData = null;
 let confirmacoes = {};
-let observacoes = {}; // {id: "observação texto"}
-
 let observacoes = {};
 
 window.onload = () => {
-    // Carrega observações salvas
     const obsArmazenadas = localStorage.getItem('obsClinca');
     if (obsArmazenadas) {
-        try {
-            observacoes = JSON.parse(obsArmazenadas);
-        } catch(e) {}
+        try { observacoes = JSON.parse(obsArmazenadas); } catch(e) {}
     }
     
     const d = new Date();
@@ -291,10 +280,8 @@ function catHTML(cat, prof, slCl, bgCl, step) {
     const titulo = prof ? `${cat.toUpperCase()} — <span class="prof-edit" onclick="editProf('${dataF}')">${prof} ✏️</span>` : cat.toUpperCase();
     let html = `<h3 class="font-black text-[10px] uppercase tracking-widest mt-8 mb-3 px-1 text-gray-400">${titulo}</h3>`;
     
-    // Pega TODOS os agendamentos (não encaixes)
-    const agsNormais = appts.filter(a => a.data === dataF && a.categoria === cat && !a.hora.includes('encaixe'));
+    const agsReais = appts.filter(a => a.data === dataF && a.categoria === cat && !a.hora.includes('encaixe'));
     
-    // Gera TODOS os slots padrões
     const slots = [];
     let h=9, m=0;
     while (h < 12 || (h===12 && m===0)) {
@@ -303,37 +290,28 @@ function catHTML(cat, prof, slCl, bgCl, step) {
         if (m >= 60) { h += Math.floor(m/60); m = m%60; }
     }
     
-    // Coleta TODOS os horários (slots padrões + agendamentos customizados)
     const todosHorarios = new Set(slots);
-    agsNormais.forEach(ag => todosHorarios.add(normHora(ag.hora)));
+    agsReais.forEach(ag => todosHorarios.add(normHora(ag.hora)));
     
-    // Ordena cronologicamente
     const horariosOrdenados = Array.from(todosHorarios).sort((a, b) => a.localeCompare(b));
     
-    // Renderiza cada horário em ordem
     horariosOrdenados.forEach(hora => {
-        const ag = agsNormais.find(a => normHora(a.hora) === hora);
+        const ag = agsReais.find(a => normHora(a.hora) === hora);
         
         if (ag) {
-            // Tem agendamento
             const esc = JSON.stringify(ag).replace(/"/g,'&quot;');
             const statusIcon = confirmacoes[ag.id] ? (confirmacoes[ag.id].confirmado ? '✅' : '❌') : '';
             html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}"><div class="slot-status">${statusIcon}</div><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${hora}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
         } else {
-            // Slot vazio
             html += `<div onclick="openNew('${hora}','${cat}')" class="slot ${slCl} flex justify-between items-center"><span class="font-bold text-gray-400 text-sm">${hora} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
     });
     
-    // Mostra 2 cards ENCAIXE em branco - cada um representa 1 encaixe disponível
-    for (let i = 1; i <= 2; i++) {
-        const encaixeId = `encaixe-${cat}-${i}`;
-        const jFoiAgendado = appts.find(a => a.data === dataF && a.categoria === cat && a.hora === encaixeId);
-        if (!jFoiAgendado) {
-            html += `<div onclick="openNew('${encaixeId}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2" style="min-height:70px;background:#fafafa;cursor:pointer;"></div>`;
-        }
-    }
+    const temEncaixeAgendado = appts.find(a => a.data === dataF && a.categoria === cat && a.hora.includes('encaixe'));
     
+    if (!temEncaixeAgendado) {
+        html += `<div onclick="openNew('encaixe-${cat}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2" style="min-height:80px;background:#fafafa;cursor:pointer;"></div>`;
+    }
     return html;
 }
 
@@ -365,7 +343,6 @@ function openNew(hora, cat) {
     document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('edit-fields').classList.add('hidden');
     document.getElementById('btn-del').classList.add('hidden');
-    document.getElementById('btn-whats').classList.add('hidden');
     document.getElementById('modal').classList.remove('hidden');
     if (hora.includes('encaixe')) {
         document.getElementById('edit-fields').classList.remove('hidden');
@@ -382,14 +359,14 @@ function openEdit(hora, cat, el) {
     document.getElementById('m-pac').value = ag.paciente;
     document.getElementById('m-servico').value = ag.servico || 'Consulta';
     document.getElementById('m-cat').value = ag.categoria;
-    document.getElementById('m-obs').value = observacoes[ag.id] || '';
+    const chaveObs = `${ag.data}|${ag.paciente}|${normHora(ag.hora)}`;
+    document.getElementById('m-obs').value = observacoes[chaveObs] || '';
     const [d,m,a] = ag.data.split('/');
     document.getElementById('m-data').value = `${a}-${m}-${d}`;
     document.getElementById('m-hora').value = ag.hora.includes('encaixe') ? '' : ag.hora;
     document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('edit-fields').classList.remove('hidden');
     document.getElementById('btn-del').classList.remove('hidden');
-    document.getElementById('btn-whats').classList.add('hidden');
     document.getElementById('modal').classList.remove('hidden');
 }
 
@@ -413,13 +390,7 @@ async function saveAppt() {
         horaParaSalvar = horaEncaixe;
     }
     
-    // Salva observação com chave estável (data+paciente+hora)
     const obs = document.getElementById('m-obs').value.trim();
-    if (obs) {
-        const chaveObs = `${data}|${pac}|${hora}`;
-        observacoes[chaveObs] = obs;
-        localStorage.setItem('obsClinca', JSON.stringify(observacoes));
-    }
     
     closeModal();
     showSpinner();
@@ -434,6 +405,12 @@ async function saveAppt() {
         if (newData) { const [y,m,d] = newData.split('-'); data = `${d}/${m}/${y}`; }
         if (newHora) hora = newHora;
         if (newCat) cat = newCat;
+    }
+    
+    if (obs) {
+        const chaveObs = `${data}|${pac}|${hora}`;
+        observacoes[chaveObs] = obs;
+        localStorage.setItem('obsClinca', JSON.stringify(observacoes));
     }
     
     try {
@@ -520,12 +497,6 @@ function showFicha(nome) {
     el.innerHTML = `<div class="border-2 rounded-2xl p-5 bg-gray-50"><div class="flex items-start justify-between mb-3"><div><p class="font-black text-lg uppercase">${nome}</p></div><button onclick="openEditPac('${nome.replace(/'/g,"\\'")}','${pac?.telefone||''}','${pac?.nascimento||''}','${pac?.email||''}','${pac?.altura||''}')" class="btn-edit">✏️ Editar</button></div><div class="space-y-2">${pac?.telefone ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-phone mr-2"></i>${pac.telefone}</p>` : ''}${pac?.email ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-envelope mr-2"></i>${pac.email}</p>` : ''}${pac?.nascimento ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-birthday-cake mr-2"></i>${cleanDate(pac.nascimento)}</p>` : ''}${pac?.altura ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-ruler-vertical mr-2"></i>${pac.altura} cm</p>` : ''}<hr class="my-3"><p class="text-xs uppercase font-black text-gray-400 tracking-widest">Última visita</p>${ult ? `<div class="bg-white border rounded-xl p-3 mt-1"><p class="font-black text-sm">${ult.data} — ${normHora(ult.hora)}</p><p class="text-sm text-gray-500 font-bold">${ult.servico||'—'} · ${ult.categoria}</p></div>` : '<p class="text-gray-400 text-sm mt-1">Nenhuma visita registrada.</p>'}<p class="text-xs font-black text-gray-400 mt-2">Total de visitas: ${hist.length}</p></div></div>`;
 }
 
-function getSlots(step) {
-    const r = []; let h=9, m=0;
-    while (h<12 || (h===12&&m===0)) { r.push(`${pad(h)}:${pad(m)}`); m += step; if (m>=60) { h+=Math.floor(m/60); m=m%60; } }
-    return r;
-}
-
 function secaoRel(cat, prof, step, thBg) {
     const dataF = getBR();
     const titulo = prof ? `${cat} — ${prof}` : cat;
@@ -553,7 +524,7 @@ function renderRel() {
     if (!allowed()) { c.innerHTML = `<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça ou quinta.</p></div>`; return; }
     const dataF = getBR();
     const prof = getEsportivoProf();
-    const tabela = `<table class="rtable"><thead><tr><td colspan="9" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — ${dataF}</td></tr></thead><tbody>${secaoRel('Esportivo', prof, 25, '#fde8d8')}${secaoRel('Emagrecimento', 'Bruno', 35, '#d8eafd')}${secaoRel('Aplicação', '', 30, '#f3d8fd')}</tbody></table>`;
+    const tabela = `<table class="rtable"><thead><tr><td colspan="10" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — ${dataF}</td></tr></thead><tbody>${secaoRel('Esportivo', prof, 25, '#fde8d8')}${secaoRel('Emagrecimento', 'Bruno', 35, '#d8eafd')}${secaoRel('Aplicação', '', 30, '#f3d8fd')}</tbody></table>`;
     c.innerHTML = `<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div><div style="overflow-x:auto">${tabela}</div>`;
     document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;
 }
@@ -574,9 +545,9 @@ function renderProdutividade() {
                 <input type="date" id="data-fim" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1" onchange="renderProdutividade()">
             </div>
             <div>
-                <label class="text-sm font-bold text-gray-600">Selecione nutricionista:</label>
+                <label class="text-sm font-bold text-gray-600">Nutricionista:</label>
                 <select id="sel-nutri" onchange="renderProdutividade()" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1">
-                    <option value="">TODOS (relatório imprimível)</option>
+                    <option value="">TODOS</option>
                     <option value="Líbia">Líbia</option>
                     <option value="Geraldo">Geraldo</option>
                     <option value="Bruno">Bruno</option>
@@ -593,7 +564,6 @@ function renderProdutividade() {
         const dataFim = document.getElementById('data-fim').value;
         const selNutri = document.getElementById('sel-nutri').value;
         
-        // Se não tiver datas, usa o mês atual
         let dataInicioNum, dataFimNum;
         if (!dataInicio || !dataFim) {
             const hoje = new Date();
@@ -618,8 +588,7 @@ function renderProdutividade() {
         }
         
         if (!selNutri) {
-            // Mostra tabela com todos os 3
-            let tabela = `<table class="rtable"><thead><tr><td colspan="4" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">PRODUTIVIDADE — ${dataInicio} até ${dataFim}</td></tr></thead><tbody>
+            let tabela = `<table class="rtable"><thead><tr><td colspan="4" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">PRODUTIVIDADE</td></tr></thead><tbody>
                 <tr style="background:#f0f0f0;font-size:10px;font-weight:800"><th>Nutricionista</th><th>Consultas</th><th>Retornos</th><th>Total</th></tr>`;
             
             nutricionistas.forEach(n => {
@@ -627,73 +596,35 @@ function renderProdutividade() {
                 
                 appts.forEach(a => {
                     const dataNum = dataToNum(a.data);
-                    if (dataNum >= dataInicioNum && dataNum <= dataFimNum && !a.hora.includes('encaixe')) {
-                        if (n === 'Líbia' && a.categoria === 'Esportivo') {
-                            const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
-                            if (prof === 'Líbia') {
-                                if (['Primeira Consulta','Consulta'].includes(a.servico)) consultas++;
-                                if (a.servico === 'Retorno') retornos++;
-                            }
-                        }
-                        if (n === 'Geraldo' && a.categoria === 'Esportivo') {
-                            const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
-                            if (prof === 'Geraldo') {
-                                if (['Primeira Consulta','Consulta'].includes(a.servico)) consultas++;
-                                if (a.servico === 'Retorno') retornos++;
-                            }
-                        }
-                        if (n === 'Bruno' && a.categoria === 'Emagrecimento') {
-                            if (['Primeira Consulta','Consulta'].includes(a.servico)) consultas++;
+                    if (dataNum < dataInicioNum || dataNum > dataFimNum) return;
+                    if (a.hora.includes('encaixe')) return;
+                    if (!['Primeira Consulta','Consulta','Retorno'].includes(a.servico)) return;
+                    
+                    if (n === 'Líbia' && a.categoria === 'Esportivo') {
+                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
+                        if (prof === 'Líbia') {
                             if (a.servico === 'Retorno') retornos++;
+                            else consultas++;
                         }
                     }
+                    if (n === 'Geraldo' && a.categoria === 'Esportivo') {
+                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
+                        if (prof === 'Geraldo') {
+                            if (a.servico === 'Retorno') retornos++;
+                            else consultas++;
+                        }
+                    }
+                    if (n === 'Bruno' && a.categoria === 'Emagrecimento') {
+                        if (a.servico === 'Retorno') retornos++;
+                        else consultas++;
+                    }
                 });
-                
-                const total = consultas + retornos;
-                tabela += `<tr><td style="font-weight:800">${n}</td><td style="text-align:center;font-weight:800">${consultas}</td><td style="text-align:center;font-weight:800">${retornos}</td><td style="text-align:center;font-weight:800">${total}</td></tr>`;
+                tabela += `<tr><td style="font-weight:800">${n}</td><td style="text-align:center;font-weight:800">${consultas}</td><td style="text-align:center;font-weight:800">${retornos}</td><td style="text-align:center;font-weight:800">${consultas+retornos}</td></tr>`;
             });
             
             tabela += `</tbody></table>`;
-            document.getElementById('prod-res').innerHTML = `<div style="overflow-x:auto">${tabela}</div><div class="mt-4"><button onclick="imprimirProdutividade()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"><i class="fas fa-print"></i> Imprimir relatório</button></div>`;
-            document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif"><h2 style="text-align:center;margin-bottom:20px;font-weight:bold">PRODUTIVIDADE — ${dataInicio} até ${dataFim}</h2>${tabela}</div>`;
-        } else {
-            // Mostra detalhes de um nutricionista
-            let consultas = 0, retornos = 0;
-            const detalhe = [];
-            
-            appts.forEach(a => {
-                const dataNum = dataToNum(a.data);
-                if (dataNum >= dataInicioNum && dataNum <= dataFimNum && !a.hora.includes('encaixe')) {
-                    if (selNutri === 'Líbia' && a.categoria === 'Esportivo') {
-                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
-                        if (prof === 'Líbia') {
-                            if (['Primeira Consulta','Consulta'].includes(a.servico)) { consultas++; detalhe.push({...a, tipo: 'Consulta'}); }
-                            if (a.servico === 'Retorno') { retornos++; detalhe.push({...a, tipo: 'Retorno'}); }
-                        }
-                    }
-                    if (selNutri === 'Geraldo' && a.categoria === 'Esportivo') {
-                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
-                        if (prof === 'Geraldo') {
-                            if (['Primeira Consulta','Consulta'].includes(a.servico)) { consultas++; detalhe.push({...a, tipo: 'Consulta'}); }
-                            if (a.servico === 'Retorno') { retornos++; detalhe.push({...a, tipo: 'Retorno'}); }
-                        }
-                    }
-                    if (selNutri === 'Bruno' && a.categoria === 'Emagrecimento') {
-                        if (['Primeira Consulta','Consulta'].includes(a.servico)) { consultas++; detalhe.push({...a, tipo: 'Consulta'}); }
-                        if (a.servico === 'Retorno') { retornos++; detalhe.push({...a, tipo: 'Retorno'}); }
-                    }
-                }
-            });
-            
-            const total = consultas + retornos;
-            let html = `<div class="mt-4"><p class="text-center font-black text-lg">${selNutri}</p><p class="text-center text-sm text-gray-600 mb-4">Período: ${dataInicio} até ${dataFim}</p><div class="grid grid-cols-3 gap-2 mb-4"><div class="p-3 bg-blue-100 rounded-xl text-center"><p class="text-xs text-gray-600">Consultas</p><p class="font-black text-lg text-blue-600">${consultas}</p></div><div class="p-3 bg-orange-100 rounded-xl text-center"><p class="text-xs text-gray-600">Retornos</p><p class="font-black text-lg text-orange-600">${retornos}</p></div><div class="p-3 bg-purple-100 rounded-xl text-center"><p class="text-xs text-gray-600">Total</p><p class="font-black text-lg text-purple-600">${total}</p></div></div><div class="space-y-2">`;
-            
-            detalhe.forEach(a => {
-                html += `<div class="p-3 border rounded-xl bg-gray-50"><p class="font-bold text-sm">${a.paciente}</p><p class="text-xs text-gray-600">${a.data} — ${a.tipo}</p></div>`;
-            });
-            
-            html += `</div></div>`;
-            document.getElementById('prod-res').innerHTML = html;
+            document.getElementById('prod-res').innerHTML = `<div style="overflow-x:auto">${tabela}</div><div class="mt-4"><button onclick="imprimirProdutividade()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div>`;
+            document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif"><h2 style="text-align:center;margin-bottom:20px;font-weight:bold">PRODUTIVIDADE</h2>${tabela}</div>`;
         }
     }, 100);
 }
@@ -744,7 +675,7 @@ function renderAcompanhamento() {
         .sort((a, b) => b.diasAtrás - a.diasAtrás);
     
     if (!acompanhar.length) {
-        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm text-center"><i class="fas fa-check-circle text-5xl text-green-500 mb-3" style="display:block"></i><p class="font-black text-lg text-green-600">✅ Sem pacientes para acompanhar no período!</p><p class="text-sm text-gray-500 mt-2">Próximos pacientes aparecerão em breve.</p></div>`;
+        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm text-center"><i class="fas fa-check-circle text-5xl text-green-500 mb-3" style="display:block"></i><p class="font-black text-lg text-green-600">✅ Sem pacientes para acompanhar!</p></div>`;
         return;
     }
     
@@ -779,17 +710,15 @@ function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
     let msg = '';
     
     if (tipo === 'acompanhamento') {
-        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta conosco? Nos diga um horário que funciona para você! 📅\n\nAguardamos seu contato! 😊`);
+        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta? 📅\n\nAguardamos seu contato! 😊`);
     } else {
         const especialidade = categoria === 'Esportivo' ? 'Nutrição Esportiva' : categoria === 'Emagrecimento' ? 'Emagrecimento' : 'Aplicação de Injetáveis';
         msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta de *${especialidade}*:\n📅 ${data}\n🕐 ${hora}\n\n`);
         
-        // Bioimpedância: APENAS Primeira Consulta e Consulta (não Retorno, não Clinical)
         if (servico === 'Primeira Consulta' || servico === 'Consulta') {
             msg += encodeURIComponent(`📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`);
         }
         
-        // Desconto: Consulta + Primeira Consulta + Retorno + Aplicação (TODOS menos Clinical)
         if (!servico.includes('Clinical')) {
             msg += encodeURIComponent(`🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n`);
         }
@@ -803,15 +732,6 @@ function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
         confirmacoes[id] = { confirmado: true, data: new Date().toISOString().split('T')[0] };
         render();
     }
-}
-
-function enviarWhatsAppAgendamento() {
-    const pac = document.getElementById('m-pac').value.trim();
-    const servico = document.getElementById('m-servico').value;
-    const pacObj = pacs.find(p => p.nome === pac);
-    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
-    closeModal();
-    enviarWhatsApp(null, pac, getBR(), mTime, servico, mCat);
 }
 
 async function delAcompanhamento(id) {
