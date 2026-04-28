@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -112,6 +113,9 @@
             <button id="btn-del" onclick="delAppt()" class="hidden flex-1 bg-red-500 text-white p-4 rounded-2xl font-bold text-sm">CANCELAR</button>
             <button onclick="saveAppt()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold text-sm">CONFIRMAR</button>
         </div>
+        <button id="btn-confirmacao" onclick="enviarConfirmacao()" class="hidden w-full mt-3 p-4 font-bold rounded-2xl flex items-center justify-center gap-2 text-white text-sm" style="background:#25D366">
+            <i class="fab fa-whatsapp"></i> Enviar Confirmação
+        </button>
     </div>
 </div>
 
@@ -231,12 +235,25 @@ function pad(n) { return String(n).padStart(2,'0'); }
 function getISO()  { return document.getElementById('datepicker').value; }
 function getBR()   { const [y,m,d] = getISO().split('-'); return `${d}/${m}/${y}`; }
 function weekday() { return new Date(getISO()+'T12:00:00').getDay(); }
-function allowed() { const w=weekday(); return w===2||w===4; }
+function allowed() { const w=weekday(); return w===2; }
 
 function getEsportivoProf() {
-    const w = weekday();
     const dataF = getBR();
-    return profData[dataF] || (w===2 ? 'Líbia' : 'Geraldo');
+    const [d, m, a] = dataF.split('/');
+    const dataAtual = new Date(`${a}-${m}-${d}T12:00:00`);
+    const dataInicio = new Date('2026-05-05T12:00:00'); // Início com Líbia
+    
+    // Conta quantas terças passaram desde 05/05
+    let dataTemp = new Date(dataInicio);
+    let semanas = 0;
+    while (dataTemp < dataAtual) {
+        dataTemp.setDate(dataTemp.getDate() + 7);
+        semanas++;
+    }
+    
+    // Reveza: semana par = Geraldo, semana ímpar = Líbia
+    const prof = semanas % 2 === 0 ? 'Líbia' : 'Geraldo';
+    return profData[dataF] || prof;
 }
 
 function onDateChange() { updateBadge(); render(); }
@@ -379,6 +396,52 @@ function openEditAppt(btn) {
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 function closeBg(e) { if (e.target.id==='modal') closeModal(); }
 
+function enviarConfirmacao() {
+    const pac = document.getElementById('m-pac').value.trim();
+    const pacObj = pacs.find(p => p.nome === pac);
+    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
+    
+    const tel = pacObj.telefone.replace(/\D/g,'');
+    const data = document.getElementById('m-data').value ? document.getElementById('m-data').value.split('-').reverse().join('/') : getBR();
+    const hora = document.getElementById('m-hora').value || mTime;
+    const servico = document.getElementById('m-servico').value;
+    const categoria = document.getElementById('m-cat').value || mCat;
+    
+    let msg = `*Seu agendamento foi realizado com sucesso!*\n\n`;
+    msg += `📅 DATA: ${data}\n`;
+    msg += `🕐 HORÁRIO: ${hora}\n\n`;
+    
+    if (servico === 'Primeira Consulta' || servico === 'Consulta') {
+        msg += `*CONSULTA NUTRIÇÃO ESPORTIVA*\n`;
+    } else if (servico === 'Retorno') {
+        msg += `*RETORNO NUTRIÇÃO ESPORTIVA*\n`;
+    } else if (servico === 'Aplicação') {
+        msg += `*APLICAÇÃO DE INJETÁVEIS*\n`;
+    } else if (servico.includes('Clinical')) {
+        msg += `*${servico.toUpperCase()}*\n`;
+    }
+    
+    msg += `\nCom os profissionais:\n`;
+    msg += `👨‍⚕️ Dr. Jorge Vieira Salomão (Médico Nutrólogo)\n`;
+    msg += `👩‍⚕️ Líbia Cardoso (Nutricionista)\n`;
+    msg += `👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n`;
+    
+    msg += `📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n`;
+    
+    msg += `📍 Nosso endereço:\n`;
+    msg += `Rua dos Timbiras, 2237 / 5º andar - Lourdes\n\n`;
+    
+    msg += `💰 Valor da consulta: R$ 290,00\n`;
+    msg += `🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\n`;
+    
+    msg += `Obrigada e até lá! ❤️`;
+    
+    const msgEnc = encodeURIComponent(msg);
+    window.open(`https://wa.me/55${tel}?text=${msgEnc}`, '_blank');
+    
+    setTimeout(() => closeModal(), 500);
+}
+
 async function saveAppt() {
     const pac = document.getElementById('m-pac').value.trim();
     if (!pac) { alert('Selecione um paciente!'); return; }
@@ -390,10 +453,6 @@ async function saveAppt() {
         horaParaSalvar = horaEncaixe;
     }
     
-    const obs = document.getElementById('m-obs').value.trim();
-    
-    closeModal();
-    showSpinner();
     let data = mEditData || getBR();
     let hora = mEditHora || horaParaSalvar;
     let cat = mCat;
@@ -405,17 +464,34 @@ async function saveAppt() {
         if (newData) { const [y,m,d] = newData.split('-'); data = `${d}/${m}/${y}`; }
         if (newHora) hora = newHora;
         if (newCat) cat = newCat;
+        
+        // Edit: mostra botão de deletar
+        document.getElementById('btn-confirmacao').classList.add('hidden');
+    } else {
+        // New: mostra botão de confirmação
+        document.getElementById('btn-confirmacao').classList.remove('hidden');
     }
     
+    const obs = document.getElementById('m-obs').value.trim();
     if (obs) {
         const chaveObs = `${data}|${pac}|${hora}`;
         observacoes[chaveObs] = obs;
         localStorage.setItem('obsClinca', JSON.stringify(observacoes));
     }
     
+    showSpinner();
     try {
         await api({ action: 'saveAppt', data, hora, paciente: pac, servico: document.getElementById('m-servico').value, categoria: cat, id: mId || '' });
         await loadAll();
+        
+        if (!mId) {
+            // Reopen modal to show confirmation button
+            openNew(horaParaSalvar, cat);
+            document.getElementById('m-pac').value = pac;
+            document.getElementById('m-servico').value = document.querySelector('#m-servico').value;
+            document.getElementById('m-obs').value = obs;
+            document.getElementById('btn-confirmacao').classList.remove('hidden');
+        }
     } catch(e) { alert('Erro ao salvar.'); render(); }
 }
 
@@ -525,7 +601,7 @@ function renderRel() {
     const dataF = getBR();
     const prof = getEsportivoProf();
     const tabela = `<table class="rtable"><thead><tr><td colspan="10" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — ${dataF}</td></tr></thead><tbody>${secaoRel('Esportivo', prof, 25, '#fde8d8')}${secaoRel('Emagrecimento', 'Bruno', 35, '#d8eafd')}${secaoRel('Aplicação', '', 30, '#f3d8fd')}</tbody></table>`;
-    c.innerHTML = `<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div><div style="overflow-x:auto">${tabela}</div>`;
+    c.innerHTML = `<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><div class="flex gap-2"><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-print"></i> Imprimir</button><button onclick="compartilharRelatorio()" class="bg-blue-600 text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-share-alt"></i> Compartilhar</button></div></div><div style="overflow-x:auto">${tabela}</div>`;
     document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;
 }
 
@@ -743,6 +819,25 @@ async function delAcompanhamento(id) {
     } catch(e) { alert('Erro ao deletar.'); render(); }
 }
 
+function compartilharRelatorio() {
+    const dataF = getBR();
+    const link = `${window.location.origin}${window.location.pathname}?shared=true&data=${dataF}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: `Relatório - ${dataF}`,
+            text: `Veja o relatório de agendamentos`,
+            url: link
+        });
+    } else {
+        const texto = `Relatório - ${dataF}\n\n${link}`;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(link);
+            alert('Link copiado! Cole em qualquer lugar para compartilhar.');
+        }
+    }
+}
+
 function imprimir() {
     document.getElementById('print-area').style.display = 'block';
     window.print();
@@ -757,5 +852,6 @@ function imprimirProdutividade() {
 
 document.addEventListener('click', e => { document.querySelectorAll('.sug').forEach(s => { if (!s.contains(e.target)) s.classList.add('hidden'); }); });
 </script>
+
 </body>
 </html>
