@@ -19,7 +19,6 @@
         .prof-edit { font-size:11px; cursor:pointer; color:#0369a1; font-weight:700; }
         .badge { font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; }
         .b-ter  { background:#f0fdf4; color:#16a34a; }
-        .b-qui  { background:#fdf4ff; color:#7c3aed; }
         .b-blq  { background:#fef2f2; color:#dc2626; }
         .slot { border-radius:18px; border:1px solid #f0f0f0; cursor:pointer; margin-bottom:10px; background:#fff; padding:18px 20px; position:relative; }
         .sl-esp   { border-left:8px solid var(--esp); }
@@ -91,27 +90,20 @@
         </div>
         <textarea id="m-obs" placeholder="Observações (aparecerá no relatório)" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm mb-4" rows="3"></textarea>
         <div id="edit-fields" class="hidden space-y-3 mb-4">
-            <div>
-                <label style="display:block; font-weight:700; font-size:12px; margin-bottom:4px; color:#666;">Nova data</label>
-                <input type="date" id="m-data" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm outline-none">
-            </div>
-            <div>
-                <label style="display:block; font-weight:700; font-size:12px; margin-bottom:4px; color:#666;">Novo horário</label>
-                <input type="time" id="m-hora" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm outline-none">
-            </div>
-            <div>
-                <label style="display:block; font-weight:700; font-size:12px; margin-bottom:4px; color:#666;">Categoria</label>
-                <select id="m-cat" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm">
-                    <option>Esportivo</option>
-                    <option>Emagrecimento</option>
-                    <option>Aplicação</option>
-                </select>
-            </div>
+            <input type="date" id="m-data" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm outline-none">
+            <input type="time" id="m-hora" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm outline-none">
+            <select id="m-cat" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm">
+                <option>Esportivo</option>
+                <option>Emagrecimento</option>
+                <option>Aplicação</option>
+            </select>
         </div>
-        <div class="flex gap-3">
-            <button onclick="closeModal()" class="flex-1 p-4 font-bold text-gray-400 rounded-2xl border-2 text-sm">SAIR</button>
-            <button onclick="saveAppt()" class="flex-1 bg-blue-600 text-white p-4 rounded-2xl font-bold text-sm">SALVAR</button>
-            <button id="btn-confirmar" onclick="confirmarConsulta()" class="flex-1 bg-green-600 text-white p-4 rounded-2xl font-bold text-sm">CONFIRMAR</button>
+        <div class="flex gap-2">
+            <button onclick="closeModal()" class="flex-1 p-3 font-bold text-gray-400 rounded-2xl border-2 text-xs">SAIR</button>
+            <button id="btn-del" onclick="delAppt()" class="hidden flex-1 bg-red-500 text-white p-3 rounded-2xl font-bold text-xs">CANCELAR</button>
+            <button id="btn-lembrete" onclick="enviarLembrete()" class="hidden flex-1 bg-yellow-500 text-white p-3 rounded-2xl font-bold text-xs">LEMBRETE</button>
+            <button id="btn-confirmar" onclick="confirmarConsulta()" class="hidden flex-1 bg-green-600 text-white p-3 rounded-2xl font-bold text-xs">CONFIRMAR</button>
+            <button onclick="saveAppt()" class="flex-1 bg-black text-white p-3 rounded-2xl font-bold text-xs">SALVAR</button>
         </div>
     </div>
 </div>
@@ -153,24 +145,18 @@ let pacs = [], appts = [];
 let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
 let profData = {};
 let profEditData = null;
-let confirmacoes = {};
 let observacoes = {};
+let faltosos = {};
 
 window.onload = () => {
     const obsArmazenadas = localStorage.getItem('obsClinca');
-    if (obsArmazenadas) {
-        try { observacoes = JSON.parse(obsArmazenadas); } catch(e) {}
-    }
+    if (obsArmazenadas) try { observacoes = JSON.parse(obsArmazenadas); } catch(e) {}
     
     const faltososArmazenados = localStorage.getItem('faltosos');
-    if (faltososArmazenados) {
-        try { faltosos = JSON.parse(faltososArmazenados); } catch(e) {}
-    }
+    if (faltososArmazenados) try { faltosos = JSON.parse(faltososArmazenados); } catch(e) {}
     
     const profArmazenados = localStorage.getItem('profData');
-    if (profArmazenados) {
-        try { profData = JSON.parse(profArmazenados); } catch(e) {}
-    }
+    if (profArmazenados) try { profData = JSON.parse(profArmazenados); } catch(e) {}
     
     const d = new Date();
     const diff = (2 - d.getDay() + 7) % 7 || 7;
@@ -185,8 +171,7 @@ async function api(params) {
     const url = API + '?' + new URLSearchParams(params).toString();
     const r = await fetch(url);
     const text = await r.text();
-    try { return JSON.parse(text); }
-    catch(e) { console.error('Parse error:', text); return { error: text }; }
+    try { return JSON.parse(text); } catch(e) { console.error('Parse error:', text); return { error: text }; }
 }
 
 async function loadAll() {
@@ -242,20 +227,15 @@ function pad(n) { return String(n).padStart(2,'0'); }
 function getISO()  { return document.getElementById('datepicker').value; }
 function getBR()   { const [y,m,d] = getISO().split('-'); return `${d}/${m}/${y}`; }
 function weekday() { return new Date(getISO()+'T12:00:00').getDay(); }
-function allowed() { const w=weekday(); return w===2; }
+function allowed() { return weekday() === 2; }
 
 function getEsportivoProf() {
     const dataF = getBR();
+    if (profData[dataF]) return profData[dataF];
     
-    // Se foi alterado manualmente, retorna o salvo
-    if (profData[dataF]) {
-        return profData[dataF];
-    }
-    
-    // Caso contrário, calcula o revezamento
     const [d, m, a] = dataF.split('/');
     const dataAtual = new Date(`${a}-${m}-${d}T12:00:00`);
-    const dataInicio = new Date('2026-05-05T12:00:00'); // Início com Líbia
+    const dataInicio = new Date('2026-05-05T12:00:00');
     
     let dataTemp = new Date(dataInicio);
     let semanas = 0;
@@ -265,11 +245,8 @@ function getEsportivoProf() {
     }
     
     const prof = semanas % 2 === 0 ? 'Líbia' : 'Geraldo';
-    
-    // Salva pra não recalcular
     profData[dataF] = prof;
     localStorage.setItem('profData', JSON.stringify(profData));
-    
     return prof;
 }
 
@@ -277,22 +254,23 @@ function onDateChange() { updateBadge(); render(); }
 function updateBadge() {
     const b = document.getElementById('day-badge');
     const w = weekday();
-    if      (w===2) { b.textContent='TERÇA';     b.className='badge b-ter'; }
-    else if (w===4) { b.textContent='QUINTA';    b.className='badge b-qui'; }
-    else            { b.textContent='BLOQUEADO'; b.className='badge b-blq'; }
+    if (w===2) { b.textContent='TERÇA'; b.className='badge b-ter'; }
+    else { b.textContent='BLOQUEADO'; b.className='badge b-blq'; }
 }
+
 function showTab(t) {
     window.TAB = t;
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-on'));
     document.getElementById('tab-'+t).classList.add('tab-on');
     render();
 }
+
 function showSpinner() { document.getElementById('content').innerHTML = '<div class="spinner"></div>'; }
 
 function render() {
     const c = document.getElementById('content');
     if (window.TAB === 'agenda') {
-        if (!allowed()) { c.innerHTML = `<div class="mt-12 text-center"><div class="text-5xl mb-3">🚫</div><p class="font-bold text-red-400 text-lg">Selecione uma terça ou quinta-feira.</p></div>`; return; }
+        if (!allowed()) { c.innerHTML = `<div class="mt-12 text-center"><div class="text-5xl mb-3">🚫</div><p class="font-bold text-red-400 text-lg">Selecione uma terça-feira.</p></div>`; return; }
         c.innerHTML = catHTML('Esportivo', getEsportivoProf(), 'sl-esp', 'bg-esp', 25) + catHTML('Emagrecimento', 'Bruno', 'sl-emag', 'bg-emag', 35) + catHTML('Aplicação', '', 'sl-aplic', 'bg-aplic', 30);
     } else if (window.TAB === 'historico') {
         c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-4"><h2 class="font-black text-xl uppercase">Histórico</h2><button onclick="imprimirHistorico()" class="bg-black text-white px-4 py-2 rounded-2xl font-bold text-sm"><i class="fas fa-print"></i> Imprimir</button></div><div class="relative"><input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-hist" class="sug hidden"></div></div><div id="hist-list" class="mt-5 space-y-3"></div></div>`;
@@ -326,24 +304,20 @@ function catHTML(cat, prof, slCl, bgCl, step) {
     
     const todosHorarios = new Set(slots);
     agsReais.forEach(ag => todosHorarios.add(normHora(ag.hora)));
-    
     const horariosOrdenados = Array.from(todosHorarios).sort((a, b) => a.localeCompare(b));
     
     horariosOrdenados.forEach(hora => {
         const ag = agsReais.find(a => normHora(a.hora) === hora);
-        
         if (ag) {
             const esc = JSON.stringify(ag).replace(/"/g,'&quot;');
-            const statusIcon = confirmacoes[ag.id] ? (confirmacoes[ag.id].confirmado ? '✅' : '❌') : '';
             const faltouIcon = faltosos[ag.id] ? '❌ FALTOU' : '';
-            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}" style="${faltosos[ag.id] ? 'opacity:0.5;text-decoration:line-through;' : ''}"><div class="slot-status">${statusIcon} ${faltouIcon}</div><div class="slot-btns"><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${hora}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
+            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}" style="${faltosos[ag.id] ? 'opacity:0.5;text-decoration:line-through;' : ''}"><div class="slot-status">${faltouIcon}</div><div class="slot-btns"><button onclick="openEdit('${normHora(ag.hora)}','${cat}',this)" class="slot-btn slot-edit" title="Editar">✏️</button><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)" style="cursor:pointer"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${hora}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
         } else {
             html += `<div onclick="openNew('${hora}','${cat}')" class="slot ${slCl} flex justify-between items-center"><span class="font-bold text-gray-400 text-sm">${hora} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
     });
     
     const temEncaixeAgendado = appts.find(a => a.data === dataF && a.categoria === cat && a.hora.includes('encaixe'));
-    
     if (!temEncaixeAgendado) {
         html += `<div onclick="openNew('encaixe-${cat}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2" style="min-height:80px;background:#fafafa;cursor:pointer;"></div>`;
     }
@@ -378,7 +352,9 @@ function openNew(hora, cat) {
     document.getElementById('m-servico').selectedIndex = 0;
     document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('edit-fields').classList.add('hidden');
-    document.getElementById('btn-confirmar').style.display = 'inline-block';
+    document.getElementById('btn-del').classList.add('hidden');
+    document.getElementById('btn-lembrete').classList.add('hidden');
+    document.getElementById('btn-confirmar').classList.add('hidden');
     document.getElementById('modal').classList.remove('hidden');
     if (hora.includes('encaixe')) {
         document.getElementById('edit-fields').classList.remove('hidden');
@@ -387,7 +363,7 @@ function openNew(hora, cat) {
 }
 
 function openEdit(hora, cat, el) {
-    const ag = JSON.parse(el.parentElement.getAttribute('data-ag').replace(/&quot;/g,'"'));
+    const ag = JSON.parse(el.closest('[data-ag]').getAttribute('data-ag').replace(/&quot;/g,'"'));
     mTime=hora; mCat=cat; mId=ag.id; mEditData=ag.data; mEditHora=ag.hora;
     const pac = pacs.find(p => p.nome === ag.paciente);
     mTel = pac?.telefone || null;
@@ -402,165 +378,14 @@ function openEdit(hora, cat, el) {
     document.getElementById('m-hora').value = ag.hora.includes('encaixe') ? '' : ag.hora;
     document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('edit-fields').classList.remove('hidden');
-    document.getElementById('btn-confirmar').style.display = 'none';
+    document.getElementById('btn-del').classList.remove('hidden');
+    document.getElementById('btn-lembrete').classList.remove('hidden');
+    document.getElementById('btn-confirmar').classList.remove('hidden');
     document.getElementById('modal').classList.remove('hidden');
-}
-
-function openEditAppt(btn) {
-    const card = btn.closest('.slot');
-    const ag = JSON.parse(card.getAttribute('data-ag').replace(/&quot;/g,'"'));
-    openEdit(ag.hora, ag.categoria, card.querySelector('div'));
 }
 
 function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 function closeBg(e) { if (e.target.id==='modal') closeModal(); }
-
-function enviarConfirmacaoDirecta(pac, data, hora, servico, categoria) {
-    const pacObj = pacs.find(p => p.nome === pac);
-    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
-    
-    const tel = pacObj.telefone.replace(/\D/g,'');
-    
-    let msg = '*Seu agendamento foi realizado com sucesso!*\n\n';
-    msg += '📅 Data: ' + data + '\n';
-    msg += '🕐 Horario: ' + hora + '\n\n';
-    
-    // Retorno
-    if (servico === 'Retorno' || servico === 'Retorno Clinical') {
-        msg += '*RETORNO*\n\n';
-        msg += 'Com os profissionais:\n';
-        msg += '👨‍⚕️ Dr. Jorge Vieira Salomao (Medico Nutrologo)\n';
-        msg += '👩‍⚕️ Libia Cardoso (Nutricionista)\n';
-        msg += '👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n';
-        msg += '📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n';
-        msg += '📍 Endereco:\n';
-        msg += 'Rua dos Timbiras, 2237 / 5 andar - Lourdes\n\n';
-        msg += '✅ SEM ONUS\n';
-        msg += '🅿️ Temos estacionamento proprio! (Favor consultar valores no local)\n\n';
-        msg += 'Obrigada e ate la! ❤️';
-    }
-    // Aplicacao
-    else if (servico === 'Aplicação' || servico === 'Aplicação Clinical') {
-        msg += '*APLICACAO DE INJETAVEIS*\n\n';
-        msg += 'Com os profissionais:\n';
-        msg += '👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n';
-        msg += '📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n';
-        msg += '📍 Endereco:\n';
-        msg += 'Rua dos Timbiras, 2237 / 5 andar - Lourdes\n\n';
-        msg += '💰 Valor da aplicacao: A consultar\n';
-        msg += '🅿️ Temos estacionamento proprio! (Favor consultar valores no local)\n\n';
-        msg += 'Obrigada e ate la! ❤️';
-    }
-    // Consultas (Esportiva e Emagrecimento)
-    else {
-        if (categoria === 'Esportivo') {
-            msg += '*CONSULTA NUTRICAO ESPORTIVA*\n\n';
-        } else if (categoria === 'Emagrecimento') {
-            msg += '*CONSULTA EMAGRECIMENTO*\n\n';
-        }
-        
-        msg += 'Com os profissionais:\n';
-        if (categoria === 'Esportivo') {
-            msg += '👨‍⚕️ Dr. Jorge Vieira Salomao (Medico Nutrologo)\n';
-            msg += '👩‍⚕️ Libia Cardoso (Nutricionista)\n';
-            msg += '👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n';
-        } else if (categoria === 'Emagrecimento') {
-            msg += '👨‍⚕️ Dr. Jorge Vieira Salomao (Medico Nutrologo)\n';
-            msg += '👩‍⚕️ Bruno (Nutricionista)\n';
-            msg += '👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n';
-        }
-        
-        msg += '📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n';
-        msg += '📍 Endereco:\n';
-        msg += 'Rua dos Timbiras, 2237 / 5 andar - Lourdes\n\n';
-        msg += '💰 Valor da consulta: R$ 290,00\n';
-        msg += '🅿️ Temos estacionamento proprio! (Favor consultar valores no local)\n\n';
-        msg += 'Obrigada e ate la! ❤️';
-    }
-    
-    const msgEnc = encodeURIComponent(msg);
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-        window.location.href = `whatsapp://send?phone=55${tel}&text=${msgEnc}`;
-    } else {
-        window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msgEnc}`, '_blank');
-    }
-}
-
-function confirmarConsulta() {
-    const pac = document.getElementById('m-pac').value.trim();
-    const servico = document.getElementById('m-servico').value;
-    const categoria = document.getElementById('m-cat').value || mCat;
-    const data = document.getElementById('m-data').value ? document.getElementById('m-data').value.split('-').reverse().join('/') : getBR();
-    const hora = document.getElementById('m-hora').value || mTime;
-    
-    const pacObj = pacs.find(p => p.nome === pac);
-    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
-    
-    const tel = pacObj.telefone.replace(/\D/g,'');
-    let msg = '';
-    
-    // RETORNO
-    if (servico === 'Retorno' || servico === 'Retorno Clinical') {
-        const prof = categoria === 'Esportivo' ? getEsportivoProf() : 'Bruno';
-        msg = `Oi ${pac}! 👋\n\n`;
-        msg += `Seu agendamento foi realizado com sucesso!\n\n`;
-        msg += `📅 ${data}\n`;
-        msg += `🕐 ${hora}\n\n`;
-        msg += `*RETORNO ${categoria.toUpperCase()}*\n\n`;
-        msg += `📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n`;
-        msg += `🅿️ Temos estacionamento próprio (favor consultar valores no local)\n\n`;
-        msg += `Obrigada e até lá! ❤️`;
-    }
-    // APLICACAO
-    else if (servico === 'Aplicação' || servico === 'Aplicação Clinical') {
-        msg = `Oi ${pac}! 👋\n\n`;
-        msg += `Seu agendamento foi realizado com sucesso!\n\n`;
-        msg += `📅 ${data}\n`;
-        msg += `🕐 ${hora}\n\n`;
-        msg += `*APLICAÇÃO DE INJETÁVEIS*\n\n`;
-        msg += `📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n`;
-        msg += `🅿️ Temos estacionamento próprio (favor consultar valores no local)\n\n`;
-        msg += `Obrigada e até lá! ❤️`;
-    }
-    // CONSULTA
-    else {
-        let prof = 'Líbia';
-        if (categoria === 'Emagrecimento') {
-            prof = 'Bruno Almeida';
-        } else if (categoria === 'Esportivo') {
-            prof = getEsportivoProf();
-        }
-        
-        let tipo = 'CONSULTA NUTRIÇÃO ESPORTIVA';
-        if (categoria === 'Emagrecimento') {
-            tipo = 'CONSULTA NUTROLOGIA EMAGRECIMENTO';
-        }
-        
-        msg = `Oi ${pac}! 👋\n\n`;
-        msg += `Seu agendamento foi realizado com sucesso!\n\n`;
-        msg += `📅 ${data}\n\n`;
-        msg += `*${tipo}*\n`;
-        msg += `Com os profissionais: DR Jorge Vieira Salomão (médico nutrólogo) | ${prof} (nutricionista) | Suelen Fernanda (enfermeira)\n\n`;
-        msg += `📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n`;
-        msg += `📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n`;
-        msg += `💰 O valor da consulta é de R$ 290,00.\n\n`;
-        msg += `🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\n`;
-        msg += `Obrigada e até lá! ❤️`;
-    }
-    
-    const msgEnc = encodeURIComponent(msg);
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-        window.location.href = `whatsapp://send?phone=55${tel}&text=${msgEnc}`;
-    } else {
-        window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msgEnc}`, '_blank');
-    }
-    
-    // NÃO fecha o modal - deixa o usuário salvar
-}
 
 async function saveAppt() {
     const pac = document.getElementById('m-pac').value.trim();
@@ -600,7 +425,7 @@ async function saveAppt() {
     try {
         await api({ action: 'saveAppt', data, hora, paciente: pac, servico: servico, categoria: cat, id: mId || '' });
         await loadAll();
-        alert('✅ Agendamento salvo com sucesso!');
+        alert('✅ Agendamento salvo!');
     } catch(e) { alert('Erro ao salvar.'); render(); }
 }
 
@@ -613,6 +438,98 @@ async function delAppt() {
         await api({ action: 'delAppt', id: mId });
         await loadAll();
     } catch(e) { alert('Erro ao cancelar.'); render(); }
+}
+
+function enviarLembrete() {
+    const pac = document.getElementById('m-pac').value.trim();
+    const pacObj = pacs.find(p => p.nome === pac);
+    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
+    
+    const tel = pacObj.telefone.replace(/\D/g,'');
+    const data = document.getElementById('m-data').value ? document.getElementById('m-data').value.split('-').reverse().join('/') : getBR();
+    const hora = document.getElementById('m-hora').value || mTime;
+    const servico = document.getElementById('m-servico').value;
+    
+    let msg = `Olá ${pac}! 👋\n\nLembrete da sua consulta marcada para:\n\n`;
+    msg += `📅 ${data}\n🕐 ${hora}\n\n`;
+    msg += `Tipo: ${servico}\n\n`;
+    msg += `Favor confirmar sua presença ou remarcar se necessário!\n\nObrigada! ❤️`;
+    
+    const msgEnc = encodeURIComponent(msg);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        window.location.href = `whatsapp://send?phone=55${tel}&text=${msgEnc}`;
+    } else {
+        window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msgEnc}`, '_blank');
+    }
+}
+
+function confirmarConsulta() {
+    const pac = document.getElementById('m-pac').value.trim();
+    const pacObj = pacs.find(p => p.nome === pac);
+    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
+    
+    const tel = pacObj.telefone.replace(/\D/g,'');
+    const data = document.getElementById('m-data').value ? document.getElementById('m-data').value.split('-').reverse().join('/') : getBR();
+    const hora = document.getElementById('m-hora').value || mTime;
+    const servico = document.getElementById('m-servico').value;
+    const categoria = document.getElementById('m-cat').value || mCat;
+    
+    let msg = `Oi ${pac}! 👋\n\nSeu agendamento foi realizado com sucesso!\n\n📅 ${data}\n🕐 ${hora}\n\n`;
+    
+    if (servico === 'Retorno' || servico === 'Retorno Clinical') {
+        msg += `*RETORNO ${categoria.toUpperCase()}*\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n🅿️ Temos estacionamento próprio (favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+    } else if (servico === 'Aplicação' || servico === 'Aplicação Clinical') {
+        msg += `*APLICAÇÃO DE INJETÁVEIS*\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n🅿️ Temos estacionamento próprio (favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+    } else {
+        let prof = getEsportivoProf();
+        if (categoria === 'Emagrecimento') prof = 'Bruno Almeida';
+        let tipo = categoria === 'Emagrecimento' ? 'CONSULTA NUTROLOGIA EMAGRECIMENTO' : 'CONSULTA NUTRIÇÃO ESPORTIVA';
+        msg += `*${tipo}*\nCom os profissionais: DR Jorge Vieira Salomão (médico nutrólogo) | ${prof} (nutricionista) | Suelen Fernanda (enfermeira)\n\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n💰 O valor da consulta é de R$ 290,00.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+    }
+    
+    const msgEnc = encodeURIComponent(msg);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        window.location.href = `whatsapp://send?phone=55${tel}&text=${msgEnc}`;
+    } else {
+        window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msgEnc}`, '_blank');
+    }
+}
+
+function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
+    const pac = pacs.find(p => p.nome === nome);
+    if (!pac?.telefone) { alert('Paciente sem telefone!'); return; }
+    
+    const tel = pac.telefone.replace(/\D/g,'');
+    let msg = '';
+    
+    if (tipo === 'acompanhamento') {
+        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta? 📅\n\nAguardamos seu contato! 😊`);
+    } else {
+        const especialidade = categoria === 'Esportivo' ? 'Nutrição Esportiva' : categoria === 'Emagrecimento' ? 'Emagrecimento' : 'Aplicação de Injetáveis';
+        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta de *${especialidade}*:\n📅 ${data}\n🕐 ${hora}\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`);
+    }
+    
+    window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
+}
+
+function sugerir(v, sid) {
+    const el = document.getElementById(sid);
+    if (!v || v.length < 1) { el.classList.add('hidden'); return; }
+    const f = pacs.filter(p => p.nome && p.nome.toLowerCase().includes(v.toLowerCase())).slice(0, 8);
+    if (!f.length) { el.classList.add('hidden'); return; }
+    el.innerHTML = f.map(p => `<div onclick="selPac('${p.nome.replace(/'/g,"\\'")}','${sid}')">${p.nome}</div>`).join('');
+    el.classList.remove('hidden');
+}
+
+function selPac(nome, sid) {
+    document.getElementById(sid).classList.add('hidden');
+    if (sid === 'sug-modal')  document.getElementById('m-pac').value = nome;
+    if (sid === 'sug-hist')   { document.getElementById('inp-hist').value = nome; showHist(nome); }
+    if (sid === 'sug-fichas') { document.getElementById('inp-fichas').value = nome; showFicha(nome); }
 }
 
 function verificarDuplicado(v) {
@@ -651,7 +568,6 @@ async function cadastrar() {
     const nome = document.getElementById('c-nome').value.trim();
     if (!nome) { alert('Nome obrigatório!'); return; }
     
-    // Desabilita botão pra não clicar múltiplas vezes
     btn.disabled = true;
     btn.textContent = '⏳ Salvando...';
     
@@ -689,24 +605,7 @@ async function savePacEdit() {
         await api({ action: 'savePac', nome, tel: document.getElementById('ep-tel').value.trim(), nasc: document.getElementById('ep-nasc').value.trim(), email: document.getElementById('ep-email').value.trim(), altura: document.getElementById('ep-altura').value.trim() });
         alert('✅ Paciente atualizado!');
         await loadAll();
-        showTab('fichas');
     } catch(e) { alert('Erro ao atualizar.'); render(); }
-}
-
-function sugerir(v, sid) {
-    const el = document.getElementById(sid);
-    if (!v || v.length < 1) { el.classList.add('hidden'); return; }
-    const f = pacs.filter(p => p.nome && p.nome.toLowerCase().includes(v.toLowerCase())).slice(0, 8);
-    if (!f.length) { el.classList.add('hidden'); return; }
-    el.innerHTML = f.map(p => `<div onclick="selPac('${p.nome.replace(/'/g,"\\'")}','${sid}')">${p.nome}</div>`).join('');
-    el.classList.remove('hidden');
-}
-
-function selPac(nome, sid) {
-    document.getElementById(sid).classList.add('hidden');
-    if (sid === 'sug-modal')  document.getElementById('m-pac').value = nome;
-    if (sid === 'sug-hist')   { document.getElementById('inp-hist').value = nome; showHist(nome); }
-    if (sid === 'sug-fichas') { document.getElementById('inp-fichas').value = nome; showFicha(nome); }
 }
 
 function showHist(nome) {
@@ -714,6 +613,26 @@ function showHist(nome) {
     const el = document.getElementById('hist-list');
     if (!lista.length) { el.innerHTML = '<p class="text-gray-400 text-center">Sem histórico.</p>'; return; }
     el.innerHTML = lista.map(a => `<div class="p-4 border-2 rounded-2xl bg-gray-50"><div class="flex justify-between items-center"><span class="font-black text-sm">${a.data} — ${normHora(a.hora)}</span><span class="text-xs font-bold px-2 py-1 rounded-full bg-white border">${a.categoria}</span></div><p class="font-bold text-sm mt-1 text-gray-500">${a.servico||'—'}</p></div>`).join('');
+}
+
+function imprimirHistorico() {
+    const paciente = document.getElementById('inp-hist').value.trim();
+    if (!paciente) { alert('Selecione um paciente!'); return; }
+    
+    const lista = appts.filter(a => a.paciente === paciente).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
+    
+    let html = `<div style="font-family:Arial;padding:20px"><h2 style="text-align:center;margin-bottom:20px">${paciente} - Histórico</h2>`;
+    html += `<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#f0f0f0;font-weight:bold"><th style="border:1px solid #ccc;padding:8px">Data</th><th style="border:1px solid #ccc;padding:8px">Hora</th><th style="border:1px solid #ccc;padding:8px">Serviço</th><th style="border:1px solid #ccc;padding:8px">Categoria</th></tr>`;
+    
+    lista.forEach(a => {
+        html += `<tr><td style="border:1px solid #ccc;padding:8px">${a.data}</td><td style="border:1px solid #ccc;padding:8px">${normHora(a.hora)}</td><td style="border:1px solid #ccc;padding:8px">${a.servico||'-'}</td><td style="border:1px solid #ccc;padding:8px">${a.categoria}</td></tr>`;
+    });
+    
+    html += `</table></div>`;
+    document.getElementById('print-area').innerHTML = html;
+    document.getElementById('print-area').style.display = 'block';
+    window.print();
+    setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
 }
 
 function showFicha(nome) {
@@ -748,7 +667,7 @@ function secaoRel(cat, prof, step, thBg) {
 
 function renderRel() {
     const c = document.getElementById('content');
-    if (!allowed()) { c.innerHTML = `<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça ou quinta.</p></div>`; return; }
+    if (!allowed()) { c.innerHTML = `<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça-feira.</p></div>`; return; }
     const dataF = getBR();
     const prof = getEsportivoProf();
     const tabela = `<table class="rtable"><thead><tr><td colspan="10" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — ${dataF}</td></tr></thead><tbody>${secaoRel('Esportivo', prof, 25, '#fde8d8')}${secaoRel('Emagrecimento', 'Bruno', 35, '#d8eafd')}${secaoRel('Aplicação', '', 30, '#f3d8fd')}</tbody></table>`;
@@ -756,40 +675,23 @@ function renderRel() {
     document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;
 }
 
+function imprimir() {
+    document.getElementById('print-area').style.display = 'block';
+    window.print();
+    setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
+}
+
 function renderProdutividade() {
     const c = document.getElementById('content');
     const nutricionistas = ['Líbia', 'Geraldo', 'Bruno'];
     
-    let html = `<div class="bg-white p-6 rounded-3xl border shadow-sm">
-        <h2 class="font-black text-xl mb-4 uppercase">Produtividade</h2>
-        <div class="mb-4 space-y-3">
-            <div>
-                <label class="text-sm font-bold text-gray-600">Data Inicial</label>
-                <input type="date" id="data-inicio" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1" onchange="renderProdutividade()">
-            </div>
-            <div>
-                <label class="text-sm font-bold text-gray-600">Data Final</label>
-                <input type="date" id="data-fim" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1" onchange="renderProdutividade()">
-            </div>
-            <div>
-                <label class="text-sm font-bold text-gray-600">Nutricionista:</label>
-                <select id="sel-nutri" onchange="renderProdutividade()" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1">
-                    <option value="">TODOS</option>
-                    <option value="Líbia">Líbia</option>
-                    <option value="Geraldo">Geraldo</option>
-                    <option value="Bruno">Bruno</option>
-                </select>
-            </div>
-        </div>
-        <div id="prod-res"></div>
-    </div>`;
+    let html = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Produtividade</h2><div class="mb-4 space-y-3"><div><label class="text-sm font-bold text-gray-600">Data Inicial</label><input type="date" id="data-inicio" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1" onchange="renderProdutividade()"></div><div><label class="text-sm font-bold text-gray-600">Data Final</label><input type="date" id="data-fim" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1" onchange="renderProdutividade()"></div></div><div id="prod-res"></div></div>`;
     
     c.innerHTML = html;
     
     setTimeout(() => {
         const dataInicio = document.getElementById('data-inicio').value;
         const dataFim = document.getElementById('data-fim').value;
-        const selNutri = document.getElementById('sel-nutri').value;
         
         let dataInicioNum, dataFimNum;
         if (!dataInicio || !dataFim) {
@@ -814,47 +716,50 @@ function renderProdutividade() {
             return parseInt(`${a}${String(m).padStart(2,'0')}${String(d).padStart(2,'0')}`);
         }
         
-        if (!selNutri) {
-            let tabela = `<table class="rtable"><thead><tr><td colspan="4" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">PRODUTIVIDADE</td></tr></thead><tbody>
-                <tr style="background:#f0f0f0;font-size:10px;font-weight:800"><th>Nutricionista</th><th>Consultas</th><th>Retornos</th><th>Total</th></tr>`;
+        let tabela = `<table class="rtable"><thead><tr><td colspan="4" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">PRODUTIVIDADE</td></tr></thead><tbody><tr style="background:#f0f0f0;font-size:10px;font-weight:800"><th>Nutricionista</th><th>Consultas</th><th>Retornos</th><th>Total</th></tr>`;
+        
+        nutricionistas.forEach(n => {
+            let consultas = 0, retornos = 0;
             
-            nutricionistas.forEach(n => {
-                let consultas = 0, retornos = 0;
+            appts.forEach(a => {
+                const dataNum = dataToNum(a.data);
+                if (dataNum < dataInicioNum || dataNum > dataFimNum) return;
+                if (a.hora.includes('encaixe')) return;
+                if (!['Primeira Consulta','Consulta','Retorno'].includes(a.servico)) return;
                 
-                appts.forEach(a => {
-                    const dataNum = dataToNum(a.data);
-                    if (dataNum < dataInicioNum || dataNum > dataFimNum) return;
-                    if (a.hora.includes('encaixe')) return;
-                    if (!['Primeira Consulta','Consulta','Retorno'].includes(a.servico)) return;
-                    
-                    if (n === 'Líbia' && a.categoria === 'Esportivo') {
-                        // Pega o nutri que foi SALVO (pode ter sido alterado)
-                        const prof = profData[a.data] || getEsportivoProf();
-                        if (prof === 'Líbia') {
-                            if (a.servico === 'Retorno') retornos++;
-                            else consultas++;
-                        }
-                    }
-                    if (n === 'Geraldo' && a.categoria === 'Esportivo') {
-                        const prof = profData[a.data] || getEsportivoProf();
-                        if (prof === 'Geraldo') {
-                            if (a.servico === 'Retorno') retornos++;
-                            else consultas++;
-                        }
-                    }
-                    if (n === 'Bruno' && a.categoria === 'Emagrecimento') {
+                // AQUI é o problema: precisa pegar do profData SEMPRE
+                if (n === 'Líbia' && a.categoria === 'Esportivo') {
+                    const prof = profData[a.data];
+                    if (prof === 'Líbia' || (!prof && (new Date(a.data.split('/').reverse().join('-')+'T12:00:00')).getDay()===2)) {
                         if (a.servico === 'Retorno') retornos++;
                         else consultas++;
                     }
-                });
-                tabela += `<tr><td style="font-weight:800">${n}</td><td style="text-align:center;font-weight:800">${consultas}</td><td style="text-align:center;font-weight:800">${retornos}</td><td style="text-align:center;font-weight:800">${consultas+retornos}</td></tr>`;
+                }
+                if (n === 'Geraldo' && a.categoria === 'Esportivo') {
+                    const prof = profData[a.data];
+                    if (prof === 'Geraldo' || (!prof && (new Date(a.data.split('/').reverse().join('-')+'T12:00:00')).getDay()===4)) {
+                        if (a.servico === 'Retorno') retornos++;
+                        else consultas++;
+                    }
+                }
+                if (n === 'Bruno' && a.categoria === 'Emagrecimento') {
+                    if (a.servico === 'Retorno') retornos++;
+                    else consultas++;
+                }
             });
-            
-            tabela += `</tbody></table>`;
-            document.getElementById('prod-res').innerHTML = `<div style="overflow-x:auto">${tabela}</div><div class="mt-4"><button onclick="imprimirProdutividade()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div>`;
-            document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif"><h2 style="text-align:center;margin-bottom:20px;font-weight:bold">PRODUTIVIDADE</h2>${tabela}</div>`;
-        }
+            tabela += `<tr><td style="font-weight:800">${n}</td><td style="text-align:center;font-weight:800">${consultas}</td><td style="text-align:center;font-weight:800">${retornos}</td><td style="text-align:center;font-weight:800">${consultas+retornos}</td></tr>`;
+        });
+        
+        tabela += `</tbody></table>`;
+        document.getElementById('prod-res').innerHTML = `<div style="overflow-x:auto">${tabela}</div><div class="mt-4"><button onclick="imprimirProdutividade()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div>`;
+        document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif"><h2 style="text-align:center;margin-bottom:20px;font-weight:bold">PRODUTIVIDADE</h2>${tabela}</div>`;
     }, 100);
+}
+
+function imprimirProdutividade() {
+    document.getElementById('print-area').style.display = 'block';
+    window.print();
+    setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
 }
 
 function renderAcompanhamento() {
@@ -911,99 +816,19 @@ function renderAcompanhamento() {
     
     acompanhar.forEach(ag => {
         const tel = ag.pac?.telefone || '';
-        html += `<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50">
-            <div class="flex items-start justify-between gap-2">
-                <div class="flex-1">
-                    <p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p>
-                    <p class="text-xs text-gray-600 mt-1">Última consulta: ${ag.data} (${ag.diasAtrás} dias atrás)</p>
-                    ${ag.pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>` : ''}
-                </div>
-                <div class="flex flex-col gap-2">
-                    ${tel ? `<button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','','','','acompanhamento')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fab fa-whatsapp"></i> Chamar</button>` : '<p class="text-xs text-gray-400">Sem tel</p>'}
-                    <button onclick="delAcompanhamento(${ag.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fas fa-trash"></i> Deletar</button>
-                </div>
-            </div>
-        </div>`;
+        html += `<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50"><div class="flex items-start justify-between gap-2"><div class="flex-1"><p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p><p class="text-xs text-gray-600 mt-1">Última consulta: ${ag.data} (${ag.diasAtrás} dias atrás)</p>${ag.pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>` : ''}</div><div class="flex flex-col gap-2"><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','','','','acompanhamento')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fab fa-whatsapp"></i> Chamar</button></div></div></div>`;
     });
     
     html += `</div></div>`;
     c.innerHTML = html;
 }
 
-function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
-    const pac = pacs.find(p => p.nome === nome);
-    if (!pac?.telefone) { alert('Paciente sem telefone!'); return; }
-    
-    const tel = pac.telefone.replace(/\D/g,'');
-    let msg = '';
-    
-    if (tipo === 'acompanhamento') {
-        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta? 📅\n\nAguardamos seu contato! 😊`);
-    } else {
-        const especialidade = categoria === 'Esportivo' ? 'Nutrição Esportiva' : categoria === 'Emagrecimento' ? 'Emagrecimento' : 'Aplicação de Injetáveis';
-        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta de *${especialidade}*:\n📅 ${data}\n🕐 ${hora}\n\n`);
-        
-        if (servico === 'Primeira Consulta' || servico === 'Consulta') {
-            msg += encodeURIComponent(`📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`);
-        }
-        
-        if (!servico.includes('Clinical')) {
-            msg += encodeURIComponent(`🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n`);
-        }
-        
-        msg += encodeURIComponent(`Responda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`);
-    }
-    
-    window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
-    
-    if (id && tipo !== 'acompanhamento') {
-        confirmacoes[id] = { confirmado: true, data: new Date().toISOString().split('T')[0] };
-        render();
-    }
-}
-
-async function delAcompanhamento(id) {
-    if (!confirm('Deletar este agendamento?')) return;
-    showSpinner();
-    try {
-        await api({ action: 'delAppt', id: id });
-        await loadAll();
-    } catch(e) { alert('Erro ao deletar.'); render(); }
-}
-
-function imprimir() {
-    document.getElementById('print-area').style.display = 'block';
-    window.print();
-    setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
-}
-
-let faltosos = {};
-
-function imprimirHistorico() {
-    const paciente = document.getElementById('inp-hist').value.trim();
-    if (!paciente) { alert('Selecione um paciente!'); return; }
-    
-    const lista = appts.filter(a => a.paciente === paciente).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
-    
-    let html = `<div style="font-family:Arial;padding:20px"><h2 style="text-align:center;margin-bottom:20px">${paciente} - Histórico</h2>`;
-    html += `<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#f0f0f0;font-weight:bold"><th style="border:1px solid #ccc;padding:8px">Data</th><th style="border:1px solid #ccc;padding:8px">Hora</th><th style="border:1px solid #ccc;padding:8px">Serviço</th><th style="border:1px solid #ccc;padding:8px">Categoria</th></tr>`;
-    
-    lista.forEach(a => {
-        html += `<tr><td style="border:1px solid #ccc;padding:8px">${a.data}</td><td style="border:1px solid #ccc;padding:8px">${normHora(a.hora)}</td><td style="border:1px solid #ccc;padding:8px">${a.servico||'-'}</td><td style="border:1px solid #ccc;padding:8px">${a.categoria}</td></tr>`;
-    });
-    
-    html += `</table></div>`;
-    document.getElementById('print-area').innerHTML = html;
-    document.getElementById('print-area').style.display = 'block';
-    window.print();
-    setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
-}
-
-function imprimirProdutividade() {
-    document.getElementById('print-area').style.display = 'block';
-    window.print();
-    setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
-}
+let marcarFalta = (id) => {
+    if (!confirm('Marcar paciente como FALTOU?')) return;
+    faltosos[id] = true;
+    localStorage.setItem('faltosos', JSON.stringify(faltosos));
+    render();
+};
 
 document.addEventListener('click', e => { document.querySelectorAll('.sug').forEach(s => { if (!s.contains(e.target)) s.classList.add('hidden'); }); });
 </script>
