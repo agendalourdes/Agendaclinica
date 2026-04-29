@@ -287,7 +287,7 @@ function render() {
     } else if (window.TAB === 'historico') {
         c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-4"><h2 class="font-black text-xl uppercase">Histórico</h2><button onclick="imprimirHistorico()" class="bg-black text-white px-4 py-2 rounded-2xl font-bold text-sm"><i class="fas fa-print"></i> Imprimir</button></div><div class="relative"><input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-hist" class="sug hidden"></div></div><div id="hist-list" class="mt-5 space-y-3"></div></div>`;
     } else if (window.TAB === 'cadastro') {
-        c.innerHTML = `<div class="p-6 bg-white rounded-3xl border shadow-sm"><h2 class="font-black text-2xl mb-6 uppercase text-center">Novo Paciente</h2><div class="space-y-3"><input id="c-nome" placeholder="Nome completo *" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-tel" placeholder="WhatsApp (com DDD)" type="tel" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-nasc" placeholder="Nascimento (DD/MM/AAAA)" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-email" placeholder="E-mail" type="email" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-altura" placeholder="Altura (cm)" type="number" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm">SALVAR PACIENTE</button></div></div>`;
+        c.innerHTML = `<div class="p-6 bg-white rounded-3xl border shadow-sm"><h2 class="font-black text-2xl mb-6 uppercase text-center">Novo Paciente</h2><div class="space-y-3"><div class="relative"><input id="c-nome" oninput="verificarDuplicado(this.value)" placeholder="Nome completo *" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><div id="sug-cadastro" class="sug hidden"></div><div id="aviso-dup" class="text-red-500 text-xs font-bold mt-1 hidden">⚠️ Paciente já existe!</div></div><input id="c-tel" placeholder="WhatsApp (com DDD)" type="tel" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-nasc" placeholder="Nascimento (DD/MM/AAAA)" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-email" placeholder="E-mail" type="email" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-altura" placeholder="Altura (cm)" type="number" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><button id="btn-cadastrar" onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm">SALVAR PACIENTE</button></div></div>`;
     } else if (window.TAB === 'fichas') {
         c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Fichas</h2><div class="relative"><input id="inp-fichas" oninput="sugerir(this.value,'sug-fichas')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-fichas" class="sug hidden"></div></div><div id="ficha-res" class="mt-5"></div></div>`;
     } else if (window.TAB === 'relatorio') {
@@ -605,15 +605,57 @@ async function delAppt() {
     } catch(e) { alert('Erro ao cancelar.'); render(); }
 }
 
+function verificarDuplicado(v) {
+    const el = document.getElementById('sug-cadastro');
+    const aviso = document.getElementById('aviso-dup');
+    const btn = document.getElementById('btn-cadastrar');
+    
+    if (!v || v.length < 1) { el.classList.add('hidden'); aviso.classList.add('hidden'); btn.disabled = false; return; }
+    
+    const f = pacs.filter(p => p.nome && p.nome.toLowerCase().includes(v.toLowerCase())).slice(0, 5);
+    
+    if (f.length > 0) {
+        el.innerHTML = f.map(p => `<div onclick="preencherCadastro('${p.nome.replace(/'/g,"\\'")}','${p.telefone||''}','${p.nascimento||''}','${p.email||''}','${p.altura||''}')">${p.nome}</div>`).join('');
+        el.classList.remove('hidden');
+        aviso.classList.remove('hidden');
+        btn.disabled = true;
+    } else {
+        el.classList.add('hidden');
+        aviso.classList.add('hidden');
+        btn.disabled = false;
+    }
+}
+
+function preencherCadastro(nome, tel, nasc, email, altura) {
+    document.getElementById('c-nome').value = nome;
+    document.getElementById('c-tel').value = tel;
+    document.getElementById('c-nasc').value = nasc;
+    document.getElementById('c-email').value = email;
+    document.getElementById('c-altura').value = altura;
+    document.getElementById('sug-cadastro').classList.add('hidden');
+    document.getElementById('aviso-dup').classList.add('hidden');
+}
+
 async function cadastrar() {
+    const btn = document.getElementById('btn-cadastrar');
     const nome = document.getElementById('c-nome').value.trim();
     if (!nome) { alert('Nome obrigatório!'); return; }
+    
+    // Desabilita botão pra não clicar múltiplas vezes
+    btn.disabled = true;
+    btn.textContent = '⏳ Salvando...';
+    
     try {
         await api({ action: 'savePac', nome, tel: document.getElementById('c-tel').value.trim(), nasc: document.getElementById('c-nasc').value.trim(), email: document.getElementById('c-email').value.trim(), altura: document.getElementById('c-altura').value.trim() });
         alert(`✅ ${nome} cadastrado!`);
         await loadAll();
         showTab('cadastro');
-    } catch(e) { alert('Erro ao cadastrar.'); }
+    } catch(e) { 
+        alert('Erro ao cadastrar.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'SALVAR PACIENTE';
+    }
 }
 
 function openEditPac(nome, tel, nasc, email, altura) {
