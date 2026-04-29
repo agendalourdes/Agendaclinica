@@ -246,11 +246,17 @@ function allowed() { const w=weekday(); return w===2; }
 
 function getEsportivoProf() {
     const dataF = getBR();
+    
+    // Se foi alterado manualmente, retorna o salvo
+    if (profData[dataF]) {
+        return profData[dataF];
+    }
+    
+    // Caso contrário, calcula o revezamento
     const [d, m, a] = dataF.split('/');
     const dataAtual = new Date(`${a}-${m}-${d}T12:00:00`);
     const dataInicio = new Date('2026-05-05T12:00:00'); // Início com Líbia
     
-    // Conta quantas terças passaram desde 05/05
     let dataTemp = new Date(dataInicio);
     let semanas = 0;
     while (dataTemp < dataAtual) {
@@ -258,9 +264,13 @@ function getEsportivoProf() {
         semanas++;
     }
     
-    // Reveza: semana par = Geraldo, semana ímpar = Líbia
     const prof = semanas % 2 === 0 ? 'Líbia' : 'Geraldo';
-    return profData[dataF] || prof;
+    
+    // Salva pra não recalcular
+    profData[dataF] = prof;
+    localStorage.setItem('profData', JSON.stringify(profData));
+    
+    return prof;
 }
 
 function onDateChange() { updateBadge(); render(); }
@@ -549,7 +559,7 @@ function confirmarConsulta() {
         window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msgEnc}`, '_blank');
     }
     
-    closeModal();
+    // NÃO fecha o modal - deixa o usuário salvar
 }
 
 async function saveAppt() {
@@ -818,14 +828,15 @@ function renderProdutividade() {
                     if (!['Primeira Consulta','Consulta','Retorno'].includes(a.servico)) return;
                     
                     if (n === 'Líbia' && a.categoria === 'Esportivo') {
-                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
+                        // Pega o nutri que foi SALVO (pode ter sido alterado)
+                        const prof = profData[a.data] || getEsportivoProf();
                         if (prof === 'Líbia') {
                             if (a.servico === 'Retorno') retornos++;
                             else consultas++;
                         }
                     }
                     if (n === 'Geraldo' && a.categoria === 'Esportivo') {
-                        const prof = profData[a.data] || (new Date(a.data.split('/').reverse().join('-')+'T12:00:00').getDay()===4 ? 'Geraldo' : 'Líbia');
+                        const prof = profData[a.data] || getEsportivoProf();
                         if (prof === 'Geraldo') {
                             if (a.servico === 'Retorno') retornos++;
                             else consultas++;
