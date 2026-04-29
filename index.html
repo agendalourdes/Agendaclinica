@@ -110,12 +110,9 @@
         </div>
         <div class="flex gap-3">
             <button onclick="closeModal()" class="flex-1 p-4 font-bold text-gray-400 rounded-2xl border-2 text-sm">SAIR</button>
-            <button id="btn-del" onclick="delAppt()" class="hidden flex-1 bg-red-500 text-white p-4 rounded-2xl font-bold text-sm">CANCELAR</button>
-            <button onclick="saveAppt()" class="flex-[2] bg-black text-white p-4 rounded-2xl font-bold text-sm">CONFIRMAR</button>
+            <button onclick="saveAppt()" class="flex-1 bg-blue-600 text-white p-4 rounded-2xl font-bold text-sm">SALVAR</button>
+            <button id="btn-confirmar" onclick="confirmarConsulta()" class="flex-1 bg-green-600 text-white p-4 rounded-2xl font-bold text-sm">CONFIRMAR</button>
         </div>
-        <button id="btn-confirmacao" onclick="enviarConfirmacao()" class="hidden w-full mt-3 p-4 font-bold rounded-2xl flex items-center justify-center gap-2 text-white text-sm" style="background:#25D366">
-            <i class="fab fa-whatsapp"></i> Enviar Confirmação
-        </button>
     </div>
 </div>
 
@@ -168,6 +165,11 @@ window.onload = () => {
     const faltososArmazenados = localStorage.getItem('faltosos');
     if (faltososArmazenados) {
         try { faltosos = JSON.parse(faltososArmazenados); } catch(e) {}
+    }
+    
+    const profArmazenados = localStorage.getItem('profData');
+    if (profArmazenados) {
+        try { profData = JSON.parse(profArmazenados); } catch(e) {}
     }
     
     const d = new Date();
@@ -283,7 +285,7 @@ function render() {
         if (!allowed()) { c.innerHTML = `<div class="mt-12 text-center"><div class="text-5xl mb-3">🚫</div><p class="font-bold text-red-400 text-lg">Selecione uma terça ou quinta-feira.</p></div>`; return; }
         c.innerHTML = catHTML('Esportivo', getEsportivoProf(), 'sl-esp', 'bg-esp', 25) + catHTML('Emagrecimento', 'Bruno', 'sl-emag', 'bg-emag', 35) + catHTML('Aplicação', '', 'sl-aplic', 'bg-aplic', 30);
     } else if (window.TAB === 'historico') {
-        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Histórico</h2><div class="relative"><input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-hist" class="sug hidden"></div></div><div id="hist-list" class="mt-5 space-y-3"></div></div>`;
+        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-4"><h2 class="font-black text-xl uppercase">Histórico</h2><button onclick="imprimirHistorico()" class="bg-black text-white px-4 py-2 rounded-2xl font-bold text-sm"><i class="fas fa-print"></i> Imprimir</button></div><div class="relative"><input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-hist" class="sug hidden"></div></div><div id="hist-list" class="mt-5 space-y-3"></div></div>`;
     } else if (window.TAB === 'cadastro') {
         c.innerHTML = `<div class="p-6 bg-white rounded-3xl border shadow-sm"><h2 class="font-black text-2xl mb-6 uppercase text-center">Novo Paciente</h2><div class="space-y-3"><input id="c-nome" placeholder="Nome completo *" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-tel" placeholder="WhatsApp (com DDD)" type="tel" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-nasc" placeholder="Nascimento (DD/MM/AAAA)" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-email" placeholder="E-mail" type="email" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><input id="c-altura" placeholder="Altura (cm)" type="number" class="w-full p-4 border-2 rounded-2xl font-bold text-sm outline-none"><button onclick="cadastrar()" class="w-full bg-black text-white p-5 rounded-2xl font-black text-sm">SALVAR PACIENTE</button></div></div>`;
     } else if (window.TAB === 'fichas') {
@@ -324,7 +326,7 @@ function catHTML(cat, prof, slCl, bgCl, step) {
             const esc = JSON.stringify(ag).replace(/"/g,'&quot;');
             const statusIcon = confirmacoes[ag.id] ? (confirmacoes[ag.id].confirmado ? '✅' : '❌') : '';
             const faltouIcon = faltosos[ag.id] ? '❌ FALTOU' : '';
-            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}" style="${faltosos[ag.id] ? 'opacity:0.5;text-decoration:line-through;' : ''}"><div class="slot-status">${statusIcon} ${faltouIcon}</div><div class="slot-btns"><button onclick="openEditAppt(this)" class="slot-btn slot-edit" title="Editar">✏️</button><button onclick="marcarFalta(${ag.id})" class="slot-btn slot-edit" title="Marcar falta" style="background:rgba(220,38,38,0.3)"><i class="fas fa-times"></i></button><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${hora}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
+            html += `<div data-ag="${esc}" class="slot sl-busy ${bgCl}" style="${faltosos[ag.id] ? 'opacity:0.5;text-decoration:line-through;' : ''}"><div class="slot-status">${statusIcon} ${faltouIcon}</div><div class="slot-btns"><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','${normHora(ag.hora)}','${ag.servico}','${ag.categoria}')" class="slot-btn slot-edit" title="WhatsApp" style="background:rgba(37,211,102,0.2)"><i class="fab fa-whatsapp"></i></button></div><div onclick="openEdit('${normHora(ag.hora)}','${cat}',this)"><div class="flex justify-between text-[10px] uppercase font-bold mb-1 opacity-80"><span>${hora}</span><span>${ag.servico||''}</span></div><p class="text-lg font-black uppercase">${ag.paciente}</p></div></div>`;
         } else {
             html += `<div onclick="openNew('${hora}','${cat}')" class="slot ${slCl} flex justify-between items-center"><span class="font-bold text-gray-400 text-sm">${hora} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
@@ -353,6 +355,7 @@ function saveProf() {
     const nome = document.getElementById('prof-nome').value.trim();
     if (!nome) { alert('Nome obrigatório!'); return; }
     profData[profEditData] = nome;
+    localStorage.setItem('profData', JSON.stringify(profData));
     closeProf();
     render();
 }
@@ -365,7 +368,7 @@ function openNew(hora, cat) {
     document.getElementById('m-servico').selectedIndex = 0;
     document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('edit-fields').classList.add('hidden');
-    document.getElementById('btn-del').classList.add('hidden');
+    document.getElementById('btn-confirmar').style.display = 'inline-block';
     document.getElementById('modal').classList.remove('hidden');
     if (hora.includes('encaixe')) {
         document.getElementById('edit-fields').classList.remove('hidden');
@@ -389,7 +392,7 @@ function openEdit(hora, cat, el) {
     document.getElementById('m-hora').value = ag.hora.includes('encaixe') ? '' : ag.hora;
     document.getElementById('sug-modal').classList.add('hidden');
     document.getElementById('edit-fields').classList.remove('hidden');
-    document.getElementById('btn-del').classList.remove('hidden');
+    document.getElementById('btn-confirmar').style.display = 'none';
     document.getElementById('modal').classList.remove('hidden');
 }
 
@@ -408,42 +411,145 @@ function enviarConfirmacaoDirecta(pac, data, hora, servico, categoria) {
     
     const tel = pacObj.telefone.replace(/\D/g,'');
     
-    let tipoConsulta = '';
-    if (categoria === 'Esportivo') {
-        tipoConsulta = 'CONSULTA NUTRIÇÃO ESPORTIVA';
-    } else if (categoria === 'Emagrecimento') {
-        tipoConsulta = 'CONSULTA EMAGRECIMENTO';
-    } else if (categoria === 'Aplicação') {
-        tipoConsulta = 'APLICAÇÃO DE INJETÁVEIS';
+    let msg = '*Seu agendamento foi realizado com sucesso!*\n\n';
+    msg += '📅 Data: ' + data + '\n';
+    msg += '🕐 Horario: ' + hora + '\n\n';
+    
+    // Retorno
+    if (servico === 'Retorno' || servico === 'Retorno Clinical') {
+        msg += '*RETORNO*\n\n';
+        msg += 'Com os profissionais:\n';
+        msg += '👨‍⚕️ Dr. Jorge Vieira Salomao (Medico Nutrologo)\n';
+        msg += '👩‍⚕️ Libia Cardoso (Nutricionista)\n';
+        msg += '👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n';
+        msg += '📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n';
+        msg += '📍 Endereco:\n';
+        msg += 'Rua dos Timbiras, 2237 / 5 andar - Lourdes\n\n';
+        msg += '✅ SEM ONUS\n';
+        msg += '🅿️ Temos estacionamento proprio! (Favor consultar valores no local)\n\n';
+        msg += 'Obrigada e ate la! ❤️';
+    }
+    // Aplicacao
+    else if (servico === 'Aplicação' || servico === 'Aplicação Clinical') {
+        msg += '*APLICACAO DE INJETAVEIS*\n\n';
+        msg += 'Com os profissionais:\n';
+        msg += '👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n';
+        msg += '📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n';
+        msg += '📍 Endereco:\n';
+        msg += 'Rua dos Timbiras, 2237 / 5 andar - Lourdes\n\n';
+        msg += '💰 Valor da aplicacao: A consultar\n';
+        msg += '🅿️ Temos estacionamento proprio! (Favor consultar valores no local)\n\n';
+        msg += 'Obrigada e ate la! ❤️';
+    }
+    // Consultas (Esportiva e Emagrecimento)
+    else {
+        if (categoria === 'Esportivo') {
+            msg += '*CONSULTA NUTRICAO ESPORTIVA*\n\n';
+        } else if (categoria === 'Emagrecimento') {
+            msg += '*CONSULTA EMAGRECIMENTO*\n\n';
+        }
+        
+        msg += 'Com os profissionais:\n';
+        if (categoria === 'Esportivo') {
+            msg += '👨‍⚕️ Dr. Jorge Vieira Salomao (Medico Nutrologo)\n';
+            msg += '👩‍⚕️ Libia Cardoso (Nutricionista)\n';
+            msg += '👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n';
+        } else if (categoria === 'Emagrecimento') {
+            msg += '👨‍⚕️ Dr. Jorge Vieira Salomao (Medico Nutrologo)\n';
+            msg += '👩‍⚕️ Bruno (Nutricionista)\n';
+            msg += '👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n';
+        }
+        
+        msg += '📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n';
+        msg += '📍 Endereco:\n';
+        msg += 'Rua dos Timbiras, 2237 / 5 andar - Lourdes\n\n';
+        msg += '💰 Valor da consulta: R$ 290,00\n';
+        msg += '🅿️ Temos estacionamento proprio! (Favor consultar valores no local)\n\n';
+        msg += 'Obrigada e ate la! ❤️';
     }
     
-    let msg = `*Seu agendamento foi realizado com sucesso!*\n\n`;
-    msg += `📅 DATA: ${data}\n`;
-    msg += `🕐 HORÁRIO: ${hora}\n\n`;
-    msg += `*${tipoConsulta}*\n\n`;
-    msg += `Com os profissionais:\n`;
-    msg += `👨‍⚕️ Dr. Jorge Vieira Salomão (Médico Nutrólogo)\n`;
-    msg += `👩‍⚕️ Líbia Cardoso (Nutricionista)\n`;
-    msg += `👩‍⚕️ Suelen Fernanda (Enfermeira)\n\n`;
-    msg += `📋 Lembre-se de levar exames anteriores impressos caso possuir.\n\n`;
-    msg += `📍 Nosso endereço:\n`;
-    msg += `Rua dos Timbiras, 2237 / 5º andar - Lourdes\n\n`;
-    msg += `💰 Valor da consulta: R$ 290,00\n`;
-    msg += `🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\n`;
-    msg += `Obrigada e até lá! ❤️`;
-    
     const msgEnc = encodeURIComponent(msg);
-    window.open(`https://wa.me/55${tel}?text=${msgEnc}`, '_blank');
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        window.location.href = `whatsapp://send?phone=55${tel}&text=${msgEnc}`;
+    } else {
+        window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msgEnc}`, '_blank');
+    }
 }
 
-function enviarConfirmacao() {
+function confirmarConsulta() {
     const pac = document.getElementById('m-pac').value.trim();
-    const data = document.getElementById('m-data').value ? document.getElementById('m-data').value.split('-').reverse().join('/') : getBR();
-    const hora = document.getElementById('m-hora').value || mTime;
     const servico = document.getElementById('m-servico').value;
     const categoria = document.getElementById('m-cat').value || mCat;
+    const data = document.getElementById('m-data').value ? document.getElementById('m-data').value.split('-').reverse().join('/') : getBR();
+    const hora = document.getElementById('m-hora').value || mTime;
     
-    enviarConfirmacaoDirecta(pac, data, hora, servico, categoria);
+    const pacObj = pacs.find(p => p.nome === pac);
+    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
+    
+    const tel = pacObj.telefone.replace(/\D/g,'');
+    let msg = '';
+    
+    // RETORNO
+    if (servico === 'Retorno' || servico === 'Retorno Clinical') {
+        const prof = categoria === 'Esportivo' ? getEsportivoProf() : 'Bruno';
+        msg = `Oi ${pac}! 👋\n\n`;
+        msg += `Seu agendamento foi realizado com sucesso!\n\n`;
+        msg += `📅 ${data}\n`;
+        msg += `🕐 ${hora}\n\n`;
+        msg += `*RETORNO ${categoria.toUpperCase()}*\n\n`;
+        msg += `📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n`;
+        msg += `🅿️ Temos estacionamento próprio (favor consultar valores no local)\n\n`;
+        msg += `Obrigada e até lá! ❤️`;
+    }
+    // APLICACAO
+    else if (servico === 'Aplicação' || servico === 'Aplicação Clinical') {
+        msg = `Oi ${pac}! 👋\n\n`;
+        msg += `Seu agendamento foi realizado com sucesso!\n\n`;
+        msg += `📅 ${data}\n`;
+        msg += `🕐 ${hora}\n\n`;
+        msg += `*APLICAÇÃO DE INJETÁVEIS*\n\n`;
+        msg += `📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n`;
+        msg += `🅿️ Temos estacionamento próprio (favor consultar valores no local)\n\n`;
+        msg += `Obrigada e até lá! ❤️`;
+    }
+    // CONSULTA
+    else {
+        let prof = 'Líbia';
+        if (categoria === 'Emagrecimento') {
+            prof = 'Bruno Almeida';
+        } else if (categoria === 'Esportivo') {
+            prof = getEsportivoProf();
+        }
+        
+        let tipo = 'CONSULTA NUTRIÇÃO ESPORTIVA';
+        if (categoria === 'Emagrecimento') {
+            tipo = 'CONSULTA NUTROLOGIA EMAGRECIMENTO';
+        }
+        
+        msg = `Oi ${pac}! 👋\n\n`;
+        msg += `Seu agendamento foi realizado com sucesso!\n\n`;
+        msg += `📅 ${data}\n\n`;
+        msg += `*${tipo}*\n`;
+        msg += `Com os profissionais: DR Jorge Vieira Salomão (médico nutrólogo) | ${prof} (nutricionista) | Suelen Fernanda (enfermeira)\n\n`;
+        msg += `📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n`;
+        msg += `📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n`;
+        msg += `💰 O valor da consulta é de R$ 290,00.\n\n`;
+        msg += `🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\n`;
+        msg += `Obrigada e até lá! ❤️`;
+    }
+    
+    const msgEnc = encodeURIComponent(msg);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        window.location.href = `whatsapp://send?phone=55${tel}&text=${msgEnc}`;
+    } else {
+        window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msgEnc}`, '_blank');
+    }
+    
+    closeModal();
 }
 
 async function saveAppt() {
@@ -484,15 +590,7 @@ async function saveAppt() {
     try {
         await api({ action: 'saveAppt', data, hora, paciente: pac, servico: servico, categoria: cat, id: mId || '' });
         await loadAll();
-        
-        // Se é novo agendamento, pergunta se quer enviar confirmação
-        if (!mId) {
-            setTimeout(() => {
-                if (confirm('Deseja enviar a confirmação de consulta para o paciente?')) {
-                    enviarConfirmacaoDirecta(pac, data, hora, servico, cat);
-                }
-            }, 500);
-        }
+        alert('✅ Agendamento salvo com sucesso!');
     } catch(e) { alert('Erro ao salvar.'); render(); }
 }
 
@@ -828,11 +926,24 @@ function imprimir() {
 
 let faltosos = {};
 
-function marcarFalta(id) {
-    if (!confirm('Marcar paciente como FALTOU?')) return;
-    faltosos[id] = true;
-    localStorage.setItem('faltosos', JSON.stringify(faltosos));
-    render();
+function imprimirHistorico() {
+    const paciente = document.getElementById('inp-hist').value.trim();
+    if (!paciente) { alert('Selecione um paciente!'); return; }
+    
+    const lista = appts.filter(a => a.paciente === paciente).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
+    
+    let html = `<div style="font-family:Arial;padding:20px"><h2 style="text-align:center;margin-bottom:20px">${paciente} - Histórico</h2>`;
+    html += `<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#f0f0f0;font-weight:bold"><th style="border:1px solid #ccc;padding:8px">Data</th><th style="border:1px solid #ccc;padding:8px">Hora</th><th style="border:1px solid #ccc;padding:8px">Serviço</th><th style="border:1px solid #ccc;padding:8px">Categoria</th></tr>`;
+    
+    lista.forEach(a => {
+        html += `<tr><td style="border:1px solid #ccc;padding:8px">${a.data}</td><td style="border:1px solid #ccc;padding:8px">${normHora(a.hora)}</td><td style="border:1px solid #ccc;padding:8px">${a.servico||'-'}</td><td style="border:1px solid #ccc;padding:8px">${a.categoria}</td></tr>`;
+    });
+    
+    html += `</table></div>`;
+    document.getElementById('print-area').innerHTML = html;
+    document.getElementById('print-area').style.display = 'block';
+    window.print();
+    setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
 }
 
 function imprimirProdutividade() {
