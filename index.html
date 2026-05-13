@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -75,15 +74,7 @@
 <div id="modal" class="hidden modal-bg" onclick="closeBg(event)">
     <div class="modal-box">
         <h2 id="modal-title" class="font-black text-xl mb-5 uppercase text-center tracking-wide">Agendar</h2>
-        <select id="m-servico" class="w-full p-4 border-2 rounded-2xl mb-4 font-bold bg-gray-50 text-sm">
-            <option>Primeira Consulta</option>
-            <option>Consulta</option>
-            <option>Retorno</option>
-            <option>Aplicação</option>
-            <option>Consulta Clinical</option>
-            <option>Retorno Clinical</option>
-            <option>Aplicação Clinical</option>
-        </select>
+        <select id="m-servico" class="w-full p-4 border-2 rounded-2xl mb-4 font-bold bg-gray-50 text-sm"><option>Primeira Consulta</option><option>Consulta</option><option>Retorno</option><option>Aplicação</option><option>Consulta Clinical</option><option>Retorno Clinical</option><option>Aplicação Clinical</option></select>
         <div class="relative mb-5">
             <input type="text" id="m-pac" oninput="sugerir(this.value,'sug-modal')" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm">
             <div id="sug-modal" class="sug hidden"></div>
@@ -92,18 +83,14 @@
         <div id="edit-fields" class="hidden space-y-3 mb-4">
             <input type="date" id="m-data" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm outline-none">
             <input type="time" id="m-hora" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm outline-none">
-            <select id="m-cat" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm">
-                <option>Esportivo</option>
-                <option>Emagrecimento</option>
-                <option>Aplicação</option>
-            </select>
+            <select id="m-cat" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm"><option>Esportivo</option><option>Emagrecimento</option><option>Aplicação</option></select>
         </div>
-        <div class="flex gap-2">
-            <button onclick="closeModal()" class="flex-1 p-3 font-bold text-gray-400 rounded-2xl border-2 text-xs">SAIR</button>
-            <button id="btn-del" onclick="delAppt()" class="hidden flex-1 bg-red-500 text-white p-3 rounded-2xl font-bold text-xs">CANCELAR</button>
-            <button id="btn-lembrete" onclick="enviarLembrete()" class="hidden flex-1 bg-yellow-500 text-white p-3 rounded-2xl font-bold text-xs">LEMBRETE</button>
-            <button id="btn-confirmar" onclick="confirmarConsulta()" class="hidden flex-1 bg-green-600 text-white p-3 rounded-2xl font-bold text-xs">CONFIRMAR</button>
-            <button onclick="saveAppt()" class="flex-1 bg-black text-white p-3 rounded-2xl font-bold text-xs">SALVAR</button>
+        <div class="flex gap-2 flex-wrap">
+            <button onclick="closeModal()" class="flex-1 p-3 font-bold text-gray-400 rounded-2xl border-2 text-xs min-w-[80px]">SAIR</button>
+            <button id="btn-del" onclick="delAppt()" class="hidden flex-1 bg-red-500 text-white p-3 rounded-2xl font-bold text-xs min-w-[100px]">CANCELAR</button>
+            <button id="btn-lembrete" onclick="enviarLembrete()" class="hidden flex-1 bg-yellow-500 text-white p-3 rounded-2xl font-bold text-xs min-w-[100px]">LEMBRETE</button>
+            <button id="btn-confirmar" onclick="confirmarConsulta()" class="hidden flex-1 bg-green-600 text-white p-3 rounded-2xl font-bold text-xs min-w-[100px]">CONFIRMAR</button>
+            <button onclick="saveAppt()" class="flex-1 bg-black text-white p-3 rounded-2xl font-bold text-xs min-w-[80px]">SALVAR</button>
         </div>
     </div>
 </div>
@@ -140,23 +127,22 @@
 <div id="print-area"></div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxbQ6DWl0icD0RzGkSuI7KSYyNi8FuXP1X7yxL7Np3Y_ReneHcSNxORTXy2OPzmkobg/exec";
+const API = "AKfycbyQOFU8-X9aUqZKoPcqdbL41Dz5AjD_hmCxYhorC_ZztIh4V1aaf0ZsMmJrrF0xfMtl";
 let pacs = [], appts = [];
 let mTime, mCat, mId = null, mTel = null, mEditData = null, mEditHora = null;
-let profData = {};
-let profEditData = null;
-let observacoes = {};
-let faltosos = {};
+let profData = {}, profEditData = null;
+let observacoes = {}, faltosos = {};
+
+function limparTelefone(tel) {
+    if (!tel) return '';
+    let cleaned = String(tel).replace(/\D/g, '').trim();
+    return cleaned;
+}
 
 window.onload = () => {
-    const obsArmazenadas = localStorage.getItem('obsClinca');
-    if (obsArmazenadas) try { observacoes = JSON.parse(obsArmazenadas); } catch(e) {}
-    
-    const faltososArmazenados = localStorage.getItem('faltosos');
-    if (faltososArmazenados) try { faltosos = JSON.parse(faltososArmazenados); } catch(e) {}
-    
-    const profArmazenados = localStorage.getItem('profData');
-    if (profArmazenados) try { profData = JSON.parse(profArmazenados); } catch(e) {}
+    if (localStorage.getItem('obsClinca')) try { observacoes = JSON.parse(localStorage.getItem('obsClinca')); } catch(e) {}
+    if (localStorage.getItem('faltosos')) try { faltosos = JSON.parse(localStorage.getItem('faltosos')); } catch(e) {}
+    if (localStorage.getItem('profData')) try { profData = JSON.parse(localStorage.getItem('profData')); } catch(e) {}
     
     const d = new Date();
     const diff = (2 - d.getDay() + 7) % 7 || 7;
@@ -168,19 +154,28 @@ window.onload = () => {
 };
 
 async function api(params) {
-    const url = API + '?' + new URLSearchParams(params).toString();
-    const r = await fetch(url);
-    const text = await r.text();
-    try { return JSON.parse(text); } catch(e) { console.error('Parse error:', text); return { error: text }; }
+    try {
+        const url = API + '?' + new URLSearchParams(params).toString();
+        const r = await fetch(url);
+        if (!r.ok) throw new Error('Erro na requisição');
+        const text = await r.text();
+        return JSON.parse(text);
+    } catch(e) {
+        console.error('API Error:', e);
+        throw e;
+    }
 }
 
 async function loadAll() {
     showSpinner();
     try {
         const d = await api({ action: 'getAll' });
-        pacs  = d.patients || [];
+        pacs = d.patients || [];
         appts = (d.appointments || []).map(a => ({ ...a, data: normDate(a.data), hora: normHora(a.hora) }));
-    } catch(e) { console.error('loadAll error:', e); }
+    } catch(e) {
+        console.error('loadAll error:', e);
+        alert('Erro ao carregar dados');
+    }
     render();
 }
 
@@ -190,10 +185,7 @@ function normDate(v) {
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(v)) return v;
     const m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (m) return `${m[3]}/${m[2]}/${m[1]}`;
-    try {
-        const d = new Date(v);
-        if (!isNaN(d)) return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`;
-    } catch(e) {}
+    try { const d = new Date(v); if (!isNaN(d)) return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth()+1)}/${d.getUTCFullYear()}`; } catch(e) {}
     return v;
 }
 
@@ -205,24 +197,12 @@ function normHora(v) {
     const m = v.match(/^(\d{2}):(\d{2})/);
     if (m) return `${m[1]}:${m[2]}`;
     const n = parseFloat(v);
-    if (!isNaN(n) && n >= 0 && n < 1) {
-        const tot = Math.round(n * 1440);
-        return `${pad(Math.floor(tot/60))}:${pad(tot%60)}`;
-    }
-    try {
-        const d = new Date(v);
-        if (!isNaN(d)) return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
-    } catch(e) {}
+    if (!isNaN(n) && n >= 0 && n < 1) { const tot = Math.round(n * 1440); return `${pad(Math.floor(tot/60))}:${pad(tot%60)}`; }
+    try { const d = new Date(v); if (!isNaN(d)) return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`; } catch(e) {}
     return v;
 }
 
-function cleanDate(v) {
-    if (!v) return '';
-    v = String(v).trim();
-    const m = v.match(/^(\d{2}\/\d{2}\/\d{4})/);
-    return m ? m[1] : v;
-}
-
+function cleanDate(v) { if (!v) return ''; v = String(v).trim(); const m = v.match(/^(\d{2}\/\d{2}\/\d{4})/); return m ? m[1] : v; }
 function pad(n) { return String(n).padStart(2,'0'); }
 function getISO()  { return document.getElementById('datepicker').value; }
 function getBR()   { const [y,m,d] = getISO().split('-'); return `${d}/${m}/${y}`; }
@@ -235,13 +215,13 @@ function getEsportivoProf() {
     
     const [d, m, a] = dataF.split('/');
     const dataAtual = new Date(`${a}-${m}-${d}T12:00:00`);
-    const dataInicio = new Date('2026-05-05T12:00:00');
+    const dataInicio = new Date('2026-05-05T12:00:00'); // 05/05/2026 = Líbia
     
     let dataTemp = new Date(dataInicio);
     let semanas = 0;
-    while (dataTemp < dataAtual) {
-        dataTemp.setDate(dataTemp.getDate() + 7);
-        semanas++;
+    while (dataTemp < dataAtual) { 
+        dataTemp.setDate(dataTemp.getDate() + 7); 
+        semanas++; 
     }
     
     const prof = semanas % 2 === 0 ? 'Líbia' : 'Geraldo';
@@ -253,8 +233,7 @@ function getEsportivoProf() {
 function onDateChange() { updateBadge(); render(); }
 function updateBadge() {
     const b = document.getElementById('day-badge');
-    const w = weekday();
-    if (w===2) { b.textContent='TERÇA'; b.className='badge b-ter'; }
+    if (weekday()===2) { b.textContent='TERÇA'; b.className='badge b-ter'; }
     else { b.textContent='BLOQUEADO'; b.className='badge b-blq'; }
 }
 
@@ -291,21 +270,13 @@ function catHTML(cat, prof, slCl, bgCl, step) {
     const dataF = getBR();
     const titulo = prof ? `${cat.toUpperCase()} — <span class="prof-edit" onclick="editProf('${dataF}')">${prof} ✏️</span>` : cat.toUpperCase();
     let html = `<h3 class="font-black text-[10px] uppercase tracking-widest mt-8 mb-3 px-1 text-gray-400">${titulo}</h3>`;
-    
     const agsReais = appts.filter(a => a.data === dataF && a.categoria === cat && !a.hora.includes('encaixe'));
-    
     const slots = [];
     let h=9, m=0;
-    while (h < 12 || (h===12 && m===0)) {
-        slots.push(`${pad(h)}:${pad(m)}`);
-        m += step;
-        if (m >= 60) { h += Math.floor(m/60); m = m%60; }
-    }
-    
+    while (h < 12 || (h===12 && m===0)) { slots.push(`${pad(h)}:${pad(m)}`); m += step; if (m >= 60) { h += Math.floor(m/60); m = m%60; } }
     const todosHorarios = new Set(slots);
     agsReais.forEach(ag => todosHorarios.add(normHora(ag.hora)));
     const horariosOrdenados = Array.from(todosHorarios).sort((a, b) => a.localeCompare(b));
-    
     horariosOrdenados.forEach(hora => {
         const ag = agsReais.find(a => normHora(a.hora) === hora);
         if (ag) {
@@ -316,17 +287,14 @@ function catHTML(cat, prof, slCl, bgCl, step) {
             html += `<div onclick="openNew('${hora}','${cat}')" class="slot ${slCl} flex justify-between items-center"><span class="font-bold text-gray-400 text-sm">${hora} — LIVRE</span><i class="fas fa-plus text-gray-300"></i></div>`;
         }
     });
-    
     const temEncaixeAgendado = appts.find(a => a.data === dataF && a.categoria === cat && a.hora.includes('encaixe'));
-    if (!temEncaixeAgendado) {
-        html += `<div onclick="openNew('encaixe-${cat}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2" style="min-height:80px;background:#fafafa;cursor:pointer;"></div>`;
-    }
+    if (!temEncaixeAgendado) { html += `<div onclick="openNew('encaixe-${cat}','${cat}')" class="slot ${slCl} flex justify-between items-center border-dashed border-2" style="min-height:80px;background:#fafafa;cursor:pointer;"></div>`; }
     return html;
 }
 
 function editProf(data) {
     profEditData = data;
-    const atual = profData[data] || (new Date(data.split('/').reverse().join('-')+'T12:00:00').getDay()===2 ? 'Líbia' : 'Geraldo');
+    const atual = profData[data] || getEsportivoProf();
     document.getElementById('prof-data-label').textContent = data;
     document.getElementById('prof-nome').value = atual;
     document.getElementById('modal-prof').classList.remove('hidden');
@@ -356,10 +324,7 @@ function openNew(hora, cat) {
     document.getElementById('btn-lembrete').classList.add('hidden');
     document.getElementById('btn-confirmar').classList.add('hidden');
     document.getElementById('modal').classList.remove('hidden');
-    if (hora.includes('encaixe')) {
-        document.getElementById('edit-fields').classList.remove('hidden');
-        document.getElementById('m-hora').value = '';
-    }
+    if (hora.includes('encaixe')) { document.getElementById('edit-fields').classList.remove('hidden'); document.getElementById('m-hora').value = ''; }
 }
 
 function openEdit(hora, cat, el) {
@@ -413,106 +378,128 @@ async function saveAppt() {
     }
     
     const obs = document.getElementById('m-obs').value.trim();
-    if (obs) {
-        const chaveObs = `${data}|${pac}|${hora}`;
-        observacoes[chaveObs] = obs;
-        localStorage.setItem('obsClinca', JSON.stringify(observacoes));
+    if (obs) { 
+        const chaveObs = `${data}|${pac}|${hora}`; 
+        observacoes[chaveObs] = obs; 
+        localStorage.setItem('obsClinca', JSON.stringify(observacoes)); 
     }
     
     closeModal();
-    showSpinner();
     
     try {
         await api({ action: 'saveAppt', data, hora, paciente: pac, servico: servico, categoria: cat, id: mId || '' });
-        await loadAll();
         alert('✅ Agendamento salvo!');
-    } catch(e) { alert('Erro ao salvar.'); render(); }
+        await loadAll();
+    } catch(e) { 
+        alert('Erro ao salvar: ' + e.message);
+        render();
+    }
 }
 
 async function delAppt() {
     if (!mId) return;
     if (!confirm('Cancelar este agendamento?')) return;
     closeModal();
-    showSpinner();
     try {
         await api({ action: 'delAppt', id: mId });
+        alert('✅ Agendamento cancelado!');
         await loadAll();
-    } catch(e) { alert('Erro ao cancelar.'); render(); }
+    } catch(e) { alert('Erro ao cancelar: ' + e.message); render(); }
 }
 
 function enviarLembrete() {
     const pac = document.getElementById('m-pac').value.trim();
     const pacObj = pacs.find(p => p.nome === pac);
-    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
+    const tel = limparTelefone(pacObj?.telefone);
     
-    const tel = pacObj.telefone.replace(/\D/g,'');
+    if (!tel) { alert('Paciente sem telefone!'); return; }
+    
     const data = document.getElementById('m-data').value ? document.getElementById('m-data').value.split('-').reverse().join('/') : getBR();
     const hora = document.getElementById('m-hora').value || mTime;
     const servico = document.getElementById('m-servico').value;
+    const categoria = document.getElementById('m-cat').value || mCat;
     
-    let msg = `Olá ${pac}! 👋\n\nLembrete da sua consulta marcada para:\n\n`;
-    msg += `📅 ${data}\n🕐 ${hora}\n\n`;
-    msg += `Tipo: ${servico}\n\n`;
-    msg += `Favor confirmar sua presença ou remarcar se necessário!\n\nObrigada! ❤️`;
+    let msg = '';
+    if (servico === 'Primeira Consulta' || servico === 'Consulta') {
+        const esp = categoria === 'Esportivo' ? 'Nutrição Esportiva' : 'Emagrecimento';
+        msg = `Olá ${pac}! 👋\n\nConfirme sua consulta de *${esp}*:\n📅 ${data}\n🕐 ${hora}\n\n`;
+        msg += `📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`;
+        msg += `🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n`;
+        msg += `Responda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
+    } else if (servico === 'Consulta Clinical') {
+        const esp = categoria === 'Esportivo' ? 'Nutrição Esportiva' : 'Emagrecimento';
+        msg = `Olá ${pac}! 👋\n\nConfirme sua consulta de *${esp}*:\n📅 ${data}\n🕐 ${hora}\n\n`;
+        msg += `📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`;
+        msg += `🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n`;
+        msg += `Responda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
+    } else if (servico === 'Retorno' || servico === 'Retorno Clinical') {
+        const esp = categoria === 'Esportivo' ? 'Nutrição Esportiva' : 'Emagrecimento';
+        msg = `Olá ${pac}! 👋\n\nConfirme seu retorno de *${esp}*:\n📅 ${data}\n🕐 ${hora}\n\n`;
+        msg += `🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n`;
+        msg += `Responda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
+    } else if (servico === 'Aplicação' || servico === 'Aplicação Clinical') {
+        msg = `Olá ${pac}! 👋\n\nConfirme sua consulta de *Aplicação de Injetáveis*:\n📅 ${data}\n🕐 ${hora}\n\n`;
+        msg += `🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n`;
+        msg += `Responda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
+    }
     
     const msgEnc = encodeURIComponent(msg);
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
     if (isMobile) {
         window.location.href = `whatsapp://send?phone=55${tel}&text=${msgEnc}`;
     } else {
-        window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msgEnc}`, '_blank');
+        window.open(`https://wa.me/55${tel}?text=${msgEnc}`, '_blank');
     }
 }
 
 function confirmarConsulta() {
     const pac = document.getElementById('m-pac').value.trim();
     const pacObj = pacs.find(p => p.nome === pac);
-    if (!pacObj?.telefone) { alert('Paciente sem telefone!'); return; }
+    const tel = limparTelefone(pacObj?.telefone);
     
-    const tel = pacObj.telefone.replace(/\D/g,'');
+    if (!tel) { alert('Paciente sem telefone!'); return; }
+    
     const data = document.getElementById('m-data').value ? document.getElementById('m-data').value.split('-').reverse().join('/') : getBR();
     const hora = document.getElementById('m-hora').value || mTime;
     const servico = document.getElementById('m-servico').value;
     const categoria = document.getElementById('m-cat').value || mCat;
     
-    let msg = `Oi ${pac}! 👋\n\nSeu agendamento foi realizado com sucesso!\n\n📅 ${data}\n🕐 ${hora}\n\n`;
+    let msg = `Olá ${pac}! 👋\n\nConfirme sua consulta de *`;
     
-    if (servico === 'Retorno' || servico === 'Retorno Clinical') {
-        msg += `*RETORNO ${categoria.toUpperCase()}*\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n🅿️ Temos estacionamento próprio (favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+    if (servico === 'Primeira Consulta' || servico === 'Consulta') {
+        const esp = categoria === 'Esportivo' ? 'Nutrição Esportiva' : 'Emagrecimento';
+        msg += `${esp}*:\n📅 ${data}\n🕐 ${hora}\n\n`;
+        msg += `📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`;
+        msg += `🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
+    } else if (servico === 'Consulta Clinical') {
+        const esp = categoria === 'Esportivo' ? 'Nutrição Esportiva' : 'Emagrecimento';
+        msg += `${esp}*:\n📅 ${data}\n🕐 ${hora}\n\n`;
+        msg += `📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\n`;
+        msg += `🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
+    } else if (servico === 'Retorno' || servico === 'Retorno Clinical') {
+        const esp = categoria === 'Esportivo' ? 'Nutrição Esportiva' : 'Emagrecimento';
+        msg += `${esp}*:\n📅 ${data}\n🕐 ${hora}\n\n`;
+        msg += `🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
     } else if (servico === 'Aplicação' || servico === 'Aplicação Clinical') {
-        msg += `*APLICAÇÃO DE INJETÁVEIS*\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n🅿️ Temos estacionamento próprio (favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
-    } else {
-        let prof = getEsportivoProf();
-        if (categoria === 'Emagrecimento') prof = 'Bruno Almeida';
-        let tipo = categoria === 'Emagrecimento' ? 'CONSULTA NUTROLOGIA EMAGRECIMENTO' : 'CONSULTA NUTRIÇÃO ESPORTIVA';
-        msg += `*${tipo}*\nCom os profissionais: DR Jorge Vieira Salomão (médico nutrólogo) | ${prof} (nutricionista) | Suelen Fernanda (enfermeira)\n\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n💰 O valor da consulta é de R$ 290,00.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+        msg += `Aplicação de Injetáveis*:\n📅 ${data}\n🕐 ${hora}\n\n`;
+        msg += `🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
     }
     
     const msgEnc = encodeURIComponent(msg);
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
     if (isMobile) {
         window.location.href = `whatsapp://send?phone=55${tel}&text=${msgEnc}`;
     } else {
-        window.open(`https://web.whatsapp.com/send?phone=55${tel}&text=${msgEnc}`, '_blank');
+        window.open(`https://wa.me/55${tel}?text=${msgEnc}`, '_blank');
     }
 }
 
-function enviarWhatsApp(id, nome, data, hora, servico, categoria, tipo) {
+function enviarWhatsApp(id, nome, data, hora, servico, categoria) {
     const pac = pacs.find(p => p.nome === nome);
-    if (!pac?.telefone) { alert('Paciente sem telefone!'); return; }
-    
-    const tel = pac.telefone.replace(/\D/g,'');
-    let msg = '';
-    
-    if (tipo === 'acompanhamento') {
-        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta? 📅\n\nAguardamos seu contato! 😊`);
-    } else {
-        const especialidade = categoria === 'Esportivo' ? 'Nutrição Esportiva' : categoria === 'Emagrecimento' ? 'Emagrecimento' : 'Aplicação de Injetáveis';
-        msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta de *${especialidade}*:\n📅 ${data}\n🕐 ${hora}\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`);
-    }
-    
+    const tel = limparTelefone(pac?.telefone);
+    if (!tel) { alert('Paciente sem telefone!'); return; }
+    const especialidade = categoria === 'Esportivo' ? 'Nutrição Esportiva' : categoria === 'Emagrecimento' ? 'Emagrecimento' : 'Aplicação de Injetáveis';
+    const msg = encodeURIComponent(`Olá ${nome}! 👋\n\nConfirme sua consulta de *${especialidade}*:\n📅 ${data}\n🕐 ${hora}\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`);
     window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
 }
 
@@ -536,11 +523,8 @@ function verificarDuplicado(v) {
     const el = document.getElementById('sug-cadastro');
     const aviso = document.getElementById('aviso-dup');
     const btn = document.getElementById('btn-cadastrar');
-    
     if (!v || v.length < 1) { el.classList.add('hidden'); aviso.classList.add('hidden'); btn.disabled = false; return; }
-    
     const f = pacs.filter(p => p.nome && p.nome.toLowerCase().includes(v.toLowerCase())).slice(0, 5);
-    
     if (f.length > 0) {
         el.innerHTML = f.map(p => `<div onclick="preencherCadastro('${p.nome.replace(/'/g,"\\'")}','${p.telefone||''}','${p.nascimento||''}','${p.email||''}','${p.altura||''}')">${p.nome}</div>`).join('');
         el.classList.remove('hidden');
@@ -567,21 +551,21 @@ async function cadastrar() {
     const btn = document.getElementById('btn-cadastrar');
     const nome = document.getElementById('c-nome').value.trim();
     if (!nome) { alert('Nome obrigatório!'); return; }
-    
     btn.disabled = true;
     btn.textContent = '⏳ Salvando...';
-    
     try {
         await api({ action: 'savePac', nome, tel: document.getElementById('c-tel').value.trim(), nasc: document.getElementById('c-nasc').value.trim(), email: document.getElementById('c-email').value.trim(), altura: document.getElementById('c-altura').value.trim() });
         alert(`✅ ${nome} cadastrado!`);
+        document.getElementById('c-nome').value = '';
+        document.getElementById('c-tel').value = '';
+        document.getElementById('c-nasc').value = '';
+        document.getElementById('c-email').value = '';
+        document.getElementById('c-altura').value = '';
         await loadAll();
-        showTab('cadastro');
     } catch(e) { 
-        alert('Erro ao cadastrar.');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'SALVAR PACIENTE';
-    }
+        alert('Erro ao cadastrar: ' + e.message);
+    } 
+    finally { btn.disabled = false; btn.textContent = 'SALVAR PACIENTE'; }
 }
 
 function openEditPac(nome, tel, nasc, email, altura) {
@@ -600,12 +584,11 @@ async function savePacEdit() {
     const nome = document.getElementById('ep-nome').value.trim();
     if (!nome) { alert('Nome obrigatório!'); return; }
     closePacModal();
-    showSpinner();
     try {
         await api({ action: 'savePac', nome, tel: document.getElementById('ep-tel').value.trim(), nasc: document.getElementById('ep-nasc').value.trim(), email: document.getElementById('ep-email').value.trim(), altura: document.getElementById('ep-altura').value.trim() });
         alert('✅ Paciente atualizado!');
         await loadAll();
-    } catch(e) { alert('Erro ao atualizar.'); render(); }
+    } catch(e) { alert('Erro ao atualizar: ' + e.message); render(); }
 }
 
 function showHist(nome) {
@@ -618,16 +601,10 @@ function showHist(nome) {
 function imprimirHistorico() {
     const paciente = document.getElementById('inp-hist').value.trim();
     if (!paciente) { alert('Selecione um paciente!'); return; }
-    
     const lista = appts.filter(a => a.paciente === paciente).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
-    
     let html = `<div style="font-family:Arial;padding:20px"><h2 style="text-align:center;margin-bottom:20px">${paciente} - Histórico</h2>`;
     html += `<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#f0f0f0;font-weight:bold"><th style="border:1px solid #ccc;padding:8px">Data</th><th style="border:1px solid #ccc;padding:8px">Hora</th><th style="border:1px solid #ccc;padding:8px">Serviço</th><th style="border:1px solid #ccc;padding:8px">Categoria</th></tr>`;
-    
-    lista.forEach(a => {
-        html += `<tr><td style="border:1px solid #ccc;padding:8px">${a.data}</td><td style="border:1px solid #ccc;padding:8px">${normHora(a.hora)}</td><td style="border:1px solid #ccc;padding:8px">${a.servico||'-'}</td><td style="border:1px solid #ccc;padding:8px">${a.categoria}</td></tr>`;
-    });
-    
+    lista.forEach(a => { html += `<tr><td style="border:1px solid #ccc;padding:8px">${a.data}</td><td style="border:1px solid #ccc;padding:8px">${normHora(a.hora)}</td><td style="border:1px solid #ccc;padding:8px">${a.servico||'-'}</td><td style="border:1px solid #ccc;padding:8px">${a.categoria}</td></tr>`; });
     html += `</table></div>`;
     document.getElementById('print-area').innerHTML = html;
     document.getElementById('print-area').style.display = 'block';
@@ -640,6 +617,7 @@ function showFicha(nome) {
     const hist = appts.filter(a => a.paciente === nome).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));
     const ult = hist[0];
     const el = document.getElementById('ficha-res');
+    if (!pac) { el.innerHTML = '<p class="text-gray-400 text-center">Paciente não encontrado.</p>'; return; }
     el.innerHTML = `<div class="border-2 rounded-2xl p-5 bg-gray-50"><div class="flex items-start justify-between mb-3"><div><p class="font-black text-lg uppercase">${nome}</p></div><button onclick="openEditPac('${nome.replace(/'/g,"\\'")}','${pac?.telefone||''}','${pac?.nascimento||''}','${pac?.email||''}','${pac?.altura||''}')" class="btn-edit">✏️ Editar</button></div><div class="space-y-2">${pac?.telefone ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-phone mr-2"></i>${pac.telefone}</p>` : ''}${pac?.email ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-envelope mr-2"></i>${pac.email}</p>` : ''}${pac?.nascimento ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-birthday-cake mr-2"></i>${cleanDate(pac.nascimento)}</p>` : ''}${pac?.altura ? `<p class="text-sm font-bold text-gray-500"><i class="fas fa-ruler-vertical mr-2"></i>${pac.altura} cm</p>` : ''}<hr class="my-3"><p class="text-xs uppercase font-black text-gray-400 tracking-widest">Última visita</p>${ult ? `<div class="bg-white border rounded-xl p-3 mt-1"><p class="font-black text-sm">${ult.data} — ${normHora(ult.hora)}</p><p class="text-sm text-gray-500 font-bold">${ult.servico||'—'} · ${ult.categoria}</p></div>` : '<p class="text-gray-400 text-sm mt-1">Nenhuma visita registrada.</p>'}<p class="text-xs font-black text-gray-400 mt-2">Total de visitas: ${hist.length}</p></div></div>`;
 }
 
@@ -647,13 +625,7 @@ function secaoRel(cat, prof, step, thBg) {
     const dataF = getBR();
     const titulo = prof ? `${cat} — ${prof}` : cat;
     let rows = '';
-    
-    const agsDaCat = appts.filter(a => a.data===dataF && a.categoria===cat && !a.hora.includes('encaixe')).sort((a,b) => {
-        const horaA = normHora(a.hora);
-        const horaB = normHora(b.hora);
-        return horaA.localeCompare(horaB);
-    });
-    
+    const agsDaCat = appts.filter(a => a.data===dataF && a.categoria===cat && !a.hora.includes('encaixe')).sort((a,b) => normHora(a.hora).localeCompare(normHora(b.hora)));
     agsDaCat.forEach(ag => {
         const pac = pacs.find(p => p.nome===ag.paciente);
         const prev = appts.filter(a => a.paciente===ag.paciente && a.data!==dataF && !a.hora.includes('encaixe')).sort((a,b) => b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0];
@@ -661,7 +633,6 @@ function secaoRel(cat, prof, step, thBg) {
         const obs = observacoes[chaveObs] || '';
         rows += `<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura ? pac.altura+'cm' : ''}</td><td style="white-space:nowrap">${prev ? prev.data : ''}</td><td style="font-size:10px">${prev ? (prev.servico||'')+(prev.categoria?' · '+prev.categoria:'') : ''}</td><td style="font-weight:800">${ag.servico||''}</td><td style="font-size:10px">${obs}</td></tr>`;
     });
-    
     return `<tr><td colspan="10" style="background:${thBg};font-weight:900;font-size:13px;padding:7px 8px;border:1px solid #ccc">* ${titulo.toUpperCase()}</td></tr><tr style="background:${thBg}99;font-size:10px;font-weight:800"><th>Horário</th><th>Paciente</th><th>Telefone</th><th>Nascimento</th><th>Email</th><th>Alt.</th><th>Última visita</th><th>Último proc.</th><th>Hoje</th><th>Observação</th></tr>${rows}`;
 }
 
@@ -671,7 +642,7 @@ function renderRel() {
     const dataF = getBR();
     const prof = getEsportivoProf();
     const tabela = `<table class="rtable"><thead><tr><td colspan="10" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — ${dataF}</td></tr></thead><tbody>${secaoRel('Esportivo', prof, 25, '#fde8d8')}${secaoRel('Emagrecimento', 'Bruno', 35, '#d8eafd')}${secaoRel('Aplicação', '', 30, '#f3d8fd')}</tbody></table>`;
-    c.innerHTML = `<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div><div style="overflow-x:auto">${tabela}</div>`;
+    c.innerHTML = `<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm"><i class="fas fa-print"></i> Imprimir</button></div><div style="overflow-x:auto">${tabela}</div>`;
     document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;
 }
 
@@ -684,24 +655,18 @@ function imprimir() {
 function renderProdutividade() {
     const c = document.getElementById('content');
     const nutricionistas = ['Líbia', 'Geraldo', 'Bruno'];
-    
     let html = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-4 uppercase">Produtividade</h2><div class="mb-4 space-y-3"><div><label class="text-sm font-bold text-gray-600">Data Inicial</label><input type="date" id="data-inicio" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1" onchange="renderProdutividade()"></div><div><label class="text-sm font-bold text-gray-600">Data Final</label><input type="date" id="data-fim" class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 text-sm mt-1" onchange="renderProdutividade()"></div></div><div id="prod-res"></div></div>`;
-    
     c.innerHTML = html;
-    
     setTimeout(() => {
         const dataInicio = document.getElementById('data-inicio').value;
         const dataFim = document.getElementById('data-fim').value;
-        
         let dataInicioNum, dataFimNum;
         if (!dataInicio || !dataFim) {
             const hoje = new Date();
             const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
             const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-            
             dataInicioNum = parseInt(`${primeiroDia.getFullYear()}${String(primeiroDia.getMonth()+1).padStart(2,'0')}${String(primeiroDia.getDate()).padStart(2,'0')}`);
             dataFimNum = parseInt(`${ultimoDia.getFullYear()}${String(ultimoDia.getMonth()+1).padStart(2,'0')}${String(ultimoDia.getDate()).padStart(2,'0')}`);
-            
             document.getElementById('data-inicio').value = primeiroDia.toLocaleDateString('en-CA');
             document.getElementById('data-fim').value = ultimoDia.toLocaleDateString('en-CA');
         } else {
@@ -710,46 +675,36 @@ function renderProdutividade() {
             dataInicioNum = parseInt(`${aI}${mI}${dI}`);
             dataFimNum = parseInt(`${aF}${mF}${dF}`);
         }
-        
         function dataToNum(dataBR) {
             const [d, m, a] = dataBR.split('/');
             return parseInt(`${a}${String(m).padStart(2,'0')}${String(d).padStart(2,'0')}`);
         }
-        
         let tabela = `<table class="rtable"><thead><tr><td colspan="4" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">PRODUTIVIDADE</td></tr></thead><tbody><tr style="background:#f0f0f0;font-size:10px;font-weight:800"><th>Nutricionista</th><th>Consultas</th><th>Retornos</th><th>Total</th></tr>`;
-        
         nutricionistas.forEach(n => {
             let consultas = 0, retornos = 0;
-            
             appts.forEach(a => {
                 const dataNum = dataToNum(a.data);
                 if (dataNum < dataInicioNum || dataNum > dataFimNum) return;
                 if (a.hora.includes('encaixe')) return;
                 if (!['Primeira Consulta','Consulta','Retorno'].includes(a.servico)) return;
-                
-                // AQUI é o problema: precisa pegar do profData SEMPRE
                 if (n === 'Líbia' && a.categoria === 'Esportivo') {
-                    const prof = profData[a.data];
-                    if (prof === 'Líbia' || (!prof && (new Date(a.data.split('/').reverse().join('-')+'T12:00:00')).getDay()===2)) {
-                        if (a.servico === 'Retorno') retornos++;
-                        else consultas++;
+                    const prof = profData[a.data] || getEsportivoProf();
+                    if (prof === 'Líbia') {
+                        if (a.servico === 'Retorno') retornos++; else consultas++;
                     }
                 }
                 if (n === 'Geraldo' && a.categoria === 'Esportivo') {
-                    const prof = profData[a.data];
-                    if (prof === 'Geraldo' || (!prof && (new Date(a.data.split('/').reverse().join('-')+'T12:00:00')).getDay()===4)) {
-                        if (a.servico === 'Retorno') retornos++;
-                        else consultas++;
+                    const prof = profData[a.data] || getEsportivoProf();
+                    if (prof === 'Geraldo') {
+                        if (a.servico === 'Retorno') retornos++; else consultas++;
                     }
                 }
                 if (n === 'Bruno' && a.categoria === 'Emagrecimento') {
-                    if (a.servico === 'Retorno') retornos++;
-                    else consultas++;
+                    if (a.servico === 'Retorno') retornos++; else consultas++;
                 }
             });
             tabela += `<tr><td style="font-weight:800">${n}</td><td style="text-align:center;font-weight:800">${consultas}</td><td style="text-align:center;font-weight:800">${retornos}</td><td style="text-align:center;font-weight:800">${consultas+retornos}</td></tr>`;
         });
-        
         tabela += `</tbody></table>`;
         document.getElementById('prod-res').innerHTML = `<div style="overflow-x:auto">${tabela}</div><div class="mt-4"><button onclick="imprimirProdutividade()" class="w-full bg-black text-white p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"><i class="fas fa-print"></i> Imprimir</button></div>`;
         document.getElementById('print-area').innerHTML = `<div style="padding:20px;font-family:Arial,sans-serif"><h2 style="text-align:center;margin-bottom:20px;font-weight:bold">PRODUTIVIDADE</h2>${tabela}</div>`;
@@ -767,71 +722,41 @@ function renderAcompanhamento() {
     const hoje = new Date();
     const data60d = new Date(hoje.getTime() - 60 * 24 * 60 * 60 * 1000);
     const data25d = new Date(hoje.getTime() - 25 * 24 * 60 * 60 * 1000);
-    
-    function dataToNum(d) {
-        const [dia, mes, ano] = d.split('/');
-        return parseInt(ano + ('0' + mes).slice(-2) + ('0' + dia).slice(-2));
-    }
-    
-    function dateToNum(date) {
-        const dia = ('0' + date.getDate()).slice(-2);
-        const mes = ('0' + (date.getMonth() + 1)).slice(-2);
-        const ano = date.getFullYear();
-        return parseInt(ano + mes + dia);
-    }
-    
+    function dataToNum(d) { const [dia, mes, ano] = d.split('/'); return parseInt(ano + ('0' + mes).slice(-2) + ('0' + dia).slice(-2)); }
+    function dateToNum(date) { const dia = ('0' + date.getDate()).slice(-2); const mes = ('0' + (date.getMonth() + 1)).slice(-2); const ano = date.getFullYear(); return parseInt(ano + mes + dia); }
     const ultimasConsultas = {};
-    appts.forEach(ag => {
-        if (!ag.hora.includes('encaixe')) {
-            const num = dataToNum(ag.data);
-            if (!ultimasConsultas[ag.paciente] || num > dataToNum(ultimasConsultas[ag.paciente].data)) {
-                ultimasConsultas[ag.paciente] = ag;
-            }
-        }
-    });
-    
+    appts.forEach(ag => { if (!ag.hora.includes('encaixe')) { const num = dataToNum(ag.data); if (!ultimasConsultas[ag.paciente] || num > dataToNum(ultimasConsultas[ag.paciente].data)) { ultimasConsultas[ag.paciente] = ag; } } });
     const num60 = dateToNum(data60d);
     const num25 = dateToNum(data25d);
-    
-    const acompanhar = Object.values(ultimasConsultas)
-        .filter(ag => {
-            const num = dataToNum(ag.data);
-            return num >= num60 && num <= num25;
-        })
-        .map(ag => {
-            const pac = pacs.find(p => p.nome === ag.paciente);
-            const [d, m, a] = ag.data.split('/');
-            const dataConsulta = new Date(a, m - 1, d);
-            const diasAtrás = Math.floor((hoje - dataConsulta) / (1000 * 60 * 60 * 24));
-            return { ...ag, pac, diasAtrás };
-        })
-        .sort((a, b) => b.diasAtrás - a.diasAtrás);
-    
+    const acompanhar = Object.values(ultimasConsultas).filter(ag => { const num = dataToNum(ag.data); return num >= num60 && num <= num25; }).map(ag => {
+        const pac = pacs.find(p => p.nome === ag.paciente);
+        const [d, m, a] = ag.data.split('/');
+        const dataConsulta = new Date(a, m - 1, d);
+        const diasAtrás = Math.floor((hoje - dataConsulta) / (1000 * 60 * 60 * 24));
+        return { ...ag, pac, diasAtrás };
+    }).sort((a, b) => b.diasAtrás - a.diasAtrás);
     if (!acompanhar.length) {
         c.innerHTML = `<div class="bg-white p-6 rounded-3xl border shadow-sm text-center"><i class="fas fa-check-circle text-5xl text-green-500 mb-3" style="display:block"></i><p class="font-black text-lg text-green-600">✅ Sem pacientes para acompanhar!</p></div>`;
         return;
     }
-    
     let html = `<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-2 uppercase">Acompanhamento</h2><p class="text-xs text-gray-500 mb-4">Pacientes com última consulta entre 25-60 dias</p><div class="space-y-3">`;
-    
     acompanhar.forEach(ag => {
         const tel = ag.pac?.telefone || '';
-        html += `<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50"><div class="flex items-start justify-between gap-2"><div class="flex-1"><p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p><p class="text-xs text-gray-600 mt-1">Última consulta: ${ag.data} (${ag.diasAtrás} dias atrás)</p>${ag.pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>` : ''}</div><div class="flex flex-col gap-2"><button onclick="enviarWhatsApp('${ag.id}','${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','','','','acompanhamento')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fab fa-whatsapp"></i> Chamar</button></div></div></div>`;
+        html += `<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50"><div class="flex items-start justify-between gap-2"><div class="flex-1"><p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p><p class="text-xs text-gray-600 mt-1">Última consulta: ${ag.data} (${ag.diasAtrás} dias atrás)</p>${ag.pac?.telefone ? `<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>` : ''}</div><div class="flex flex-col gap-2"><button onclick="enviarWhatsAppAcompanhamento('${ag.paciente.replace(/'/g,"\\'")}','${ag.data}')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fab fa-whatsapp"></i> Chamar</button></div></div></div>`;
     });
-    
     html += `</div></div>`;
     c.innerHTML = html;
 }
 
-let marcarFalta = (id) => {
-    if (!confirm('Marcar paciente como FALTOU?')) return;
-    faltosos[id] = true;
-    localStorage.setItem('faltosos', JSON.stringify(faltosos));
-    render();
-};
+function enviarWhatsAppAcompanhamento(nome, data) {
+    const pac = pacs.find(p => p.nome === nome);
+    const tel = limparTelefone(pac?.telefone);
+    if (!tel) { alert('Paciente sem telefone!'); return; }
+    const msg = encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta? 📅\n\nAguardamos seu contato! 😊`);
+    window.open(`https://wa.me/55${tel}?text=${msg}`, '_blank');
+}
 
 document.addEventListener('click', e => { document.querySelectorAll('.sug').forEach(s => { if (!s.contains(e.target)) s.classList.add('hidden'); }); });
 </script>
-
 </body>
 </html>
