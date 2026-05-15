@@ -131,9 +131,9 @@ let pacs=[],appts=[];
 let mTime,mCat,mId=null,mTel=null,mEditData=null,mEditHora=null;
 let profData={},profEditData=null;
 let editPacNome=null;
-let acompanhamentoAberto={};
 
 function limparTelefone(tel){if(!tel)return '';return String(tel).replace(/\D/g,'').trim();}
+function normalizePac(p){return{nome:(p.nome||'').trim(),telefone:limparTelefone(p.telefone||p.tel||''),nascimento:(p.nascimento||p.nasc||'').trim(),email:(p.email||'').trim(),altura:(p.altura||'').trim()};}
 
 window.onload=()=>{
     if(localStorage.getItem('profData'))try{profData=JSON.parse(localStorage.getItem('profData'));}catch(e){}
@@ -148,7 +148,7 @@ async function api(params){
 
 async function loadAll(){
     showSpinner();
-    try{const d=await api({action:'getAll'});pacs=d.patients||[];appts=(d.appointments||[]).map(a=>({...a,data:normDate(a.data),hora:normHora(a.hora)}));}catch(e){alert('Erro ao carregar');}
+    try{const d=await api({action:'getAll'});pacs=(d.patients||[]).map(normalizePac).filter(p=>p.nome);appts=(d.appointments||[]).map(a=>({...a,data:normDate(a.data),hora:normHora(a.hora)}));}catch(e){alert('Erro ao carregar');}
     render();
 }
 
@@ -299,7 +299,7 @@ function enviarWhatsApp(nome,data,hora){
 function sugerir(v,sid){const el=document.getElementById(sid);if(!v||v.length<1){el.classList.add('hidden');return;}const f=pacs.filter(p=>p.nome&&p.nome.toLowerCase().includes(v.toLowerCase())).slice(0,8);const novoPac={nome:'+ NOVO PACIENTE: '+v,isnew:true};const resultados=[...f];if(!f.find(p=>p.nome.toLowerCase()===v.toLowerCase()))resultados.push(novoPac);if(!resultados.length){el.classList.add('hidden');return;}el.innerHTML=resultados.map(p=>`<div onclick="selPac('${p.nome.replace(/'/g,"\\'")}','${sid}',${p.isnew||false})">${p.nome}</div>`).join('');el.classList.remove('hidden');}
 function selPac(nome,sid,isnew){document.getElementById(sid).classList.add('hidden');if(isnew){document.getElementById('m-pac').value=nome.replace('+ NOVO PACIENTE: ','');document.getElementById('novo-pac-form').classList.remove('hidden');}else{document.getElementById('m-pac').value=nome;document.getElementById('novo-pac-form').classList.add('hidden');if(sid==='sug-hist')showHist(nome);}}
 
-function openEditPac(nome,tel,nasc,email,altura){editPacNome=nome;document.getElementById('ep-nome').value=nome;document.getElementById('ep-tel').value=tel;document.getElementById('ep-nasc').value=nasc;document.getElementById('ep-email').value=email;document.getElementById('ep-altura').value=altura;document.getElementById('modal-pac').classList.remove('hidden');}
+function openEditPac(nome,tel,nasc,email,altura){document.getElementById('ep-nome').value=nome;document.getElementById('ep-tel').value=tel;document.getElementById('ep-nasc').value=nasc;document.getElementById('ep-email').value=email;document.getElementById('ep-altura').value=altura;document.getElementById('modal-pac').classList.remove('hidden');}
 function closePacModal(){document.getElementById('modal-pac').classList.add('hidden');}
 function closeBgPac(e){if(e.target.id==='modal-pac')closePacModal();}
 
