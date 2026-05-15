@@ -12,9 +12,9 @@
         :root{--esp:#f97316;--emag:#3b82f6;--aplic:#a855f7;--roxo:#4a148c}
         *{box-sizing:border-box}
         body{background:#fafafa;font-family:'Quicksand',sans-serif;color:#111;-webkit-tap-highlight-color:transparent}
-        .full-header{width:100%;background:#fff;border-bottom:2px solid #eee;text-align:center;padding:0}
-        .full-header img{width:100%;height:240px;object-fit:cover;display:block}
-        .date-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px}
+        .header-bar{width:100%;background:linear-gradient(135deg, #4a148c 0%, #7b1fa2 100%);padding:16px;text-align:center;color:white}
+        .header-title{font-size:18px;font-weight:900;letter-spacing:2px;text-transform:uppercase}
+        .date-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;background:#fff;border-bottom:2px solid #eee}
         .date-row input[type=date]{padding:6px 12px;border:2px solid #eee;border-radius:12px;font-family:'Quicksand',sans-serif;font-weight:700;font-size:14px;background:#fafafa}
         .prof-edit{font-size:11px;cursor:pointer;color:#0369a1;font-weight:700}
         .badge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px}
@@ -25,7 +25,6 @@
         .bg-esp{background:var(--esp)!important}.bg-emag{background:var(--emag)!important}.bg-aplic{background:var(--aplic)!important}
         .slot-btns{position:absolute;top:8px;right:8px;display:flex;gap:6px}
         .slot-btn{width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.2);color:#fff}
-        .slot-status{position:absolute;top:8px;left:8px;font-size:16px}
         nav button{transition:color .15s}.tab-on{color:var(--roxo)!important;font-weight:800;border-top:3px solid var(--roxo)}
         .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:flex-end;justify-content:center}
         .modal-bg.modal-prof{z-index:300}
@@ -37,15 +36,17 @@
         @keyframes spin{to{transform:rotate(360deg)}}
         @media print{body>*:not(#print-area){display:none!important}#print-area{display:block!important}}
         #print-area{display:none}
-        .rtable{width:100%;border-collapse:collapse;font-size:11px}
-        .rtable th,.rtable td{border:1px solid #ccc;padding:4px 6px}
-        .rtable th{font-weight:800;text-align:left}
+        .rtable{width:100%;border-collapse:collapse;font-size:10px}
+        .rtable th,.rtable td{border:1px solid #ccc;padding:5px 6px}
+        .rtable th{font-weight:800;text-align:left;background:#f0f0f0}
         .btn-edit{background:#0369a1;color:#fff;padding:6px 12px;border-radius:8px;border:none;font-weight:700;font-size:12px;cursor:pointer}
     </style>
 </head>
 <body class="pb-24">
-<header class="full-header">
-    <img src="logo.png" alt="" onerror="this.style.display='none'">
+<header>
+    <div class="header-bar">
+        <div class="header-title">📋 Clínica Dr. Jorge Salomão</div>
+    </div>
     <div class="date-row">
         <input type="date" id="datepicker" onchange="onDateChange()">
         <span id="day-badge" class="badge"></span>
@@ -71,7 +72,6 @@
         </div>
         <div id="novo-pac-form" class="hidden space-y-3 mb-4 bg-blue-50 p-4 rounded-2xl border-2 border-blue-200">
             <p class="text-xs font-bold text-blue-600">📝 Novo paciente - preencha os dados:</p>
-            <input id="np-nome" placeholder="Nome completo *" class="w-full p-3 border-2 rounded-xl font-bold text-sm outline-none" value="" readonly style="display:none">
             <input id="np-tel" placeholder="WhatsApp (com DDD)" type="tel" class="w-full p-3 border-2 rounded-xl font-bold text-sm outline-none">
             <input id="np-nasc" placeholder="Nascimento (DD/MM/AAAA)" class="w-full p-3 border-2 rounded-xl font-bold text-sm outline-none">
             <input id="np-email" placeholder="E-mail" type="email" class="w-full p-3 border-2 rounded-xl font-bold text-sm outline-none">
@@ -131,6 +131,7 @@ let pacs=[],appts=[];
 let mTime,mCat,mId=null,mTel=null,mEditData=null,mEditHora=null;
 let profData={},profEditData=null;
 let editPacNome=null;
+let acompanhamentoAberto={};
 
 function limparTelefone(tel){if(!tel)return '';return String(tel).replace(/\D/g,'').trim();}
 
@@ -162,9 +163,9 @@ function allowed(){return weekday()===2;}
 
 function getEsportivoProf(){
     const dataF=getBR();if(profData[dataF])return profData[dataF];
-    const[d,m,a]=dataF.split('/');const dataAtual=new Date(`${a}-${m}-${d}T12:00:00`);const dataInicio=new Date('2026-05-05T12:00:00');
+    const[d,m,a]=dataF.split('/');const dataAtual=new Date(`${a}-${m}-${d}T12:00:00`);const dataInicio=new Date('2026-04-19T12:00:00');
     let dataTemp=new Date(dataInicio);let semanas=0;while(dataTemp<dataAtual){dataTemp.setDate(dataTemp.getDate()+7);semanas++;}
-    const prof=semanas%2===0?'Líbia':'Geraldo';profData[dataF]=prof;localStorage.setItem('profData',JSON.stringify(profData));return prof;
+    const prof=semanas%2===0?'Geraldo':'Líbia';profData[dataF]=prof;localStorage.setItem('profData',JSON.stringify(profData));return prof;
 }
 
 function onDateChange(){updateBadge();render();}
@@ -178,7 +179,7 @@ function render(){
         if(!allowed()){c.innerHTML=`<div class="mt-12 text-center"><div class="text-5xl mb-3">🚫</div><p class="font-bold text-red-400 text-lg">Selecione uma terça-feira.</p></div>`;return;}
         c.innerHTML=catHTML('Esportivo',getEsportivoProf(),'sl-esp','bg-esp',25)+catHTML('Emagrecimento','Bruno','sl-emag','bg-emag',35)+catHTML('Aplicação','','sl-aplic','bg-aplic',30);
     }else if(window.TAB==='historico'){
-        c.innerHTML=`<div class="bg-white p-6 rounded-3xl border shadow-sm"><div class="flex justify-between items-center mb-4"><h2 class="font-black text-xl uppercase">Histórico</h2></div><div class="relative"><input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-hist" class="sug hidden"></div></div><div id="hist-list" class="mt-5 space-y-3"></div></div>`;
+        c.innerHTML=`<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl uppercase mb-4">Histórico</h2><div class="relative mb-4"><input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Nome do paciente..." autocomplete="off" class="w-full p-4 border-2 rounded-2xl font-bold outline-none bg-gray-50 text-sm"><div id="sug-hist" class="sug hidden"></div></div><div id="hist-list" class="space-y-3"></div></div>`;
     }else if(window.TAB==='relatorio'){
         renderRel();
     }else if(window.TAB==='acompanhamento'){
@@ -296,7 +297,7 @@ function enviarWhatsApp(nome,data,hora){
 }
 
 function sugerir(v,sid){const el=document.getElementById(sid);if(!v||v.length<1){el.classList.add('hidden');return;}const f=pacs.filter(p=>p.nome&&p.nome.toLowerCase().includes(v.toLowerCase())).slice(0,8);const novoPac={nome:'+ NOVO PACIENTE: '+v,isnew:true};const resultados=[...f];if(!f.find(p=>p.nome.toLowerCase()===v.toLowerCase()))resultados.push(novoPac);if(!resultados.length){el.classList.add('hidden');return;}el.innerHTML=resultados.map(p=>`<div onclick="selPac('${p.nome.replace(/'/g,"\\'")}','${sid}',${p.isnew||false})">${p.nome}</div>`).join('');el.classList.remove('hidden');}
-function selPac(nome,sid,isnew){document.getElementById(sid).classList.add('hidden');if(isnew){document.getElementById('m-pac').value=nome.replace('+ NOVO PACIENTE: ','');document.getElementById('novo-pac-form').classList.remove('hidden');}else{document.getElementById('m-pac').value=nome;document.getElementById('novo-pac-form').classList.add('hidden');}}
+function selPac(nome,sid,isnew){document.getElementById(sid).classList.add('hidden');if(isnew){document.getElementById('m-pac').value=nome.replace('+ NOVO PACIENTE: ','');document.getElementById('novo-pac-form').classList.remove('hidden');}else{document.getElementById('m-pac').value=nome;document.getElementById('novo-pac-form').classList.add('hidden');if(sid==='sug-hist')showHist(nome);}}
 
 function openEditPac(nome,tel,nasc,email,altura){editPacNome=nome;document.getElementById('ep-nome').value=nome;document.getElementById('ep-tel').value=tel;document.getElementById('ep-nasc').value=nasc;document.getElementById('ep-email').value=email;document.getElementById('ep-altura').value=altura;document.getElementById('modal-pac').classList.remove('hidden');}
 function closePacModal(){document.getElementById('modal-pac').classList.add('hidden');}
@@ -306,9 +307,9 @@ async function savePacEdit(){const nome=document.getElementById('ep-nome').value
 
 function showHist(nome){const lista=appts.filter(a=>a.paciente===nome).sort((a,b)=>b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')));const pac=pacs.find(p=>p.nome===nome);const el=document.getElementById('hist-list');if(!lista.length){el.innerHTML='<p class="text-gray-400 text-center">Sem histórico.</p>';return;}el.innerHTML=lista.map(a=>`<div class="p-4 border-2 rounded-2xl bg-gray-50"><div class="flex justify-between items-center"><span class="font-black text-sm">${a.data} — ${normHora(a.hora)}</span><span class="text-xs font-bold px-2 py-1 rounded-full bg-white border">${a.categoria}</span></div><p class="font-bold text-sm mt-1 text-gray-500">${a.servico||'—'}</p></div>`).join('')+`<button onclick="openEditPac('${nome.replace(/'/g,"\\'")}','${pac?.telefone||''}','${pac?.nascimento||''}','${pac?.email||''}','${pac?.altura||''}')" class="w-full mt-4 bg-blue-600 text-white p-3 rounded-2xl font-bold text-sm">✏️ EDITAR DADOS</button>`;}
 
-function renderRel(){const c=document.getElementById('content');if(!allowed()){c.innerHTML=`<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça-feira.</p></div>`;return;}const dataF=getBR();const prof=getEsportivoProf();let tabela='<table class="rtable"><thead><tr><td colspan="10" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — '+dataF+'</td></tr></thead><tbody>';tabela+=secaoRel('Esportivo',prof,25,'#fde8d8')+secaoRel('Emagrecimento','Bruno',35,'#d8eafd')+secaoRel('Aplicação','',30,'#f3d8fd');tabela+='</tbody></table>';c.innerHTML=`<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm"><i class="fas fa-print"></i> Imprimir</button></div><div style="overflow-x:auto">${tabela}</div>`;document.getElementById('print-area').innerHTML=`<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;}
+function renderRel(){const c=document.getElementById('content');if(!allowed()){c.innerHTML=`<div class="mt-10 text-center"><p class="font-bold text-red-400">Selecione uma terça-feira.</p></div>`;return;}const dataF=getBR();const prof=getEsportivoProf();let tabela='<table class="rtable"><thead><tr><td colspan="9" style="text-align:center;font-weight:900;font-size:15px;padding:8px;border:1px solid #ccc">AGENDA LOURDES — '+dataF+'</td></tr></thead><tbody>';tabela+=secaoRel('Esportivo',prof,25,'#fde8d8')+secaoRel('Emagrecimento','Bruno',35,'#d8eafd')+secaoRel('Aplicação','',30,'#f3d8fd');tabela+='</tbody></table>';c.innerHTML=`<div class="mb-4 flex justify-between items-center"><h2 class="font-black text-lg uppercase">Relatório — ${dataF}</h2><button onclick="imprimir()" class="bg-black text-white px-5 py-3 rounded-2xl font-bold text-sm"><i class="fas fa-print"></i> Imprimir</button></div><div style="overflow-x:auto">${tabela}</div>`;document.getElementById('print-area').innerHTML=`<div style="padding:20px;font-family:Arial,sans-serif">${tabela}</div>`;}
 
-function secaoRel(cat,prof,step,thBg){const dataF=getBR();const titulo=prof?`${cat} — ${prof}`:cat;let rows='';const agsDaCat=appts.filter(a=>a.data===dataF&&a.categoria===cat&&!a.hora.includes('encaixe')).sort((a,b)=>normHora(a.hora).localeCompare(normHora(b.hora)));agsDaCat.forEach(ag=>{const pac=pacs.find(p=>p.nome===ag.paciente);const prev=appts.filter(a=>a.paciente===ag.paciente&&a.data!==dataF&&!a.hora.includes('encaixe')).sort((a,b)=>b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0];rows+=`<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap">${pac?.telefone||''}</td><td style="white-space:nowrap">${cleanDate(pac?.nascimento||'')}</td><td style="font-size:10px">${pac?.email||''}</td><td style="white-space:nowrap">${pac?.altura?pac.altura+'cm':''}</td><td style="white-space:nowrap">${prev?prev.data:''}</td><td style="font-size:10px">${prev?(prev.servico||'')+(prev.categoria?' · '+prev.categoria:''):''}</td><td style="font-weight:800">${ag.servico||''}</td></tr>`;});return`<tr><td colspan="9" style="background:${thBg};font-weight:900;font-size:13px;padding:7px 8px;border:1px solid #ccc">* ${titulo.toUpperCase()}</td></tr><tr style="background:${thBg}99;font-size:10px;font-weight:800"><th>Horário</th><th>Paciente</th><th>Telefone</th><th>Nascimento</th><th>Email</th><th>Alt.</th><th>Última visita</th><th>Último proc.</th><th>Hoje</th></tr>${rows}`;}
+function secaoRel(cat,prof,step,thBg){const dataF=getBR();const titulo=prof?`${cat} — ${prof}`:cat;let rows='';const agsDaCat=appts.filter(a=>a.data===dataF&&a.categoria===cat&&!a.hora.includes('encaixe')).sort((a,b)=>normHora(a.hora).localeCompare(normHora(b.hora)));agsDaCat.forEach(ag=>{const pac=pacs.find(p=>p.nome===ag.paciente);const prev=appts.filter(a=>a.paciente===ag.paciente&&a.data!==dataF&&!a.hora.includes('encaixe')).sort((a,b)=>b.data.split('/').reverse().join('').localeCompare(a.data.split('/').reverse().join('')))[0];rows+=`<tr><td style="font-weight:800;color:#555;white-space:nowrap">${normHora(ag.hora)}</td><td style="font-weight:800">${ag.paciente.toUpperCase()}</td><td style="white-space:nowrap;font-size:10px">${pac?.telefone||''}</td><td style="white-space:nowrap;font-size:10px">${pac?.nascimento||''}</td><td style="font-size:9px">${pac?.email||''}</td><td style="white-space:nowrap;font-size:10px">${pac?.altura?pac.altura+'cm':''}</td><td style="white-space:nowrap;font-size:10px">${prev?prev.data:''}</td><td style="font-size:9px">${prev?(prev.servico||'')+(prev.categoria?' · '+prev.categoria:''):''}</td><td style="font-weight:800">${ag.servico||''}</td></tr>`;});return`<tr><td colspan="9" style="background:${thBg};font-weight:900;font-size:13px;padding:7px 8px;border:1px solid #ccc">* ${titulo.toUpperCase()}</td></tr><tr style="background:${thBg}99;font-size:9px;font-weight:800"><th>Horário</th><th>Paciente</th><th>Tel</th><th>Nasc</th><th>Email</th><th>Alt</th><th>Últverif</th><th>Último</th><th>Hoje</th></tr>${rows}`;}
 
 function imprimir(){document.getElementById('print-area').style.display='block';window.print();setTimeout(()=>{document.getElementById('print-area').style.display='none';},1000);}
 
@@ -320,12 +321,12 @@ function renderAcompanhamento(){
     const num25=dateToNum(data25d);
     const acompanhar=Object.values(ultimasConsultas).filter(ag=>{const num=dataToNum(ag.data);return num<=num25;}).map(ag=>{const pac=pacs.find(p=>p.nome===ag.paciente);const[d,m,a]=ag.data.split('/');const dataConsulta=new Date(a,m-1,d);const diasAtrás=Math.floor((hoje-dataConsulta)/(1000*60*60*24));return{...ag,pac,diasAtrás};}).sort((a,b)=>b.diasAtrás-a.diasAtrás);
     if(!acompanhar.length){c.innerHTML=`<div class="bg-white p-6 rounded-3xl border shadow-sm text-center"><i class="fas fa-check-circle text-5xl text-green-500 mb-3" style="display:block"></i><p class="font-black text-lg text-green-600">✅ Sem pacientes para acompanhar!</p></div>`;return;}
-    let html=`<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-2 uppercase">Acompanhamento</h2><p class="text-xs text-gray-500 mb-4">Pacientes com última consulta acima de 25 dias</p><div class="space-y-3">`;
-    acompanhar.forEach(ag=>{html+=`<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50"><div class="flex items-start justify-between gap-2"><div class="flex-1"><p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p><p class="text-xs text-gray-600 mt-1">Última: ${ag.data} (${ag.diasAtrás} dias)</p>${ag.pac?.telefone?`<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>`:''}</div><button onclick="enviarWhatsAppAcompanhamento('${ag.paciente.replace(/'/g,"\\'")}','${ag.data}')" class="bg-green-500 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fab fa-whatsapp"></i> Chamar</button></div></div>`;});
+    let html=`<div class="bg-white p-6 rounded-3xl border shadow-sm"><h2 class="font-black text-xl mb-2 uppercase">Acompanhamento</h2><p class="text-xs text-gray-500 mb-4">Pacientes com última consulta acima de 25 dias</p><div class="space-y-3" id="acompanhamento-lista">`;
+    acompanhar.forEach(ag=>{const key=ag.paciente;html+=`<div class="border-2 border-orange-300 rounded-2xl p-4 bg-orange-50" id="acomp-${key}"><div class="flex items-start justify-between gap-2"><div class="flex-1"><p class="font-black text-sm uppercase text-orange-900">${ag.paciente}</p><p class="text-xs text-gray-600 mt-1">Última: ${ag.data} (${ag.diasAtrás} dias)</p>${ag.pac?.telefone?`<p class="text-xs text-gray-600"><i class="fas fa-phone mr-1"></i>${ag.pac.telefone}</p>`:''}</div><button onclick="chamarAcompanhamento('${ag.paciente.replace(/'/g,"\\'")}','${ag.data}','acomp-${key}')" class="bg-green-500 text-white px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 whitespace-nowrap"><i class="fab fa-whatsapp"></i> Chamar</button></div></div>`;});
     html+=`</div></div>`;c.innerHTML=html;
 }
 
-function enviarWhatsAppAcompanhamento(nome,data){const pac=pacs.find(p=>p.nome===nome);const tel=limparTelefone(pac?.telefone);if(!tel){alert('Paciente sem telefone!');return;}const msg=encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta? 📅\n\nAguardamos seu contato! 😊`);window.open(`https://wa.me/55${tel}?text=${msg}`,'_blank');}
+function chamarAcompanhamento(nome,data,elemId){const pac=pacs.find(p=>p.nome===nome);const tel=limparTelefone(pac?.telefone);if(!tel){alert('Paciente sem telefone!');return;}const msg=encodeURIComponent(`Olá ${nome}! 👋\n\nVimos que sua última consulta foi em ${data}. Que tal agendar uma nova consulta? 📅\n\nAguardamos seu contato! 😊`);const elem=document.getElementById(elemId);if(elem)elem.style.display='none';window.open(`https://wa.me/55${tel}?text=${msg}`,'_blank');}
 
 document.addEventListener('click',e=>{document.querySelectorAll('.sug').forEach(s=>{if(!s.contains(e.target))s.classList.add('hidden');});});
 </script>
