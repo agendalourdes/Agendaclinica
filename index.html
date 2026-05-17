@@ -124,14 +124,14 @@
 <div id="print-area"></div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbynIyrALH1bA-CO_BpzhOrE1AVP7kXoCQaJ47I8Fpvwg4U3BTo5GtL9XfRStjVzMUI/exec";
+const API="https://script.google.com/macros/s/AKfycby4ND7M_YVjg8j7AiHcb6wPnz2MX68QGd0JYwrgSIlDEl0KxMxjGTXNjdDNXE_25zBF/exec";
 let pacs=[],appts=[];
 let mTime,mCat,mId=null,mTel=null,mEditData=null,mEditHora=null;
 let profData={},profEditData=null;
 let chamadosAcompanhamento=JSON.parse(localStorage.getItem('chamadosAcompanhamento')||'{}');
 
 function limparTelefone(tel){if(!tel)return '';return String(tel).replace(/\D/g,'').trim();}
-function formatarData(d){if(!d)return '';d=String(d).trim();if(/^\d{2}\/\d{2}\/\d{4}$/.test(d))return d;const m=d.match(/(\d{4})-(\d{2})-(\d{2})/);if(m)return`${m[3]}/${m[2]}/${m[1]}`;return d;}
+function formatarData(d){if(!d)return '';d=String(d).trim();if(/^\d{2}\/\d{2}\/\d{4}$/.test(d))return d;const m=d.match(/(\d{4})-(\d{2})-(\d{2})/);if(m)return`${m[3]}/${m[2]}/${m[1]}`;const parts=d.split(' ');if(parts.length>0){const match=parts[0].match(/(\d{4})-(\d{2})-(\d{2})/);if(match)return`${match[3]}/${match[2]}/${match[1]}`;}return d;}
 
 window.onload=()=>{
     if(localStorage.getItem('profDataV2'))try{profData=JSON.parse(localStorage.getItem('profDataV2'));}catch(e){}
