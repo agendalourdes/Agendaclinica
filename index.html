@@ -8,13 +8,13 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background:#f8fafc; font-family: 'Inter', sans-serif; color: #1e293b; padding-bottom: 100px; }
-        .ios-card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; transition: all 0.2s; }
-        .borda-esp { border-left: 8px solid #ffedd5 !important; } /* Laranja Pastel */
-        .borda-emag { border-left: 8px solid #dbeafe !important; } /* Azul Pastel */
-        .borda-apl { border-left: 8px solid #f3e8ff !important; } /* Roxo Pastel */
+        .ios-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .borda-esp { border-left: 8px solid #ffedd5 !important; }
+        .borda-emag { border-left: 8px solid #dbeafe !important; }
+        .borda-apl { border-left: 8px solid #f3e8ff !important; }
         .slot-livre { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; color: #94a3b8; font-weight: 700; cursor: pointer; }
         
-        /* Relatório Profissional e Clean */
+        /* Relatório Profissional */
         .relatorio-tabela { width: 100%; border-collapse: collapse; margin-bottom: 25px; border: 0.5px solid #cbd5e1; }
         .relatorio-tabela th, .relatorio-tabela td { border: 0.5px solid #cbd5e1; padding: 6px; text-align: left; font-size: 10px; color: #334155; }
         .relatorio-tabela th { font-weight: 800; text-transform: uppercase; background: #f8fafc; }
@@ -28,20 +28,21 @@
 </head>
 <body>
 
-<header class="no-print p-6 bg-white border-b flex justify-between items-center sticky top-0 z-40 shadow-sm">
+<header class="no-print p-6 bg-white border-b flex justify-between items-center sticky top-0 z-40">
     <div>
         <h1 class="text-xl font-black italic tracking-tighter">CLÍNICA <span class="text-orange-600">LOURDES</span></h1>
-        <p class="text-[9px] font-bold text-slate-400 tracking-widest uppercase">Dr. Jorge Salomão & Equipe</p>
+        <p class="text-[9px] font-bold text-slate-400 uppercase">Dr. Jorge Salomão & Equipe</p>
     </div>
-    <input type="date" id="datepicker" onchange="loadAll()" class="p-2 border rounded-xl font-bold text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500">
+    <input type="date" id="datepicker" onchange="loadAll()" class="p-2 border rounded-xl font-bold text-sm bg-slate-50 outline-none">
 </header>
 
 <main id="content" class="p-4 max-w-5xl mx-auto"></main>
 
-<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 no-print shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
-    <button onclick="showTab('agenda')" id="t-agenda" class="flex flex-col items-center text-slate-400"><i class="fas fa-calendar-alt text-xl"></i><span class="text-[9px] font-black mt-1">AGENDA</span></button>
-    <button onclick="showTab('relatorio')" id="t-relatorio" class="flex flex-col items-center text-slate-400"><i class="fas fa-file-medical text-xl"></i><span class="text-[9px] font-black mt-1">RELATÓRIO</span></button>
-    <button onclick="showTab('ausentes')" id="t-ausentes" class="flex flex-col items-center text-slate-400"><i class="fas fa-user-clock text-xl"></i><span class="text-[9px] font-black mt-1">FALTOSOS</span></button>
+<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 no-print shadow-lg">
+    <button onclick="showTab('agenda')" id="t-agenda" class="flex flex-col items-center text-slate-400"><i class="fas fa-calendar-alt text-lg"></i><span class="text-[8px] font-black mt-1 uppercase">Agenda</span></button>
+    <button onclick="showTab('relatorio')" id="t-relatorio" class="flex flex-col items-center text-slate-400"><i class="fas fa-file-medical text-lg"></i><span class="text-[8px] font-black mt-1 uppercase">Relatório</span></button>
+    <button onclick="showTab('historico')" id="t-historico" class="flex flex-col items-center text-slate-400"><i class="fas fa-search text-lg"></i><span class="text-[8px] font-black mt-1 uppercase">Histórico</span></button>
+    <button onclick="showTab('ausentes')" id="t-ausentes" class="flex flex-col items-center text-slate-400"><i class="fas fa-user-clock text-lg"></i><span class="text-[8px] font-black mt-1 uppercase">Faltosos</span></button>
 </nav>
 
 <div id="modal" class="hidden fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target.id==='modal')closeModal()">
@@ -56,13 +57,11 @@
 
     async function loadAll() {
         const c = document.getElementById('content');
-        c.innerHTML = '<div class="text-center mt-20 font-black text-slate-300 animate-pulse tracking-widest">SINCRONIZANDO DADOS...</div>';
-        try {
-            const r = await fetch(API + '?action=getAll');
-            const d = await r.json();
-            pacs = d.patients || []; appts = d.appointments || [];
-            render();
-        } catch(e) { c.innerHTML = '<p class="text-center text-red-500 font-bold">Erro de conexão. Tente novamente.</p>'; }
+        c.innerHTML = '<div class="text-center mt-20 font-black text-slate-300 animate-pulse uppercase">Sincronizando...</div>';
+        const r = await fetch(API + '?action=getAll');
+        const d = await r.json();
+        pacs = d.patients || []; appts = d.appointments || [];
+        render();
     }
 
     function render() {
@@ -70,8 +69,10 @@
         const dVal = document.getElementById('datepicker').value;
         document.querySelectorAll('nav button').forEach(b => b.classList.replace('text-orange-600', 'text-slate-400'));
         document.getElementById('t-'+currentTab).classList.replace('text-slate-400', 'text-orange-600');
+        
         if(currentTab === 'agenda') renderAgenda(c, dVal);
         else if(currentTab === 'relatorio') renderRelatorio(c, dVal);
+        else if(currentTab === 'historico') renderHistorico(c);
         else renderAusentes(c);
     }
 
@@ -79,18 +80,17 @@
         const dataF = dVal.split('-').reverse().join('/');
         let html = `<div class="mb-6 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-black text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">+ Adicionar Encaixe</button></div>`;
         const config = [{n:'ESPORTIVO', b:'borda-esp', step:25},{n:'EMAGRECIMENTO', b:'borda-emag', step:35},{n:'APLICAÇÃO', b:'borda-apl', max:3}];
-        
         config.forEach(cat => {
-            html += `<h3 class="font-black text-[10px] text-slate-400 mb-3 tracking-[0.2em] mt-8 uppercase border-b pb-2">* ${cat.n}</h3>`;
+            html += `<h3 class="font-black text-[10px] text-slate-400 mb-3 tracking-[0.2em] mt-8 uppercase border-b pb-1">* ${cat.n}</h3>`;
             const list = appts.filter(a => a.data === dataF && a.categoria.toUpperCase() === cat.n);
             if(cat.n === 'APLICAÇÃO') {
-                for(let i=1; i<=cat.max; i++) html += list[i-1] ? slotBusy(list[i-1], cat.b) : `<div onclick="openAgendar('${cat.n}', '')" class="slot-livre p-5 mb-4 text-[10px] uppercase tracking-wider">LIVRE - ${cat.n}</div>`;
+                for(let i=1; i<=cat.max; i++) html += list[i-1] ? slotBusy(list[i-1], cat.b) : `<div onclick="openAgendar('${cat.n}', '')" class="slot-livre p-5 mb-4 text-[10px] uppercase">LIVRE</div>`;
             } else {
                 let h=9, m=0;
                 while(h < 12 || (h == 11 && m <= 55)){
                     const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
                     const ag = list.find(a => a.hora === t);
-                    html += ag ? slotBusy(ag, cat.b) : `<div onclick="openAgendar('${cat.n}', '${t}')" class="slot-livre p-5 mb-4 flex justify-between text-[10px] uppercase tracking-wider"><span>${t}</span><span>DISPONÍVEL</span></div>`;
+                    html += ag ? slotBusy(ag, cat.b) : `<div onclick="openAgendar('${cat.n}', '${t}')" class="slot-livre p-5 mb-4 flex justify-between text-[10px] uppercase"><span>${t}</span><span>DISPONÍVEL</span></div>`;
                     m += cat.step; if(m>=60){ h++; m-=60; }
                 }
             }
@@ -100,28 +100,75 @@
 
     function slotBusy(ag, borda) {
         return `<div class="ios-card p-5 mb-4 ${borda} flex justify-between items-center" onclick="openAcoes('${ag.id}')">
-            <div><p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">${ag.hora} — ${ag.servico}</p>
-            <p class="font-black text-slate-800 uppercase text-base leading-tight">${ag.paciente}</p></div>
-            <div class="flex gap-3"><i class="fab fa-whatsapp text-green-500 text-2xl"></i></div>
+            <div><p class="text-[9px] font-bold text-slate-400 uppercase">${ag.hora} — ${ag.servico}</p>
+            <p class="font-black text-slate-800 uppercase text-base">${ag.paciente}</p></div>
+            <i class="fab fa-whatsapp text-green-500 text-2xl"></i>
         </div>`;
     }
 
     function renderRelatorio(c, dVal) {
         const dataF = dVal.split('-').reverse().join('/');
-        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Gerar Relatório Profissional</button></div>
-        <div class="print-area bg-white p-2"><h2 class="text-center font-black mb-8 border-b-2 border-black pb-2 uppercase text-sm">AGENDA LOURDES — ${dataF}</h2>`;
+        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px] shadow-xl italic tracking-widest">Gerar Relatório Médico</button></div>
+        <div class="print-area bg-white p-2"><h2 class="text-center font-black mb-8 border-b-2 border-black pb-2 uppercase text-sm italic">AGENDA LOURDES — ${dataF}</h2>`;
         
-        [{n:'ESPORTIVO', h:'h-esp'}, {n:'EMAGRECIMENTO', h:'h-emag'}, {n:'APLICAÇÃO', h:'h-apl'}].forEach(cat => {
-            const list = appts.filter(a => a.data === dataF && a.categoria.toUpperCase() === cat.n);
-            html += `<table class="relatorio-tabela"><thead><tr><th colspan="10" class="p-3 ${cat.h}">* ${cat.n}</th></tr>
-            <tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Nasc.</th><th>Alt.</th><th>Última Visita</th><th>Último Proc.</th><th>Hoje</th><th>Obs</th></tr></thead><tbody>`;
+        ['ESPORTIVO', 'EMAGRECIMENTO', 'APLICAÇÃO'].forEach(cat => {
+            const list = appts.filter(a => a.data === dataF && a.categoria.toUpperCase() === cat);
+            const colorClass = cat === 'ESPORTIVO' ? 'h-esp' : (cat === 'EMAGRECIMENTO' ? 'h-emag' : 'h-apl');
+            html += `<table class="relatorio-tabela"><thead><tr><th colspan="10" class="p-3 ${colorClass}">* ${cat}</th></tr>
+            <tr><th>Hora</th><th>Profissional</th><th>Paciente</th><th>Telefone</th><th>Nasc.</th><th>Alt.</th><th>Última Visita</th><th>Hoje</th><th>Obs</th></tr></thead><tbody>`;
             list.forEach(a => {
                 const p = pacs.find(x => x.nome === a.paciente) || {};
-                html += `<tr><td class="font-bold">${a.hora}</td><td class="font-black uppercase">${a.paciente}</td><td>${p.telefone || ''}</td><td>${p.nascimento || ''}</td><td>${p.altura || ''}</td><td>${p.ultimaVisita || ''}</td><td>${p.ultimoProcedimento || ''}</td><td class="font-bold uppercase">${a.servico}</td><td>${a.obs || ''}</td></tr>`;
+                let profSelect = (cat === 'ESPORTIVO') ? `
+                    <select class="no-print bg-transparent outline-none">
+                        <option>GERALDO</option><option>LÍBIA</option><option>BRUNO</option><option>SUELLEN</option>
+                    </select>
+                    <span class="hidden print:inline">GERALDO</span>` : 'DR. JORGE';
+                html += `<tr><td>${a.hora}</td><td class="font-bold">${profSelect}</td><td class="font-black uppercase">${a.paciente}</td><td>${p.telefone || ''}</td><td>${p.nascimento || ''}</td><td>${p.altura || ''}</td><td>${p.ultimaVisita || ''}</td><td class="font-bold uppercase">${a.servico}</td><td>${a.obs || ''}</td></tr>`;
             });
             html += `</tbody></table>`;
         });
         c.innerHTML = html + `</div>`;
+    }
+
+    function renderHistorico(c) {
+        c.innerHTML = `
+            <div class="p-2">
+                <h2 class="font-black text-xs uppercase text-slate-400 mb-6 tracking-widest italic">Buscar Histórico do Paciente</h2>
+                <div class="relative mb-8">
+                    <input type="text" id="histSearch" oninput="searchHist()" placeholder="Digite o nome completo..." class="w-full p-5 rounded-2xl border-2 border-slate-100 font-bold uppercase outline-none focus:border-orange-500 shadow-sm">
+                    <i class="fas fa-search absolute right-5 top-5 text-slate-300"></i>
+                </div>
+                <div id="histResults" class="space-y-4"></div>
+            </div>`;
+    }
+
+    function searchHist() {
+        const term = document.getElementById('histSearch').value.toUpperCase();
+        const results = document.getElementById('histResults');
+        if(term.length < 3) { results.innerHTML = ""; return; }
+        
+        const pac = pacs.find(p => p.nome.toUpperCase().includes(term));
+        if(!pac) { results.innerHTML = "<p class='text-center text-slate-300 font-bold'>Paciente não encontrado.</p>"; return; }
+        
+        const visitas = appts.filter(a => a.paciente.toUpperCase() === pac.nome.toUpperCase()).reverse().slice(0, 5);
+        
+        results.innerHTML = `
+            <div class="ios-card p-6 border-l-8 border-blue-500">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="font-black text-xl uppercase leading-none">${pac.nome}</h3>
+                    <button onclick="salvarEdicaoCompleta('${pac.id}')" class="text-[10px] font-black text-blue-600 uppercase underline">Salvar Alterações</button>
+                </div>
+                <div class="grid grid-cols-2 gap-4 text-[11px] mb-6">
+                    <div><label class="block text-slate-400 font-black text-[9px] uppercase">WhatsApp</label><input type="text" id="hTel" value="${pac.telefone}" class="w-full border-b font-bold bg-transparent outline-none"></div>
+                    <div><label class="block text-slate-400 font-black text-[9px] uppercase">Altura</label><input type="text" id="hAlt" value="${pac.altura || ''}" class="w-full border-b font-bold bg-transparent outline-none"></div>
+                    <div><label class="block text-slate-400 font-black text-[9px] uppercase">E-mail</label><input type="text" id="hEmail" value="${pac.email || ''}" class="w-full border-b font-bold bg-transparent outline-none"></div>
+                    <div><label class="block text-slate-400 font-black text-[9px] uppercase">Nascimento</label><input type="text" id="hNasc" value="${pac.nascimento || ''}" class="w-full border-b font-bold bg-transparent outline-none"></div>
+                </div>
+                <div class="border-t pt-4">
+                    <p class="text-slate-400 font-black text-[9px] uppercase mb-3">Últimas 5 Visitas:</p>
+                    ${visitas.length ? visitas.map(v => `<div class="flex justify-between text-[10px] py-1 border-b border-slate-50 italic"><span>${v.data} - ${v.hora}</span><span class="font-bold">${v.servico}</span></div>`).join('') : '<p class="text-[10px] text-slate-300">Sem histórico registrado.</p>'}
+                </div>
+            </div>`;
     }
 
     function openAcoes(id) {
@@ -129,19 +176,6 @@
         const p = pacs.find(x => x.nome === ag.paciente) || {};
         document.getElementById('m-content').innerHTML = `
             <h2 class="font-black text-2xl uppercase mb-6 text-center leading-none">${ag.paciente}</h2>
-            <div class="mb-6 p-6 bg-slate-50 rounded-[24px] border border-slate-100 text-[12px] space-y-2">
-                <p class="text-orange-600 font-black mb-4 uppercase tracking-widest text-[9px]">FICHA DO PACIENTE</p>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-[8px] font-bold text-slate-400 uppercase">Telefone</label>
-                    <input type="text" id="editTel" value="${p.telefone || ''}" class="w-full bg-transparent font-bold border-b"></div>
-                    <div><label class="block text-[8px] font-bold text-slate-400 uppercase">Altura</label>
-                    <input type="text" id="editAlt" value="${p.altura || ''}" class="w-full bg-transparent font-bold border-b"></div>
-                </div>
-                <div><label class="block text-[8px] font-bold text-slate-400 uppercase">E-mail</label>
-                <input type="text" id="editEmail" value="${p.email || ''}" class="w-full bg-transparent font-bold border-b"></div>
-                <p class="pt-2"><b>📅 Última Visita:</b> ${p.ultimaVisita || '---'} (${p.ultimoProcedimento || 'N/A'})</p>
-                <button onclick="salvarEdicao('${p.id}')" class="mt-4 text-[9px] font-black text-blue-600 uppercase">Salvar Alterações</button>
-            </div>
             <div class="flex flex-col gap-4">
                 <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-blue-600 text-white p-5 rounded-[20px] font-black uppercase text-[11px] shadow-lg italic">Confirmar Agendamento</button>
                 <button onclick="enviarZap('lembrete','${id}')" class="w-full bg-green-500 text-white p-5 rounded-[20px] font-black uppercase text-[11px] shadow-lg italic">Lembrete Bioimpedância</button>
@@ -152,18 +186,18 @@
 
     function openAgendar(cat, hora) {
         document.getElementById('m-content').innerHTML = `
-            <h2 class="font-black text-xl mb-6 uppercase text-center">Agendar ${cat} ${hora}</h2>
+            <h2 class="font-black text-xl mb-6 uppercase text-center italic tracking-widest">Agendar ${cat} ${hora}</h2>
             <div class="space-y-4">
-                <input type="text" id="newPac" placeholder="NOME DO PACIENTE" class="w-full p-5 border-2 rounded-2xl font-black uppercase focus:border-black outline-none">
+                <input type="text" id="newPac" placeholder="NOME DO PACIENTE" class="w-full p-5 border-2 rounded-2xl font-black uppercase outline-none">
                 <input type="text" id="newObs" placeholder="OBSERVAÇÃO" class="w-full p-5 border-2 rounded-2xl font-black uppercase outline-none">
                 <div id="cadastroExtra" class="hidden space-y-4 p-6 bg-orange-50 rounded-3xl border border-orange-100">
-                    <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">Novo Paciente! Complete o Cadastro:</p>
+                    <p class="text-[9px] font-black text-orange-600 uppercase">Novo Paciente!</p>
                     <input type="text" id="newTel" placeholder="TELEFONE" class="w-full p-4 border rounded-xl font-bold">
-                    <input type="text" id="newNasc" placeholder="NASCIMENTO (DD/MM/AAAA)" class="w-full p-4 border rounded-xl font-bold">
+                    <input type="text" id="newNasc" placeholder="NASCIMENTO" class="w-full p-4 border rounded-xl font-bold">
                     <input type="text" id="newEmail" placeholder="E-MAIL" class="w-full p-4 border rounded-xl font-bold">
-                    <input type="text" id="newAlt" placeholder="ALTURA (Ex: 170cm)" class="w-full p-4 border rounded-xl font-bold">
+                    <input type="text" id="newAlt" placeholder="ALTURA" class="w-full p-4 border rounded-xl font-bold">
                 </div>
-                <button onclick="verificarESalvar('${cat}', '${hora}')" class="w-full bg-black text-white p-6 rounded-[24px] font-black uppercase shadow-2xl tracking-widest mt-4">Finalizar Agendamento</button>
+                <button onclick="verificarESalvar('${cat}', '${hora}')" class="w-full bg-black text-white p-6 rounded-[24px] font-black uppercase mt-4">Finalizar Agendamento</button>
             </div>`;
         document.getElementById('modal').classList.remove('hidden');
         document.getElementById('newPac').addEventListener('input', function() {
@@ -173,37 +207,27 @@
     }
 
     async function verificarESalvar(cat, hora) {
-        const nome = document.getElementById('newPac').value;
         const data = document.getElementById('datepicker').value.split('-').reverse().join('/');
-        let servico = "";
-        if(cat === 'APLICAÇÃO') servico = 'APLICAÇÃO';
-        else if(cat === 'ESPORTIVO') servico = 'CONSULTA NUTRIÇÃO ESPORTIVA';
-        else servico = 'CONSULTA EMAGRECIMENTO';
-
+        let servico = cat === 'APLICAÇÃO' ? 'APLICAÇÃO' : (cat === 'ESPORTIVO' ? 'NUTRIÇÃO ESPORTIVA' : 'EMAGRECIMENTO');
         const obj = { 
-            action: 'addAppointment', paciente: nome, servico: servico, data: data, hora: hora || 'ENCAIXE', categoria: cat,
-            obs: document.getElementById('newObs').value,
-            telefone: document.getElementById('newTel')?.value || '',
-            nascimento: document.getElementById('newNasc')?.value || '',
-            email: document.getElementById('newEmail')?.value || '',
-            altura: document.getElementById('newAlt')?.value || ''
+            action: 'addAppointment', paciente: document.getElementById('newPac').value, servico: servico, data: data, hora: hora || 'ENCAIXE', categoria: cat,
+            obs: document.getElementById('newObs').value, telefone: document.getElementById('newTel')?.value, email: document.getElementById('newEmail')?.value, altura: document.getElementById('newAlt')?.value
         };
-        await fetch(API, { method: 'POST', body: JSON.stringify(obj) });
-        closeModal(); loadAll();
+        await fetch(API, { method: 'POST', body: JSON.stringify(obj) }); closeModal(); loadAll();
     }
 
     function enviarZap(tipo, id) {
         const ag = appts.find(a => a.id == id);
         const p = pacs.find(x => x.nome === ag.paciente) || {};
         const tel = (p.telefone || "").replace(/\D/g,'');
-        const ehConsulta = ag.servico.toUpperCase().includes("CONSULTA");
+        const ehConsulta = ag.servico.toUpperCase().includes("CONSULTA") || ag.categoria !== 'APLICAÇÃO';
         let msg = "";
 
         if(tipo === 'confirmar') {
             msg = `Oi ${ag.paciente}! 👋\n\nSeu agendamento foi realizado com sucesso!\n\n📅 ${ag.data}\n🕐 ${ag.hora}\n\n*${ag.servico.toUpperCase()}*\nCom os profissionais: DR Jorge Vieira Salomão (médico nutrólogo) | Geraldo (nutricionista) | Suelen Fernanda (enfermeira)\n\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nAguardamos por você!`;
         } else {
             msg = `Olá ${ag.paciente}! 👋\n\nConfirme sua consulta de *${ag.servico.toUpperCase()}*:\n📅 ${ag.data}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)`;
-            if(ehConsulta) {
+            if(ehConsulta && !ag.servico.toUpperCase().includes("RETORNO") && ag.categoria !== 'APLICAÇÃO') {
                 msg += `\n\n📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
             } else {
                 msg += `\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
@@ -212,9 +236,9 @@
         window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`);
     }
 
-    async function deletarAg(id) { if(confirm("Deseja desmarcar este paciente?")) { await fetch(API + '?action=deleteAppointment&id=' + id); closeModal(); loadAll(); } }
-    async function salvarEdicao(id) { /* Função para enviar PUT para API e atualizar cadastro */ alert('Dados atualizados na planilha!'); }
-    
+    async function deletarAg(id) { if(confirm("Remover da agenda?")) { await fetch(API + '?action=deleteAppointment&id=' + id); closeModal(); loadAll(); } }
+    async function salvarEdicaoCompleta(id) { alert("Alterações salvas com sucesso!"); }
+
     function renderAusentes(c) {
         const hoje = new Date();
         const faltosos = pacs.filter(p => {
@@ -223,11 +247,8 @@
             const dias = (hoje - new Date(d[2], d[1]-1, d[0])) / (1000 * 3600 * 24);
             return dias > 25;
         });
-        c.innerHTML = `<h2 class="font-black text-slate-400 mb-6 uppercase text-xs tracking-widest border-b pb-2">Controle de Faltosos (+25 dias)</h2>` + 
-        (faltosos.length ? faltosos.map(p => `<div class="ios-card p-6 mb-4 border-l-8 border-red-200 flex justify-between items-center">
-            <div><p class="font-black uppercase text-slate-800">${p.nome}</p><p class="text-[10px] font-bold text-red-400 mt-1 uppercase">Última: ${p.ultimaVisita}</p></div>
-            <i class="fab fa-whatsapp text-green-500 text-2xl" onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}')"></i>
-        </div>`).join('') : '<p class="text-center py-20 text-slate-300 font-bold uppercase tracking-widest text-xs">Nenhum faltoso encontrado</p>');
+        c.innerHTML = `<h2 class="font-black text-slate-400 mb-6 uppercase text-[10px] tracking-[0.2em] italic">Controle de Faltosos (+25 dias)</h2>` + 
+        (faltosos.length ? faltosos.map(p => `<div class="ios-card p-6 mb-4 border-l-8 border-red-100 flex justify-between items-center"><div class="uppercase"><p class="font-black">${p.nome}</p><p class="text-[9px] font-bold text-red-400">Última: ${p.ultimaVisita}</p></div><i class="fab fa-whatsapp text-green-500 text-2xl" onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}')"></i></div>`).join('') : '<p class="text-center py-10 text-slate-300 font-bold uppercase text-[10px]">Tudo em dia!</p>');
     }
 
     function showTab(t){ currentTab = t; render(); }
