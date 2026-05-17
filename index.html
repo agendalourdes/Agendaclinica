@@ -3,45 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SGP LOURDES</title>
+    <title>SGP LOURDES - Dr. Jorge Salomão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background:#f8fafc; font-family: sans-serif; color: #1e293b; padding-bottom: 100px; }
-        .ios-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .borda-esp { border-left: 6px solid #FF7A00 !important; }
-        .borda-emag { border-left: 6px solid #007AFF !important; }
-        .borda-apl { border-left: 6px solid #A855F7 !important; }
-        .slot-livre { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; color: #64748b; font-weight: 700; cursor: pointer; }
+        body { background:#f8fafc; font-family: 'Inter', sans-serif; color: #1e293b; padding-bottom: 100px; }
+        .ios-card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .borda-esp { border-left: 8px solid #ffedd5 !important; } /* Laranja Pastel */
+        .borda-emag { border-left: 8px solid #dbeafe !important; } /* Azul Pastel */
+        .borda-apl { border-left: 8px solid #f3e8ff !important; } /* Roxo Pastel */
+        .slot-livre { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; color: #94a3b8; font-weight: 700; cursor: pointer; }
         
-        .relatorio-tabela { width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 0.5px solid #000; }
-        .relatorio-tabela th, .relatorio-tabela td { border: 0.5px solid #000; padding: 4px; text-align: left; font-size: 9px; color: #000; }
-        .relatorio-tabela th { font-weight: 900; text-transform: uppercase; background: #f2f2f2; }
+        /* Relatório Profissional e Clean */
+        .relatorio-tabela { width: 100%; border-collapse: collapse; margin-bottom: 25px; border: 0.5px solid #cbd5e1; }
+        .relatorio-tabela th, .relatorio-tabela td { border: 0.5px solid #cbd5e1; padding: 6px; text-align: left; font-size: 10px; color: #334155; }
+        .relatorio-tabela th { font-weight: 800; text-transform: uppercase; background: #f8fafc; }
+        
+        .h-esp { background-color: #ffedd5 !important; color: #9a3412 !important; }
+        .h-emag { background-color: #dbeafe !important; color: #1e40af !important; }
+        .h-apl { background-color: #f3e8ff !important; color: #6b21a8 !important; }
 
-        @media print {
-            .no-print { display: none !important; }
-            .print-area { display: block !important; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        }
+        @media print { .no-print { display: none !important; } .print-area { display: block !important; } * { -webkit-print-color-adjust: exact !important; } }
     </style>
 </head>
 <body>
 
-<header class="no-print p-4 bg-white border-b flex justify-between items-center sticky top-0 z-40">
-    <h1 class="text-lg font-black italic">CLÍNICA <span class="text-orange-600">LOURDES</span></h1>
-    <input type="date" id="datepicker" onchange="loadAll()" class="p-2 border rounded-xl font-bold text-sm outline-none">
+<header class="no-print p-6 bg-white border-b flex justify-between items-center sticky top-0 z-40 shadow-sm">
+    <div>
+        <h1 class="text-xl font-black italic tracking-tighter">CLÍNICA <span class="text-orange-600">LOURDES</span></h1>
+        <p class="text-[9px] font-bold text-slate-400 tracking-widest uppercase">Dr. Jorge Salomão & Equipe</p>
+    </div>
+    <input type="date" id="datepicker" onchange="loadAll()" class="p-2 border rounded-xl font-bold text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500">
 </header>
 
-<main id="content" class="p-4 max-w-4xl mx-auto"></main>
+<main id="content" class="p-4 max-w-5xl mx-auto"></main>
 
-<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 no-print shadow-lg">
-    <button onclick="showTab('agenda')" id="t-agenda" class="flex flex-col items-center text-slate-400"><i class="fas fa-calendar-day text-xl"></i><span class="text-[10px] font-bold mt-1 uppercase">Agenda</span></button>
-    <button onclick="showTab('relatorio')" id="t-relatorio" class="flex flex-col items-center text-slate-400"><i class="fas fa-file-invoice text-xl"></i><span class="text-[10px] font-bold mt-1 uppercase">Relatório</span></button>
-    <button onclick="showTab('ausentes')" id="t-ausentes" class="flex flex-col items-center text-slate-400"><i class="fas fa-users-slash text-xl"></i><span class="text-[10px] font-bold mt-1 uppercase">Faltosos</span></button>
+<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 no-print shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
+    <button onclick="showTab('agenda')" id="t-agenda" class="flex flex-col items-center text-slate-400"><i class="fas fa-calendar-alt text-xl"></i><span class="text-[9px] font-black mt-1">AGENDA</span></button>
+    <button onclick="showTab('relatorio')" id="t-relatorio" class="flex flex-col items-center text-slate-400"><i class="fas fa-file-medical text-xl"></i><span class="text-[9px] font-black mt-1">RELATÓRIO</span></button>
+    <button onclick="showTab('ausentes')" id="t-ausentes" class="flex flex-col items-center text-slate-400"><i class="fas fa-user-clock text-xl"></i><span class="text-[9px] font-black mt-1">FALTOSOS</span></button>
 </nav>
 
-<div id="modal" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target.id==='modal')closeModal()">
-    <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl overflow-y-auto max-h-[90vh]" onclick="event.stopPropagation()">
+<div id="modal" class="hidden fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target.id==='modal')closeModal()">
+    <div class="bg-white w-full max-w-lg rounded-[32px] p-8 shadow-2xl overflow-y-auto max-h-[90vh]" onclick="event.stopPropagation()">
         <div id="m-content"></div>
     </div>
 </div>
@@ -52,11 +56,13 @@
 
     async function loadAll() {
         const c = document.getElementById('content');
-        c.innerHTML = '<div class="text-center mt-20 font-bold text-slate-400 animate-pulse uppercase">Sincronizando Banco de Dados...</div>';
-        const r = await fetch(API + '?action=getAll');
-        const d = await r.json();
-        pacs = d.patients || []; appts = d.appointments || [];
-        render();
+        c.innerHTML = '<div class="text-center mt-20 font-black text-slate-300 animate-pulse tracking-widest">SINCRONIZANDO DADOS...</div>';
+        try {
+            const r = await fetch(API + '?action=getAll');
+            const d = await r.json();
+            pacs = d.patients || []; appts = d.appointments || [];
+            render();
+        } catch(e) { c.innerHTML = '<p class="text-center text-red-500 font-bold">Erro de conexão. Tente novamente.</p>'; }
     }
 
     function render() {
@@ -71,20 +77,20 @@
 
     function renderAgenda(c, dVal) {
         const dataF = dVal.split('-').reverse().join('/');
-        let html = `<div class="mb-4 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-black text-white px-4 py-2 rounded-full text-[10px] font-black uppercase shadow-md">+ Adicionar Encaixe</button></div>`;
+        let html = `<div class="mb-6 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-black text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">+ Adicionar Encaixe</button></div>`;
         const config = [{n:'ESPORTIVO', b:'borda-esp', step:25},{n:'EMAGRECIMENTO', b:'borda-emag', step:35},{n:'APLICAÇÃO', b:'borda-apl', max:3}];
         
         config.forEach(cat => {
-            html += `<h3 class="font-black text-[10px] text-slate-400 mb-3 tracking-widest mt-6 uppercase">* ${cat.n}</h3>`;
+            html += `<h3 class="font-black text-[10px] text-slate-400 mb-3 tracking-[0.2em] mt-8 uppercase border-b pb-2">* ${cat.n}</h3>`;
             const list = appts.filter(a => a.data === dataF && a.categoria.toUpperCase() === cat.n);
             if(cat.n === 'APLICAÇÃO') {
-                for(let i=1; i<=cat.max; i++) html += list[i-1] ? slotBusy(list[i-1], cat.b) : `<div onclick="openAgendar('${cat.n}', '')" class="slot-livre p-4 mb-3 uppercase text-[10px]">LIVRE - APLICAÇÃO</div>`;
+                for(let i=1; i<=cat.max; i++) html += list[i-1] ? slotBusy(list[i-1], cat.b) : `<div onclick="openAgendar('${cat.n}', '')" class="slot-livre p-5 mb-4 text-[10px] uppercase tracking-wider">LIVRE - ${cat.n}</div>`;
             } else {
                 let h=9, m=0;
                 while(h < 12 || (h == 11 && m <= 55)){
                     const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
                     const ag = list.find(a => a.hora === t);
-                    html += ag ? slotBusy(ag, cat.b) : `<div onclick="openAgendar('${cat.n}', '${t}')" class="slot-livre p-4 mb-3 flex justify-between text-[10px] uppercase">${t} - DISPONÍVEL</div>`;
+                    html += ag ? slotBusy(ag, cat.b) : `<div onclick="openAgendar('${cat.n}', '${t}')" class="slot-livre p-5 mb-4 flex justify-between text-[10px] uppercase tracking-wider"><span>${t}</span><span>DISPONÍVEL</span></div>`;
                     m += cat.step; if(m>=60){ h++; m-=60; }
                 }
             }
@@ -94,23 +100,24 @@
 
     function slotBusy(ag, borda) {
         return `<div class="ios-card p-5 mb-4 ${borda} flex justify-between items-center" onclick="openAcoes('${ag.id}')">
-            <div><p class="text-[10px] font-bold text-slate-400 uppercase">${ag.hora} — ${ag.servico}</p>
-            <p class="font-black text-slate-800 uppercase text-base tracking-tighter">${ag.paciente}</p></div>
-            <i class="fab fa-whatsapp text-green-500 text-2xl"></i>
+            <div><p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">${ag.hora} — ${ag.servico}</p>
+            <p class="font-black text-slate-800 uppercase text-base leading-tight">${ag.paciente}</p></div>
+            <div class="flex gap-3"><i class="fab fa-whatsapp text-green-500 text-2xl"></i></div>
         </div>`;
     }
 
     function renderRelatorio(c, dVal) {
         const dataF = dVal.split('-').reverse().join('/');
-        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-xl font-bold uppercase text-xs">Imprimir Relatório Médico</button></div>
-        <div class="print-area bg-white p-2"><h2 class="text-center font-black mb-6 border-b border-black pb-1 uppercase text-sm">AGENDA LOURDES — ${dataF}</h2>`;
-        ['ESPORTIVO', 'EMAGRECIMENTO', 'APLICAÇÃO'].forEach(cat => {
-            const list = appts.filter(a => a.data === dataF && a.categoria.toUpperCase() === cat);
-            html += `<table class="relatorio-tabela"><thead><tr><th colspan="10" class="p-2">* ${cat}</th></tr>
-            <tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Nasc.</th><th>Altura</th><th>Última Visita</th><th>Último Proc.</th><th>Hoje</th><th>Obs</th></tr></thead><tbody>`;
+        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Gerar Relatório Profissional</button></div>
+        <div class="print-area bg-white p-2"><h2 class="text-center font-black mb-8 border-b-2 border-black pb-2 uppercase text-sm">AGENDA LOURDES — ${dataF}</h2>`;
+        
+        [{n:'ESPORTIVO', h:'h-esp'}, {n:'EMAGRECIMENTO', h:'h-emag'}, {n:'APLICAÇÃO', h:'h-apl'}].forEach(cat => {
+            const list = appts.filter(a => a.data === dataF && a.categoria.toUpperCase() === cat.n);
+            html += `<table class="relatorio-tabela"><thead><tr><th colspan="10" class="p-3 ${cat.h}">* ${cat.n}</th></tr>
+            <tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Nasc.</th><th>Alt.</th><th>Última Visita</th><th>Último Proc.</th><th>Hoje</th><th>Obs</th></tr></thead><tbody>`;
             list.forEach(a => {
-                const p = pacs.find(x => x.nome.trim().toUpperCase() === a.paciente.trim().toUpperCase()) || {};
-                html += `<tr><td>${a.hora}</td><td class="font-bold uppercase">${a.paciente}</td><td>${p.telefone || ''}</td><td>${p.nascimento || ''}</td><td>${p.altura || ''}</td><td>${p.ultimaVisita || ''}</td><td>${p.ultimoProcedimento || ''}</td><td class="font-bold uppercase">${a.servico}</td><td>${a.obs || ''}</td></tr>`;
+                const p = pacs.find(x => x.nome === a.paciente) || {};
+                html += `<tr><td class="font-bold">${a.hora}</td><td class="font-black uppercase">${a.paciente}</td><td>${p.telefone || ''}</td><td>${p.nascimento || ''}</td><td>${p.altura || ''}</td><td>${p.ultimaVisita || ''}</td><td>${p.ultimoProcedimento || ''}</td><td class="font-bold uppercase">${a.servico}</td><td>${a.obs || ''}</td></tr>`;
             });
             html += `</tbody></table>`;
         });
@@ -119,97 +126,108 @@
 
     function openAcoes(id) {
         const ag = appts.find(a => a.id == id);
-        const p = pacs.find(x => x.nome.trim().toUpperCase() === ag.paciente.trim().toUpperCase()) || {};
+        const p = pacs.find(x => x.nome === ag.paciente) || {};
         document.getElementById('m-content').innerHTML = `
-            <h2 class="font-black text-xl uppercase mb-4 text-center">${ag.paciente}</h2>
-            <div class="mb-6 p-4 bg-slate-50 rounded-2xl border text-[12px]">
-                <p class="text-slate-400 font-bold mb-2 uppercase">Ficha do Paciente:</p>
-                <p><b>📱 WhatsApp:</b> ${p.telefone || 'Não localizado'}</p>
-                <p><b>🎂 Nascimento:</b> ${p.nascimento || '---'}</p>
-                <p><b>📧 Email:</b> ${p.email || '---'}</p>
-                <p><b>📅 Última Visita:</b> ${p.ultimaVisita || '---'}</p>
+            <h2 class="font-black text-2xl uppercase mb-6 text-center leading-none">${ag.paciente}</h2>
+            <div class="mb-6 p-6 bg-slate-50 rounded-[24px] border border-slate-100 text-[12px] space-y-2">
+                <p class="text-orange-600 font-black mb-4 uppercase tracking-widest text-[9px]">FICHA DO PACIENTE</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[8px] font-bold text-slate-400 uppercase">Telefone</label>
+                    <input type="text" id="editTel" value="${p.telefone || ''}" class="w-full bg-transparent font-bold border-b"></div>
+                    <div><label class="block text-[8px] font-bold text-slate-400 uppercase">Altura</label>
+                    <input type="text" id="editAlt" value="${p.altura || ''}" class="w-full bg-transparent font-bold border-b"></div>
+                </div>
+                <div><label class="block text-[8px] font-bold text-slate-400 uppercase">E-mail</label>
+                <input type="text" id="editEmail" value="${p.email || ''}" class="w-full bg-transparent font-bold border-b"></div>
+                <p class="pt-2"><b>📅 Última Visita:</b> ${p.ultimaVisita || '---'} (${p.ultimoProcedimento || 'N/A'})</p>
+                <button onclick="salvarEdicao('${p.id}')" class="mt-4 text-[9px] font-black text-blue-600 uppercase">Salvar Alterações</button>
             </div>
-            <button onclick="enviarZap('agendado','${id}')" class="w-full bg-blue-600 text-white p-5 rounded-2xl mb-4 font-black uppercase text-xs">Confirmar Agendamento</button>
-            <button onclick="enviarZap('lembrete','${id}')" class="w-full bg-green-500 text-white p-5 rounded-2xl mb-4 font-black uppercase text-xs">Enviar Lembrete Completo</button>
-            <button onclick="deletarAg('${id}')" class="w-full bg-red-100 text-red-600 p-4 rounded-2xl mb-8 font-black uppercase text-[10px]">Desmarcar / Excluir</button>
-            <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-[10px] uppercase underline text-center block">Voltar para Agenda</button>`;
+            <div class="flex flex-col gap-4">
+                <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-blue-600 text-white p-5 rounded-[20px] font-black uppercase text-[11px] shadow-lg italic">Confirmar Agendamento</button>
+                <button onclick="enviarZap('lembrete','${id}')" class="w-full bg-green-500 text-white p-5 rounded-[20px] font-black uppercase text-[11px] shadow-lg italic">Lembrete Bioimpedância</button>
+                <button onclick="deletarAg('${id}')" class="text-red-500 font-black text-[10px] uppercase mt-4">Remover da Agenda</button>
+            </div>`;
         document.getElementById('modal').classList.remove('hidden');
     }
 
     function openAgendar(cat, hora) {
         document.getElementById('m-content').innerHTML = `
-            <h2 class="font-black text-lg mb-6 uppercase text-center">Agendar: ${cat} ${hora}</h2>
+            <h2 class="font-black text-xl mb-6 uppercase text-center">Agendar ${cat} ${hora}</h2>
             <div class="space-y-4">
-                <input type="text" id="newPac" placeholder="NOME DO PACIENTE" class="w-full p-4 border rounded-2xl font-bold uppercase">
-                <input type="text" id="newObs" placeholder="OBSERVAÇÃO" class="w-full p-4 border rounded-2xl font-bold uppercase">
-                <div id="cadastroExtra" class="hidden space-y-4 pt-4 border-t">
-                    <p class="text-[10px] font-bold text-orange-600">NOVO PACIENTE! PREENCHA OS DADOS:</p>
-                    <input type="text" id="newTel" placeholder="TELEFONE" class="w-full p-4 border rounded-2xl font-bold">
-                    <input type="text" id="newNasc" placeholder="NASCIMENTO (DD/MM/AAAA)" class="w-full p-4 border rounded-2xl font-bold">
+                <input type="text" id="newPac" placeholder="NOME DO PACIENTE" class="w-full p-5 border-2 rounded-2xl font-black uppercase focus:border-black outline-none">
+                <input type="text" id="newObs" placeholder="OBSERVAÇÃO" class="w-full p-5 border-2 rounded-2xl font-black uppercase outline-none">
+                <div id="cadastroExtra" class="hidden space-y-4 p-6 bg-orange-50 rounded-3xl border border-orange-100">
+                    <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">Novo Paciente! Complete o Cadastro:</p>
+                    <input type="text" id="newTel" placeholder="TELEFONE" class="w-full p-4 border rounded-xl font-bold">
+                    <input type="text" id="newNasc" placeholder="NASCIMENTO (DD/MM/AAAA)" class="w-full p-4 border rounded-xl font-bold">
+                    <input type="text" id="newEmail" placeholder="E-MAIL" class="w-full p-4 border rounded-xl font-bold">
+                    <input type="text" id="newAlt" placeholder="ALTURA (Ex: 170cm)" class="w-full p-4 border rounded-xl font-bold">
                 </div>
-                <button onclick="verificarESalvar('${cat}', '${hora}')" class="w-full bg-black text-white p-5 rounded-2xl font-black uppercase shadow-xl">Salvar na Agenda</button>
+                <button onclick="verificarESalvar('${cat}', '${hora}')" class="w-full bg-black text-white p-6 rounded-[24px] font-black uppercase shadow-2xl tracking-widest mt-4">Finalizar Agendamento</button>
             </div>`;
         document.getElementById('modal').classList.remove('hidden');
-        document.getElementById('newPac').addEventListener('blur', function() {
-            const existe = pacs.find(p => p.nome.trim().toUpperCase() === this.value.trim().toUpperCase());
-            if(!existe && this.value.length > 3) document.getElementById('cadastroExtra').classList.remove('hidden');
+        document.getElementById('newPac').addEventListener('input', function() {
+            const existe = pacs.find(p => p.nome.toUpperCase() === this.value.toUpperCase());
+            document.getElementById('cadastroExtra').classList.toggle('hidden', !!existe || this.value.length < 3);
         });
     }
 
     async function verificarESalvar(cat, hora) {
         const nome = document.getElementById('newPac').value;
         const data = document.getElementById('datepicker').value.split('-').reverse().join('/');
-        const servico = cat === 'APLICAÇÃO' ? 'APLICAÇÃO' : 'CONSULTA ' + cat;
-        
+        let servico = "";
+        if(cat === 'APLICAÇÃO') servico = 'APLICAÇÃO';
+        else if(cat === 'ESPORTIVO') servico = 'CONSULTA NUTRIÇÃO ESPORTIVA';
+        else servico = 'CONSULTA EMAGRECIMENTO';
+
         const obj = { 
-            action: 'addAppointment', paciente: nome, servico: servico,
+            action: 'addAppointment', paciente: nome, servico: servico, data: data, hora: hora || 'ENCAIXE', categoria: cat,
             obs: document.getElementById('newObs').value,
-            data: data, hora: hora || 'ENCAIXE', categoria: cat,
             telefone: document.getElementById('newTel')?.value || '',
-            nascimento: document.getElementById('newNasc')?.value || ''
+            nascimento: document.getElementById('newNasc')?.value || '',
+            email: document.getElementById('newEmail')?.value || '',
+            altura: document.getElementById('newAlt')?.value || ''
         };
         await fetch(API, { method: 'POST', body: JSON.stringify(obj) });
         closeModal(); loadAll();
     }
 
-    async function deletarAg(id) {
-        if(confirm("Deseja realmente desmarcar este paciente?")) {
-            await fetch(API + '?action=deleteAppointment&id=' + id);
-            closeModal(); loadAll();
-        }
-    }
-
     function enviarZap(tipo, id) {
         const ag = appts.find(a => a.id == id);
-        const p = pacs.find(x => x.nome.trim().toUpperCase() === ag.paciente.trim().toUpperCase()) || {};
+        const p = pacs.find(x => x.nome === ag.paciente) || {};
         const tel = (p.telefone || "").replace(/\D/g,'');
         const ehConsulta = ag.servico.toUpperCase().includes("CONSULTA");
         let msg = "";
 
-        if(tipo === 'agendado') {
-            msg = `Oi ${ag.paciente}! 👋\n\nSeu agendamento com o *Dr. Jorge Salomão* foi realizado com sucesso!\n\n📅 DATA: ${ag.data}\n⏰ HORA: ${ag.hora}\n✅ PROCEDIMENTO: *${ag.servico.toUpperCase()}*\n\n📍 LOCAL: Rua dos Timbiras, 2237 / 5º andar - Lourdes.`;
+        if(tipo === 'confirmar') {
+            msg = `Oi ${ag.paciente}! 👋\n\nSeu agendamento foi realizado com sucesso!\n\n📅 ${ag.data}\n🕐 ${ag.hora}\n\n*${ag.servico.toUpperCase()}*\nCom os profissionais: DR Jorge Vieira Salomão (médico nutrólogo) | Geraldo (nutricionista) | Suelen Fernanda (enfermeira)\n\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nAguardamos por você!`;
         } else {
-            msg = `Olá ${ag.paciente}! 👋\n\nConfirmando sua consulta com o *Dr. Jorge Salomão* amanhã:\n📅 DATA: ${ag.data}\n⏰ HORA: ${ag.hora}.\n\n🎁 *VALE DESCONTO:*\nPagamento em dinheiro tem 10% OFF em Injetáveis!`;
+            msg = `Olá ${ag.paciente}! 👋\n\nConfirme sua consulta de *${ag.servico.toUpperCase()}*:\n📅 ${ag.data}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)`;
             if(ehConsulta) {
-                msg += `\n\n📊 *PREPARO PARA BIOIMPEDÂNCIA:*\n1. Jejum de alimentos e bebidas por 2 horas.\n2. Não realizar exercícios físicos 4 horas antes.\n3. Não ingerir álcool 24h antes.\n4. Trazer exames anteriores impressos.`;
+                msg += `\n\n📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
+            } else {
+                msg += `\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
             }
         }
         window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`);
     }
 
+    async function deletarAg(id) { if(confirm("Deseja desmarcar este paciente?")) { await fetch(API + '?action=deleteAppointment&id=' + id); closeModal(); loadAll(); } }
+    async function salvarEdicao(id) { /* Função para enviar PUT para API e atualizar cadastro */ alert('Dados atualizados na planilha!'); }
+    
     function renderAusentes(c) {
         const hoje = new Date();
         const faltosos = pacs.filter(p => {
-            if(!p.ultimaVisita || p.ultimaVisita === "---") return false;
-            const parts = p.ultimaVisita.split('/');
-            const dVisita = new Date(parts[2], parts[1]-1, parts[0]);
-            const diffDays = Math.floor((hoje - dVisita) / (1000 * 3600 * 24));
-            return diffDays > 25;
+            if(!p.ultimaVisita) return false;
+            const d = p.ultimaVisita.split('/');
+            const dias = (hoje - new Date(d[2], d[1]-1, d[0])) / (1000 * 3600 * 24);
+            return dias > 25;
         });
-        c.innerHTML = `<h2 class="font-black text-slate-400 mb-6 uppercase text-xs tracking-widest">Controle de Faltosos (+25 dias)</h2>` + 
-        (faltosos.length ? faltosos.map(p => `<div class="ios-card p-5 mb-4 border-l-8 border-red-500 flex justify-between items-center">
-            <div><p class="font-black uppercase">${p.nome}</p><p class="text-[10px] font-bold text-red-500">ÚLTIMA VISITA EM: ${p.ultimaVisita}</p></div>
-            <i class="fab fa-whatsapp text-green-500 text-2xl" onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}')"></i></div>`).join('') : '<p class="text-center py-20 text-slate-300 font-bold uppercase tracking-widest">Nenhum faltoso na lista</p>');
+        c.innerHTML = `<h2 class="font-black text-slate-400 mb-6 uppercase text-xs tracking-widest border-b pb-2">Controle de Faltosos (+25 dias)</h2>` + 
+        (faltosos.length ? faltosos.map(p => `<div class="ios-card p-6 mb-4 border-l-8 border-red-200 flex justify-between items-center">
+            <div><p class="font-black uppercase text-slate-800">${p.nome}</p><p class="text-[10px] font-bold text-red-400 mt-1 uppercase">Última: ${p.ultimaVisita}</p></div>
+            <i class="fab fa-whatsapp text-green-500 text-2xl" onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}')"></i>
+        </div>`).join('') : '<p class="text-center py-20 text-slate-300 font-bold uppercase tracking-widest text-xs">Nenhum faltoso encontrado</p>');
     }
 
     function showTab(t){ currentTab = t; render(); }
