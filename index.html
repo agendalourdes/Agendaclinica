@@ -71,7 +71,7 @@
 
     function renderAgenda(c, dVal) {
         const dataF = dVal.split('-').reverse().join('/');
-        let html = `<div class="mb-4 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-black text-white px-4 py-2 rounded-full text-[10px] font-black uppercase">+ Adicionar Encaixe</button></div>`;
+        let html = `<div class="mb-4 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-black text-white px-4 py-2 rounded-full text-[10px] font-black uppercase shadow-md">+ Adicionar Encaixe</button></div>`;
         const config = [{n:'ESPORTIVO', b:'borda-esp', step:25},{n:'EMAGRECIMENTO', b:'borda-emag', step:35},{n:'APLICAÇÃO', b:'borda-apl', max:3}];
         
         config.forEach(cat => {
@@ -95,7 +95,7 @@
     function slotBusy(ag, borda) {
         return `<div class="ios-card p-5 mb-4 ${borda} flex justify-between items-center" onclick="openAcoes('${ag.id}')">
             <div><p class="text-[10px] font-bold text-slate-400 uppercase">${ag.hora} — ${ag.servico}</p>
-            <p class="font-black text-slate-800 uppercase text-base">${ag.paciente}</p></div>
+            <p class="font-black text-slate-800 uppercase text-base tracking-tighter">${ag.paciente}</p></div>
             <i class="fab fa-whatsapp text-green-500 text-2xl"></i>
         </div>`;
     }
@@ -109,7 +109,7 @@
             html += `<table class="relatorio-tabela"><thead><tr><th colspan="10" class="p-2">* ${cat}</th></tr>
             <tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Nasc.</th><th>Altura</th><th>Última Visita</th><th>Último Proc.</th><th>Hoje</th><th>Obs</th></tr></thead><tbody>`;
             list.forEach(a => {
-                const p = pacs.find(x => x.nome === a.paciente) || {};
+                const p = pacs.find(x => x.nome.trim().toUpperCase() === a.paciente.trim().toUpperCase()) || {};
                 html += `<tr><td>${a.hora}</td><td class="font-bold uppercase">${a.paciente}</td><td>${p.telefone || ''}</td><td>${p.nascimento || ''}</td><td>${p.altura || ''}</td><td>${p.ultimaVisita || ''}</td><td>${p.ultimoProcedimento || ''}</td><td class="font-bold uppercase">${a.servico}</td><td>${a.obs || ''}</td></tr>`;
             });
             html += `</tbody></table>`;
@@ -119,11 +119,12 @@
 
     function openAcoes(id) {
         const ag = appts.find(a => a.id == id);
-        const p = pacs.find(x => x.nome === ag.paciente) || {};
+        const p = pacs.find(x => x.nome.trim().toUpperCase() === ag.paciente.trim().toUpperCase()) || {};
         document.getElementById('m-content').innerHTML = `
             <h2 class="font-black text-xl uppercase mb-4 text-center">${ag.paciente}</h2>
             <div class="mb-6 p-4 bg-slate-50 rounded-2xl border text-[12px]">
-                <p><b>📱 WhatsApp:</b> ${p.telefone || '---'}</p>
+                <p class="text-slate-400 font-bold mb-2 uppercase">Ficha do Paciente:</p>
+                <p><b>📱 WhatsApp:</b> ${p.telefone || 'Não localizado'}</p>
                 <p><b>🎂 Nascimento:</b> ${p.nascimento || '---'}</p>
                 <p><b>📧 Email:</b> ${p.email || '---'}</p>
                 <p><b>📅 Última Visita:</b> ${p.ultimaVisita || '---'}</p>
@@ -131,7 +132,7 @@
             <button onclick="enviarZap('agendado','${id}')" class="w-full bg-blue-600 text-white p-5 rounded-2xl mb-4 font-black uppercase text-xs">Confirmar Agendamento</button>
             <button onclick="enviarZap('lembrete','${id}')" class="w-full bg-green-500 text-white p-5 rounded-2xl mb-4 font-black uppercase text-xs">Enviar Lembrete Completo</button>
             <button onclick="deletarAg('${id}')" class="w-full bg-red-100 text-red-600 p-4 rounded-2xl mb-8 font-black uppercase text-[10px]">Desmarcar / Excluir</button>
-            <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-[10px] uppercase underline text-center block">Voltar</button>`;
+            <button onclick="closeModal()" class="w-full text-slate-400 font-bold text-[10px] uppercase underline text-center block">Voltar para Agenda</button>`;
         document.getElementById('modal').classList.remove('hidden');
     }
 
@@ -146,11 +147,11 @@
                     <input type="text" id="newTel" placeholder="TELEFONE" class="w-full p-4 border rounded-2xl font-bold">
                     <input type="text" id="newNasc" placeholder="NASCIMENTO (DD/MM/AAAA)" class="w-full p-4 border rounded-2xl font-bold">
                 </div>
-                <button onclick="verificarESalvar('${cat}', '${hora}')" class="w-full bg-black text-white p-5 rounded-2xl font-black uppercase shadow-xl">Salvar Agendamento</button>
+                <button onclick="verificarESalvar('${cat}', '${hora}')" class="w-full bg-black text-white p-5 rounded-2xl font-black uppercase shadow-xl">Salvar na Agenda</button>
             </div>`;
         document.getElementById('modal').classList.remove('hidden');
         document.getElementById('newPac').addEventListener('blur', function() {
-            const existe = pacs.find(p => p.nome.toUpperCase() === this.value.toUpperCase());
+            const existe = pacs.find(p => p.nome.trim().toUpperCase() === this.value.trim().toUpperCase());
             if(!existe && this.value.length > 3) document.getElementById('cadastroExtra').classList.remove('hidden');
         });
     }
@@ -161,9 +162,7 @@
         const servico = cat === 'APLICAÇÃO' ? 'APLICAÇÃO' : 'CONSULTA ' + cat;
         
         const obj = { 
-            action: 'addAppointment', 
-            paciente: nome, 
-            servico: servico,
+            action: 'addAppointment', paciente: nome, servico: servico,
             obs: document.getElementById('newObs').value,
             data: data, hora: hora || 'ENCAIXE', categoria: cat,
             telefone: document.getElementById('newTel')?.value || '',
@@ -174,7 +173,7 @@
     }
 
     async function deletarAg(id) {
-        if(confirm("Deseja realmente excluir este agendamento?")) {
+        if(confirm("Deseja realmente desmarcar este paciente?")) {
             await fetch(API + '?action=deleteAppointment&id=' + id);
             closeModal(); loadAll();
         }
@@ -182,7 +181,7 @@
 
     function enviarZap(tipo, id) {
         const ag = appts.find(a => a.id == id);
-        const p = pacs.find(x => x.nome === ag.paciente) || {};
+        const p = pacs.find(x => x.nome.trim().toUpperCase() === ag.paciente.trim().toUpperCase()) || {};
         const tel = (p.telefone || "").replace(/\D/g,'');
         const ehConsulta = ag.servico.toUpperCase().includes("CONSULTA");
         let msg = "";
@@ -201,14 +200,16 @@
     function renderAusentes(c) {
         const hoje = new Date();
         const faltosos = pacs.filter(p => {
-            if(!p.ultimaVisita) return false;
-            const d = p.ultimaVisita.split('/');
-            return (hoje - new Date(d[2], d[1]-1, d[0])) / (1000 * 3600 * 24) > 25;
+            if(!p.ultimaVisita || p.ultimaVisita === "---") return false;
+            const parts = p.ultimaVisita.split('/');
+            const dVisita = new Date(parts[2], parts[1]-1, parts[0]);
+            const diffDays = Math.floor((hoje - dVisita) / (1000 * 3600 * 24));
+            return diffDays > 25;
         });
-        c.innerHTML = `<h2 class="font-black text-slate-400 mb-6 uppercase text-xs">Pacientes Ausentes (+25 dias)</h2>` + 
+        c.innerHTML = `<h2 class="font-black text-slate-400 mb-6 uppercase text-xs tracking-widest">Controle de Faltosos (+25 dias)</h2>` + 
         (faltosos.length ? faltosos.map(p => `<div class="ios-card p-5 mb-4 border-l-8 border-red-500 flex justify-between items-center">
-            <div><p class="font-black uppercase">${p.nome}</p><p class="text-[10px] font-bold text-red-500">ÚLTIMA VISITA: ${p.ultimaVisita}</p></div>
-            <i class="fab fa-whatsapp text-green-500 text-2xl" onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}')"></i></div>`).join('') : '<p class="text-center py-20 text-slate-300 font-bold uppercase">Nenhum faltoso</p>');
+            <div><p class="font-black uppercase">${p.nome}</p><p class="text-[10px] font-bold text-red-500">ÚLTIMA VISITA EM: ${p.ultimaVisita}</p></div>
+            <i class="fab fa-whatsapp text-green-500 text-2xl" onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}')"></i></div>`).join('') : '<p class="text-center py-20 text-slate-300 font-bold uppercase tracking-widest">Nenhum faltoso na lista</p>');
     }
 
     function showTab(t){ currentTab = t; render(); }
