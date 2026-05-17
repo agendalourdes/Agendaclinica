@@ -3,28 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SGP - Dr. Jorge Salomão</title>
+    <title>SGP PRO - Dr. Jorge Salomão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root{--esp:#f97316;--emag:#3b82f6;--aplic:#a855f7;--roxo:#4a148c}
+        :root{--esp:#f97316;--emag:#3b82f6;--aplic:#a855f7}
         body{background:#f4f7f6;font-family:'Quicksand',sans-serif;padding-bottom:100px}
-        .header-bar{background:linear-gradient(135deg, var(--roxo), #7b1fa2);padding:15px;text-align:center;color:white;font-weight:900;text-transform:uppercase;font-size:12px;letter-spacing:1px}
-        .slot{border-radius:18px;border-left:8px solid #ddd;margin-bottom:12px;background:#fff;padding:18px;box-shadow:0 4px 6px rgba(0,0,0,0.05);transition:0.3s}
-        .sl-esp{border-left-color:var(--esp)}.sl-emag{border-left-color:var(--emag)}.sl-aplic{border-left-color:var(--aplic)}
-        .sl-busy{background:#fdfaff;border-style:solid}
-        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+        .header-bar{background:#4a148c;padding:15px;text-align:center;color:white;font-weight:900;text-transform:uppercase;font-size:12px;letter-spacing:1px}
+        
+        /* CARDS COLORIDOS POR CATEGORIA */
+        .slot{border-radius:15px;border-left:8px solid #ddd;margin-bottom:12px;background:#fff;padding:18px;box-shadow:0 4px 6px rgba(0,0,0,0.05);transition:0.3s}
+        .sl-esp.sl-busy{background:#fff7ed; border-left-color:var(--esp); border-right: 1px solid #ffedd5}
+        .sl-emag.sl-busy{background:#eff6ff; border-left-color:var(--emag); border-right: 1px solid #dbeafe}
+        .sl-aplic.sl-busy{background:#faf5ff; border-left-color:var(--aplic); border-right: 1px solid #f3e8ff}
+        
+        /* HORÁRIOS VAGOS - ALTO CONTRASTE */
+        .sl-vago{border:2px dashed #64748b; background:#f8fafc; opacity:1 !important; color: #475569}
+        
+        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:flex;align-items:flex-end;justify-content:center}
         .modal-box{background:#fff;width:100%;max-width:500px;border-radius:30px 30px 0 0;padding:25px;max-height:95vh;overflow-y:auto}
-        .btn-zap{width:100%;padding:15px;border-radius:15px;font-weight:800;text-transform:uppercase;font-size:11px;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
-        @media print{.no-print{display:none}body{background:white;padding:0}}
+        .btn-zap{width:100%;padding:16px;border-radius:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;color:white;text-transform:uppercase;font-size:11px}
+        
+        @media print{.no-print{display:none} body{background:white} .slot{box-shadow:none; border:1px solid #eee}}
     </style>
 </head>
 <body>
 
 <header class="no-print">
-    <div class="header-bar text-xs">SISTEMA DE GESTÃO INTEGRADA - DR. JORGE SALOMÃO</div>
-    <div class="flex justify-center p-4 bg-white border-b shadow-sm">
-        <input type="date" id="datepicker" onchange="loadAll()" class="border-2 rounded-xl p-3 font-bold border-purple-100 focus:border-purple-600 outline-none">
+    <div class="header-bar">SISTEMA MÉDICO - DR. JORGE SALOMÃO</div>
+    <div class="flex justify-center p-4 bg-white border-b shadow-sm gap-4">
+        <input type="date" id="datepicker" onchange="loadAll()" class="border-2 rounded-xl p-3 font-bold border-purple-200 outline-none focus:border-purple-600">
     </div>
 </header>
 
@@ -32,13 +40,12 @@
 
 <nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 shadow-2xl text-gray-400 text-[10px] font-bold uppercase no-print">
     <button onclick="showTab('agenda')" id="t-agenda" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-calendar-check text-xl"></i>Agenda</button>
-    <button onclick="showTab('pacientes')" id="t-pacientes" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-users text-xl"></i>Histórico</button>
-    <button onclick="showTab('relatorio')" id="t-relatorio" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-chart-line text-xl"></i>Relatório</button>
+    <button onclick="showTab('pacientes')" id="t-pacientes" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-id-card text-xl"></i>Histórico</button>
+    <button onclick="showTab('relatorio')" id="t-relatorio" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-file-pdf text-xl"></i>Relatório</button>
+    <button onclick="showTab('ausentes')" id="t-ausentes" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-user-clock text-xl"></i>Acompanhamento</button>
 </nav>
 
-<div id="modal" class="hidden modal-bg" onclick="if(event.target.id==='modal')closeModal()">
-    <div class="modal-box" id="m-content"></div>
-</div>
+<div id="modal" class="hidden modal-bg" onclick="if(event.target.id==='modal')closeModal()"><div class="modal-box" id="m-content"></div></div>
 
 <script>
     const API = "https://script.google.com/macros/s/AKfycbyxG7L8_zUGjzhFUFwMQzLI2R_IGjIBgZiw4lESf7wqK4YBTCS23Wub0BFuhOfp_FM5/exec";
@@ -46,14 +53,13 @@
 
     async function loadAll() {
         const c = document.getElementById('content');
-        c.innerHTML = '<div class="text-center mt-20 font-black animate-pulse text-purple-600">SINCRONIZANDO COM A NUVEM...</div>';
+        c.innerHTML = '<div class="text-center mt-20 font-black animate-pulse text-purple-600">SINCRONIZANDO COM A PLANILHA...</div>';
         try {
             const r = await fetch(API + '?action=getAll');
             const d = await r.json();
-            pacs = d.patients || [];
-            appts = d.appointments || [];
+            pacs = d.patients || []; appts = d.appointments || [];
             render();
-        } catch(e) { c.innerHTML = '<div class="text-red-500 font-bold text-center">ERRO CRÍTICO DE CONEXÃO</div>'; }
+        } catch(e) { c.innerHTML = '<div class="text-red-500 text-center font-bold">ERRO DE CONEXÃO. TENTE ATUALIZAR A PÁGINA.</div>'; }
     }
 
     function render() {
@@ -62,180 +68,151 @@
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('text-purple-700','border-t-4','border-purple-700'));
         document.getElementById('t-'+currentTab).classList.add('text-purple-700','border-t-4','border-purple-700');
 
-        if(currentTab === 'agenda') {
-            const dt = new Date(dVal + "T12:00:00");
-            if(dt.getDay() !== 2) {
-                c.innerHTML = `<div class="mt-20 text-center opacity-40"><i class="fas fa-lock text-7xl mb-6"></i><p class="font-black text-lg">AGENDA TRAVADA<br><span class="text-sm">SELECIONE UMA TERÇA-FEIRA</span></p></div>`;
-                return;
-            }
-            renderAgenda(c, dVal);
-        } else if(currentTab === 'pacientes') {
-            renderPacientes(c);
-        } else {
-            renderRelatorio(c);
-        }
+        if(currentTab === 'agenda') renderAgenda(c, dVal);
+        else if(currentTab === 'pacientes') renderPacientes(c);
+        else if(currentTab === 'relatorio') renderRelatorioFull(c, dVal);
+        else renderAusentes(c);
     }
 
     function renderAgenda(c, dVal) {
         const dataF = dVal.split('-').reverse().join('/');
-        const ref = new Date("2026-05-19T12:00:00"), alvo = new Date(dVal + "T12:00:00");
-        const sem = Math.floor((alvo-ref)/(7*24*60*60*1000));
-        const nutri = (sem % 2 === 0) ? "Geraldo" : "Líbia";
-
         let html = "";
         const cats = [
-            {n:'Esportivo', m:nutri, step:25, cor:'sl-esp'},
-            {n:'Emagrecimento', m:'Bruno', step:35, cor:'sl-emag'},
-            {n:'Aplicação', m:'Suelen', step:30, cor:'sl-aplic', max:3}
+            {n:'Esportivo', step:25, cor:'sl-esp'},
+            {n:'Emagrecimento', step:35, cor:'sl-emag'},
+            {n:'Aplicação', step:30, cor:'sl-aplic', max:4}
         ];
 
         cats.forEach(cat => {
-            html += `<div class="mb-10"><div class="flex justify-between items-center mb-3 px-2"><span class="font-black text-xs text-gray-500 tracking-widest uppercase">${cat.n}</span><span class="text-[10px] font-extrabold text-white bg-purple-900 px-3 py-1 rounded-full">${cat.m}</span></div>`;
+            html += `<div class="mb-10"><h3 class="font-black text-[11px] text-gray-500 uppercase mb-3 ml-2 tracking-widest border-b pb-1">${cat.n}</h3>`;
             const list = appts.filter(a => a.data === dataF && a.categoria === cat.n);
-            
             if(cat.n === 'Aplicação') {
-                for(let i=1; i<=cat.max; i++) {
-                    const ag = list[i-1];
-                    html += ag ? slotBusy(ag, cat.cor) : slotLivre('LIVRE', cat.n, cat.cor);
-                }
+                for(let i=1; i<=cat.max; i++) html += (list[i-1]) ? slotBusy(list[i-1], cat.cor) : slotLivre('VAGO', cat.n);
             } else {
                 let h=9, m=0;
-                while(h < 12 || (h===12 && m===0)) {
+                while(h < 12 || (h===12 && m===0)){
                     const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
                     const ag = list.find(a => a.hora === t);
-                    html += ag ? slotBusy(ag, cat.cor) : slotLivre(t, cat.n, cat.cor);
-                    m += cat.step; if(m >= 60){ h++; m-=60; }
+                    html += ag ? slotBusy(ag, cat.cor) : slotLivre(t, cat.n);
+                    m += cat.step; if(m>=60){ h++; m-=60; }
                 }
             }
-            html += `<div class="slot border-dashed border-2 border-purple-200 text-purple-400 font-black text-center text-xs py-3 rounded-2xl" onclick="openNew('ENCAIXE','${cat.n}')"><i class="fas fa-plus-circle mr-2"></i>NOVO ENCAIXE</div></div>`;
+            html += `<div class="slot border-dashed border-2 border-purple-200 text-purple-400 font-black text-center text-xs py-4 rounded-2xl cursor-pointer" onclick="openNew('ENCAIXE','${cat.n}')">+ CLIQUE PARA ENCAIXAR PACIENTE</div></div>`;
         });
         c.innerHTML = html;
     }
 
     function slotBusy(ag, cor) {
         return `<div class="slot sl-busy ${cor}" onclick="openActions('${ag.id}')">
-            <div class="flex justify-between items-start mb-2">
-                <span class="text-[11px] font-bold text-purple-400">${ag.hora} - ${ag.servico}</span>
-                <i class="fab fa-whatsapp text-green-500 text-xl"></i>
-            </div>
-            <div class="font-black uppercase text-gray-800 text-lg">${ag.paciente}</div>
+            <div class="flex justify-between text-[11px] font-black text-gray-400 mb-2"><span>${ag.hora} - ${ag.servico}</span><i class="fab fa-whatsapp text-green-500 text-base"></i></div>
+            <div class="font-black uppercase text-gray-800 text-lg tracking-tight">${ag.paciente}</div>
         </div>`;
     }
 
-    function slotLivre(t, cat, cor) {
-        return `<div class="slot border-dashed border-2 opacity-30 flex justify-between items-center" onclick="openNew('${t}','${cat}')">
-            <span class="text-sm font-bold text-gray-400">${t} - DISPONÍVEL</span>
-            <i class="fas fa-user-plus text-gray-200"></i>
+    function slotLivre(t, cat) {
+        return `<div class="slot sl-vago flex justify-between items-center" onclick="openNew('${t}','${cat}')">
+            <span class="text-sm font-black">${t} - LIVRE</span>
+            <i class="fas fa-user-plus"></i>
         </div>`;
+    }
+
+    function renderRelatorioFull(c, dVal) {
+        const dataF = dVal.split('-').reverse().join('/');
+        const list = appts.filter(a => a.data === dataF).sort((a,b) => a.hora.localeCompare(b.hora));
+        c.innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-lg">
+            <div class="flex justify-between items-center mb-8 border-b pb-4">
+                <div><h2 class="font-black text-2xl text-purple-900">AGENDA DIÁRIA</h2><p class="font-bold text-gray-400 uppercase tracking-widest">${dataF}</p></div>
+                <button onclick="window.print()" class="bg-black text-white px-6 py-2 rounded-xl text-xs font-black no-print">IMPRIMIR</button>
+            </div>
+            <table class="w-full text-left border-collapse font-bold uppercase">
+                <thead><tr class="text-gray-400 text-[10px] border-b"><th class="pb-3">HORÁRIO</th><th class="pb-3">NOME DO PACIENTE</th><th class="pb-3 text-right">TIPO</th></tr></thead>
+                <tbody class="text-sm">${list.map(a => `<tr class="border-b"><td class="py-4 text-purple-700">${a.hora}</td><td class="py-4">${a.paciente}</td><td class="py-4 text-right text-[10px] text-gray-500">${a.categoria}</td></tr>`).join('')}</tbody>
+            </table></div>`;
+    }
+
+    function renderAusentes(c) {
+        const hoje = new Date();
+        const sumidos = pacs.filter(p => { 
+            if(!p.ultimaVisita) return false; 
+            const pt = p.ultimaVisita.split('/'); 
+            const d = new Date(pt[2],pt[1]-1,pt[0]); 
+            return (hoje-d)/(1000*3600*24) > 25; 
+        });
+        c.innerHTML = `<div class="px-2 mb-6"><h2 class="font-black text-red-600 uppercase text-sm tracking-widest">Acompanhamento de Faltosos (+25 dias)</h2><p class="text-[10px] font-bold text-gray-400">Estes pacientes precisam de um convite para retorno.</p></div>` + sumidos.map(p => `
+            <div class="bg-white p-6 rounded-2xl mb-4 flex justify-between items-center border-l-8 border-red-500 shadow-sm">
+                <div><div class="font-black uppercase text-gray-800 text-lg">${p.nome}</div><div class="text-[11px] font-bold text-gray-400">ÚLTIMA VISITA EM: ${p.ultimaVisita}</div></div>
+                <button onclick="zapAusente('${p.nome}','${p.telefone}')" class="bg-green-500 text-white p-4 rounded-full shadow-lg hover:scale-110 transition"><i class="fab fa-whatsapp text-xl"></i></button>
+            </div>`).join('');
     }
 
     function renderPacientes(c) {
-        c.innerHTML = `
-            <div class="bg-white p-6 rounded-3xl border shadow-sm mb-6">
-                <h2 class="font-black uppercase text-purple-900 mb-4 text-xs tracking-widest">Busca de Pacientes</h2>
-                <div class="relative">
-                    <input id="inp-p" oninput="sugerir(this.value, 's-pac')" placeholder="Comece a digitar o nome..." class="w-full p-4 border-2 rounded-2xl font-bold outline-none focus:border-purple-600 bg-gray-50">
-                    <div id="s-pac" class="absolute w-full bg-white shadow-2xl rounded-2xl mt-2 z-[100] hidden overflow-hidden"></div>
-                </div>
-            </div>
-            <div id="p-detail"></div>`;
-    }
-
-    function renderRelatorio(c) {
-        const hoje = new Date();
-        const sumidos = pacs.filter(p => {
-            if(!p.ultimaVisita) return false;
-            const parts = p.ultimaVisita.split('/');
-            const ult = new Date(parts[2], parts[1]-1, parts[0]);
-            return (hoje - ult) / (1000*60*60*24) > 25;
-        });
-
-        c.innerHTML = `
-            <div class="bg-white p-6 rounded-3xl shadow-sm mb-6 flex justify-between items-center">
-                <h2 class="font-black uppercase text-red-600 text-xs">Pacientes Ausentes (+25 dias)</h2>
-                <button onclick="window.print()" class="bg-black text-white px-4 py-2 rounded-xl font-bold text-[10px] no-print">IMPRIMIR PDF</button>
-            </div>
-            <div class="space-y-4">
-                ${sumidos.length ? sumidos.map(p => `
-                    <div class="bg-white p-5 rounded-2xl border-l-8 border-red-500 shadow-sm flex justify-between items-center">
-                        <div>
-                            <div class="font-black text-gray-800 uppercase">${p.nome}</div>
-                            <div class="text-[10px] font-bold text-gray-400">ÚLTIMA VISITA: ${p.ultimaVisita}</div>
-                        </div>
-                        <button onclick="abrirZapSumido('${p.nome}','${p.telefone}')" class="bg-green-100 text-green-700 p-3 rounded-full no-print"><i class="fab fa-whatsapp text-xl"></i></button>
-                    </div>
-                `).join('') : '<div class="text-center font-bold text-gray-400 py-10">Nenhum paciente ausente.</div>'}
-            </div>`;
+        c.innerHTML = `<div class="bg-white p-6 rounded-3xl mb-6 shadow-sm border"><h2 class="text-[11px] font-black text-purple-400 uppercase mb-3">Pesquisar Histórico</h2><input id="inp-p" oninput="sugerir(this.value, 's-pac')" placeholder="Digitar nome do paciente..." class="w-full p-5 border-2 rounded-2xl font-bold outline-none focus:border-purple-600 bg-gray-50">
+        <div id="s-pac" class="hidden mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden"></div></div><div id="p-detail"></div>`;
     }
 
     function sugerir(v, tid) {
-        const el = document.getElementById(tid);
-        if(v.length < 2){ el.classList.add('hidden'); return; }
+        const el = document.getElementById(tid); if(v.length < 2){ el.classList.add('hidden'); return; }
         const ms = pacs.filter(p => p.nome.toLowerCase().includes(v.toLowerCase())).slice(0,6);
-        el.innerHTML = ms.map(p => `<div onclick="selectPac('${p.nome}','${tid}')" class="p-4 border-b hover:bg-purple-50 cursor-pointer font-bold uppercase text-sm">${p.nome}</div>`).join('');
-        if(!ms.length) el.innerHTML = `<div class="p-4 text-red-500 font-bold text-xs" onclick="openNewCadastro('${v}')">PACIENTE NÃO CADASTRADO. CLIQUE AQUI PARA CRIAR FICHA.</div>`;
+        el.innerHTML = ms.map(p => `<div onclick="selPac('${p.nome}','${tid}')" class="p-4 border-b font-black uppercase text-sm hover:bg-purple-50 cursor-pointer">${p.nome}</div>`).join('');
         el.classList.remove('hidden');
     }
 
-    function selectPac(n, tid){
-        document.getElementById(tid).classList.add('hidden');
-        if(tid === 's-pac') showFicha(n); else document.getElementById('m-nome-ag').value = n;
-    }
+    function selPac(n, tid){ document.getElementById(tid).classList.add('hidden'); if(tid === 's-pac') showFicha(n); else document.getElementById('m-nome').value = n; }
 
     function showFicha(n) {
         const p = pacs.find(x => x.nome.toUpperCase() === n.toUpperCase());
-        document.getElementById('p-detail').innerHTML = `
-            <div class="bg-white p-6 rounded-3xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div class="flex justify-between items-start mb-6">
-                    <h3 class="font-black text-2xl text-purple-900 leading-tight">${p.nome}</h3>
-                    <button onclick="editPac('${p.nome}')" class="text-purple-600 bg-purple-50 p-3 rounded-xl"><i class="fas fa-edit"></i></button>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-4 rounded-2xl">
-                        <span class="block text-[9px] font-black text-gray-400 uppercase">Telefone</span>
-                        <span class="font-bold text-gray-700">${p.telefone || '-'}</span>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-2xl">
-                        <span class="block text-[9px] font-black text-gray-400 uppercase">Nascimento</span>
-                        <span class="font-bold text-gray-700">${p.nascimento || '-'}</span>
-                    </div>
-                    <div class="bg-red-50 p-4 rounded-2xl col-span-2 border border-red-100">
-                        <span class="block text-[9px] font-black text-red-400 uppercase">Histórico / Última Visita</span>
-                        <span class="font-black text-red-600 text-lg">${p.ultimaVisita || 'NENHUMA REGISTRADA'}</span>
-                    </div>
-                </div>
-            </div>`;
+        const his = appts.filter(a => a.paciente === p.nome).slice(-5).reverse();
+        document.getElementById('p-detail').innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl border-t-[12px] border-purple-700 animate-in fade-in slide-in-from-bottom-4">
+            <div class="flex justify-between items-start mb-6"><h3 class="font-black text-2xl text-purple-900 uppercase leading-tight">${p.nome}</h3><i class="fas fa-user-circle text-4xl text-purple-100"></i></div>
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-gray-50 p-4 rounded-2xl"><span class="text-[10px] font-black text-gray-400 block uppercase">WhatsApp</span><div class="text-sm font-black text-gray-700">${p.telefone}</div></div>
+                <div class="bg-gray-50 p-4 rounded-2xl"><span class="text-[10px] font-black text-gray-400 block uppercase">Nascimento</span><div class="text-sm font-black text-gray-700">${p.nascimento}</div></div>
+            </div>
+            <h4 class="font-black text-[11px] text-purple-400 uppercase mb-4 tracking-widest border-b pb-2">Histórico de Procedimentos</h4>
+            <div class="space-y-3">${his.map(h => `<div class="text-xs bg-purple-50 p-4 rounded-xl border border-purple-100 font-bold text-purple-900 flex justify-between"><span>${h.data}</span><span>${h.servico}</span></div>`).join('')}</div>
+        </div>`;
     }
 
     function openActions(id) {
         const ag = appts.find(a => a.id == id);
-        const m = document.getElementById('m-content');
-        m.innerHTML = `
-            <h2 class="font-black text-xl mb-6 text-center text-purple-900 uppercase">${ag.paciente}</h2>
-            <button onclick="enviarZap('confirma','${id}')" class="btn-zap bg-green-600 text-white"><i class="fab fa-whatsapp"></i> Confirmar Consulta</button>
-            <button onclick="enviarZap('preparo','${id}')" class="btn-zap bg-blue-600 text-white"><i class="fas fa-flask"></i> Preparo / Bio / Lembrete</button>
-            <button onclick="enviarZap('pos','${id}')" class="btn-zap bg-purple-600 text-white"><i class="fas fa-heart"></i> Pós-Consulta / Atenção</button>
-            <div class="mt-6 flex gap-2">
-                <button onclick="delAppt('${id}')" class="flex-1 bg-red-50 text-red-600 p-4 rounded-2xl font-bold uppercase text-[10px]">Excluir</button>
-                <button onclick="closeModal()" class="flex-1 bg-gray-100 p-4 rounded-2xl font-bold uppercase text-[10px]">Fechar</button>
-            </div>`;
+        document.getElementById('m-content').innerHTML = `<h2 class="font-black mb-8 text-center uppercase text-purple-900 text-xl tracking-tighter">${ag.paciente}</h2>
+        <button onclick="zap('confirm','${id}')" class="btn-zap bg-green-600 shadow-lg"><i class="fab fa-whatsapp text-lg"></i> Confirmar Consulta</button>
+        <button onclick="zap('bio','${id}')" class="btn-zap bg-blue-500 shadow-lg"><i class="fas fa-weight"></i> Lembrete Bioimpedância</button>
+        <button onclick="zap('pos','${id}')" class="btn-zap bg-purple-500 shadow-lg"><i class="fas fa-comment-medical text-lg"></i> Pós-Consulta / Como está?</button>
+        <div class="mt-10 flex gap-3 no-print">
+            <button onclick="delAppt('${id}')" class="flex-1 bg-red-50 text-red-600 font-black p-5 rounded-2xl text-[10px] uppercase tracking-widest">Excluir</button>
+            <button onclick="closeModal()" class="flex-1 bg-gray-100 text-gray-500 font-black p-5 rounded-2xl text-[10px] uppercase tracking-widest">Fechar</button>
+        </div>`;
         document.getElementById('modal').classList.remove('hidden');
     }
 
-    function enviarZap(tipo, id) {
-        const ag = appts.find(a => a.id == id);
-        const tel = pacs.find(p => p.nome === ag.paciente)?.telefone || '';
+    function zap(tipo, id) {
+        const ag = appts.find(a => a.id == id); const p = pacs.find(x => x.nome === ag.paciente);
         let msg = "";
-        if(tipo === 'confirma') msg = `Olá ${ag.paciente}, tudo bem? Aqui é da Clínica do Dr. Jorge Salomão. Confirmamos sua consulta para amanhã, dia ${ag.data} às ${ag.hora}?`;
-        if(tipo === 'preparo') msg = `Lembrete importante para ${ag.paciente}: Sua consulta é amanhã! Lembre-se do preparo para a Bioimpedância (jejum, roupas leves e hidratação). Até lá!`;
-        window.open(`https://wa.me/55${tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
+        if(tipo === 'confirm') msg = `Olá, ${ag.paciente}! Tudo bem? Passando para confirmar seu horário com o Dr. Jorge Salomão para amanhã, dia ${ag.data} às ${ag.hora}. Podemos confirmar?`;
+        if(tipo === 'bio') msg = `Oi, ${ag.paciente}! Lembrete para sua consulta e Bioimpedância amanhã! 
+        📌 Instruções:
+        - Jejum de 2 horas.
+        - Não ingerir bebida alcoólica hoje.
+        - Não realizar atividade física intensa hoje e amanhã.
+        - Vir com roupas leves.
+        Até lá!`;
+        if(tipo === 'pos') msg = `Olá, ${ag.paciente}! Como você se sentiu após a consulta com o Dr. Jorge? Estamos passando para saber como foi sua experiência e se deu tudo certo com as orientações. Ficamos à disposição!`;
+        window.open(`https://wa.me/55${p.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
+    }
+
+    function zapAusente(n, t) {
+        const msg = `Olá, ${n}! Tudo bem? Notamos que já faz um tempinho que você não vem nos visitar para seu acompanhamento com o Dr. Jorge Salomão. Gostaria de verificar os horários disponíveis para a próxima terça-feira?`;
+        window.open(`https://wa.me/55${t.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
     }
 
     function showTab(t){ currentTab = t; render(); }
     function closeModal(){ document.getElementById('modal').classList.add('hidden'); }
 
     window.onload = () => {
-        document.getElementById('datepicker').value = new Date().toLocaleDateString('en-CA');
+        // Lógica para abrir sempre na PRÓXIMA TERÇA-FEIRA automaticamente
+        const d = new Date(); d.setDate(d.getDate() + ((2 + 7 - d.getDay()) % 7 || 7));
+        document.getElementById('datepicker').value = d.toLocaleDateString('en-CA');
         loadAll();
     };
 </script>
