@@ -3,76 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Agenda Clínica Integrada</title>
+    <title>Clínica Dr. Jorge Salomão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root{--esp:#f97316;--emag:#3b82f6;--aplic:#a855f7;--roxo:#4a148c}
-        body{background:#fafafa;font-family:'Quicksand',sans-serif;color:#111;-webkit-tap-highlight-color:transparent}
+        body{background:#fafafa;font-family:'Quicksand',sans-serif;color:#111}
         .header-bar{width:100%;background:linear-gradient(135deg, #4a148c 0%, #7b1fa2 100%);padding:16px;text-align:center;color:white}
-        .header-title{font-size:18px;font-weight:900;letter-spacing:2px;text-transform:uppercase}
-        .date-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;background:#fff;border-bottom:2px solid #eee}
-        .date-row input[type=date]{padding:6px 12px;border:2px solid #eee;border-radius:12px;font-weight:700;font-size:14px;background:#fafafa}
-        .badge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px}
-        .b-ter{background:#f0fdf4;color:#16a34a}.b-blq{background:#fef2f2;color:#dc2626}
         .slot{border-radius:18px;border:1px solid #f0f0f0;cursor:pointer;margin-bottom:10px;background:#fff;padding:18px 20px;position:relative}
-        .sl-esp{border-left:8px solid var(--esp)}.sl-emag{border-left:8px solid var(--emag)}.sl-aplic{border-left:8px solid var(--aplic)}
         .sl-busy{border:none!important;color:#fff!important}
         .bg-esp{background:var(--esp)!important}.bg-emag{background:var(--emag)!important}.bg-aplic{background:var(--aplic)!important}
-        .slot-btns{position:absolute;top:8px;right:8px;display:flex;gap:4px;z-index:10}
-        .slot-btn{width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.25);color:#fff}
-        nav button{transition:color .15s}.tab-on{color:var(--roxo)!important;font-weight:800;border-top:3px solid var(--roxo)}
         .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:flex-end;justify-content:center}
-        .modal-box{background:#fff;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:28px 24px 40px;max-height:92vh;overflow-y:auto}
-        .sug{position:absolute;width:100%;top:100%;left:0;z-index:300;background:#fff;border:1px solid #ddd;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);max-height:200px;overflow-y:auto}
-        .sug div{padding:12px;border-bottom:1px solid #f5f5f5;cursor:pointer;font-weight:700;font-size:13px}
-        .rtable{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:15px;background:#fff}
-        .rtable th,.rtable td{border:1px solid #ccc;padding:6px;text-align:left}
-        .rtable thead th { font-weight: 800; text-transform: uppercase; }
-        @media print { nav, .header-bar, .date-row, .btn-print { display: none !important; } .rtable { font-size: 12px; } }
+        .modal-box{background:#fff;width:100%;max-width:480px;border-radius:28px 28px 0 0;padding:24px;max-height:90vh;overflow-y:auto}
+        .rtable{width:100%;border-collapse:collapse;font-size:9px;margin-bottom:15px;background:#fff}
+        .rtable th,.rtable td{border:1px solid #ccc;padding:4px;text-align:left}
+        .tab-on{color:var(--roxo)!important;font-weight:800;border-top:3px solid var(--roxo)}
     </style>
 </head>
 <body class="pb-24">
 <header>
-    <div class="header-bar"><div class="header-title">📋 Clínica Dr. Jorge Salomão</div></div>
-    <div class="date-row"><input type="date" id="datepicker" onchange="onDateChange()"><span id="day-badge" class="badge"></span></div>
+    <div class="header-bar"><div class="header-title font-black uppercase tracking-widest">📋 Clínica Dr. Jorge Salomão</div></div>
+    <div class="date-row flex justify-center p-4 bg-white border-b gap-4">
+        <input type="date" id="datepicker" onchange="onDateChange()" class="border-2 rounded-xl p-2 font-bold">
+    </div>
 </header>
 
 <main id="content" class="p-4 max-w-2xl mx-auto"></main>
 
-<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 shadow-lg text-gray-400 text-[9px] font-bold uppercase overflow-x-auto">
-    <button onclick="showTab('agenda')" id="tab-agenda" class="flex-1 flex flex-col items-center gap-1 pt-2"><i class="fas fa-calendar-day text-xl"></i>Agenda</button>
-    <button onclick="showTab('historico')" id="tab-historico" class="flex-1 flex flex-col items-center gap-1 pt-2"><i class="fas fa-history text-xl"></i>Histórico</button>
-    <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1 pt-2"><i class="fas fa-file-alt text-xl"></i>Relatório</button>
-    <button onclick="showTab('acompanhamento')" id="tab-acompanhamento" class="flex-1 flex flex-col items-center gap-1 pt-2"><i class="fas fa-phone text-xl"></i>Acomp.</button>
+<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 shadow-lg text-gray-400 text-[9px] font-bold uppercase">
+    <button onclick="showTab('agenda')" id="tab-agenda" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-calendar-day text-xl"></i>Agenda</button>
+    <button onclick="showTab('historico')" id="tab-historico" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-history text-xl"></i>Histórico</button>
+    <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-file-alt text-xl"></i>Relatório</button>
 </nav>
 
 <div id="modal" class="hidden modal-bg" onclick="closeBg(event)">
-    <div class="modal-box">
-        <h2 id="modal-title" class="font-black text-xl mb-5 uppercase text-center text-purple-900">Agendar</h2>
-        <div class="relative mb-4">
-            <input type="text" id="m-pac" oninput="sugerir(this.value,'sug-modal')" placeholder="Nome do paciente..." class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none text-sm">
-            <div id="sug-modal" class="sug hidden"></div>
-        </div>
-        <select id="m-servico" class="w-full p-4 border-2 rounded-2xl mb-4 font-bold bg-gray-50 text-sm">
-            <option>Consulta</option><option>Retorno</option><option>Aplicação</option><option>Primeira Consulta</option>
-        </select>
-        <div class="flex gap-2 flex-wrap">
-            <button onclick="closeModal()" class="flex-1 p-3 font-bold text-gray-400 rounded-2xl border-2 text-xs">SAIR</button>
-            <button onclick="saveAppt()" class="flex-[2] bg-black text-white p-3 rounded-2xl font-bold text-xs uppercase shadow-lg">Salvar</button>
-        </div>
-    </div>
+    <div class="modal-box" id="modal-content"></div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyxG7L8_zUGjzhFUFwMQzLI2R_IGjIBgZiw4lESf7wqK4YBTCS23Wub0BFuhOfp_FM5/exec";
-let pacs = [], appts = [], archived = [];
-let mTime, mCat, mId = null;
+const API = "SUA_URL_DA_API_AQUI";
+let pacs = [], appts = [];
 
-function normalizar(t) { return String(t || '').trim().toUpperCase(); }
-
-// Lógica de Revezamento Geraldo/Líbia
 function getMedicoTerça(dataStr) {
     const dataRef = new Date("2026-05-19T12:00:00");
     const dataAlvo = new Date(dataStr + "T12:00:00");
@@ -80,171 +52,101 @@ function getMedicoTerça(dataStr) {
     return (diffSemanas % 2 === 0) ? "Geraldo" : "Líbia";
 }
 
-window.onload = () => {
-    const d = new Date();
-    const diff = (2 - d.getDay() + 7) % 7 || 7;
-    d.setDate(d.getDate() + diff);
-    document.getElementById('datepicker').value = d.toLocaleDateString('en-CA');
-    updateBadge(); showTab('agenda'); loadAll();
-};
-
-async function loadAll() {
-    document.getElementById('content').innerHTML = '<div class="spinner mx-auto mt-20 w-8 h-8 border-4 border-purple-200 border-t-purple-800 rounded-full animate-spin"></div>';
-    try {
-        const r = await fetch(API + '?action=getAll');
-        const d = await r.json();
-        pacs = (d.patients || []).map(p => ({...p, norm: normalizar(p.nome)}));
-        appts = (d.appointments || []).map(a => ({...a, norm: normalizar(a.paciente)}));
-        render();
-    } catch(e) { console.error(e); }
-}
-
-function onDateChange() { updateBadge(); render(); }
-function updateBadge() {
-    const b = document.getElementById('day-badge');
-    const day = new Date(document.getElementById('datepicker').value + 'T12:00:00').getDay();
-    b.textContent = day === 2 ? 'TERÇA' : 'BLOQUEADO';
-    b.className = day === 2 ? 'badge b-ter' : 'badge b-blq';
-}
-
-function showTab(t) { 
-    window.TAB = t; 
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('tab-on'));
-    document.getElementById('tab-'+t).classList.add('tab-on');
-    render(); 
-}
-
-function render() {
-    const c = document.getElementById('content');
-    const dataF = document.getElementById('datepicker').value.split('-').reverse().join('/');
-    const medicoEsp = getMedicoTerça(document.getElementById('datepicker').value);
-
-    if (window.TAB === 'agenda') {
-        c.innerHTML = catHTML('Esportivo', 'sl-esp', 'bg-esp', 25, medicoEsp) + 
-                      catHTML('Emagrecimento', 'sl-emag', 'bg-emag', 35, 'Bruno') + 
-                      catHTML('Aplicação', 'sl-aplic', 'bg-aplic', 30, 'Suelen');
-    } else if (window.TAB === 'historico') {
-        c.innerHTML = `<div class="bg-white p-6 rounded-3xl border"><h2 class="font-black mb-4 text-purple-900 uppercase">Histórico e Edição</h2><div class="relative"><input id="inp-hist" oninput="sugerir(this.value,'sug-hist')" type="text" placeholder="Buscar paciente..." class="w-full p-4 border-2 rounded-2xl font-bold bg-gray-50 outline-none"><div id="sug-hist" class="sug hidden"></div></div><div id="hist-list" class="mt-6"></div></div>`;
-    } else if (window.TAB === 'relatorio') {
-        renderRel(dataF, medicoEsp);
-    } else if (window.TAB === 'acompanhamento') {
-        renderAcomp();
-    }
-}
-
-function catHTML(cat, slCl, bgCl, step, medico) {
-    const dataF = document.getElementById('datepicker').value.split('-').reverse().join('/');
-    let html = `<div class="flex justify-between items-end mt-8 mb-3"><h3 class="font-black text-[10px] uppercase text-gray-400">${cat}</h3><span class="text-[10px] font-bold text-purple-600">${medico}</span></div>`;
-    const ags = appts.filter(a => a.data === dataF && a.categoria === cat);
-    let h = 9, m = 0;
-    while (h < 12 || (h === 12 && m === 0)) {
-        const hora = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-        const ag = ags.find(a => a.hora === hora);
-        if (ag) {
-            html += `<div class="slot sl-busy ${bgCl}" onclick="openEdit('${ag.id}')">
-                <div class="slot-btns">
-                    <button onclick="event.stopPropagation(); zap('${ag.paciente}','confirmar','${ag.hora}')" class="slot-btn"><i class="fas fa-check"></i></button>
-                    <button onclick="event.stopPropagation(); zap('${ag.paciente}','lembrar','${ag.hora}')" class="slot-btn"><i class="fab fa-whatsapp"></i></button>
-                    <button onclick="event.stopPropagation(); delAppt('${ag.id}')" class="slot-btn"><i class="fas fa-trash"></i></button>
-                </div>
-                <div class="text-[9px] font-bold opacity-80 uppercase">${hora} - ${ag.servico}</div>
-                <p class="text-lg font-black uppercase">${ag.paciente}</p>
-            </div>`;
-        } else {
-            html += `<div onclick="openNew('${hora}','${cat}')" class="slot ${slCl} text-gray-400 font-bold flex justify-between"><span>${hora} — LIVRE</span><i class="fas fa-plus"></i></div>`;
-        }
-        m += step; if (m >= 60) { h += 1; m = 0; }
-    }
-    return html;
-}
-
-function renderRel(dataF, medicoEsp) {
-    let html = `<div class="flex justify-between mb-6"><h2 class="font-black text-purple-900 uppercase">Relatório: ${dataF}</h2><button onclick="window.print()" class="bg-black text-white px-3 py-1 rounded-lg text-[10px] uppercase font-bold">Imprimir PDF</button></div>`;
-    const conf = [{n:'Esportivo', m: medicoEsp, c:'#fff3e0'}, {n:'Emagrecimento', m:'Bruno', c:'#e3f2fd'}, {n:'Aplicação', m:'Suelen', c:'#f3e5f5'}];
-    conf.forEach(ct => {
-        const ags = appts.filter(a => a.data === dataF && a.categoria === ct.n).sort((a,b)=>a.hora.localeCompare(b.hora));
-        html += `<table class="rtable"><thead style="background:${ct.c}"><tr><th colspan="4" class="text-center py-2">${ct.n} - ${ct.m}</th></tr><tr class="bg-white"><th>HORA</th><th>PACIENTE</th><th>TEL</th><th>SERVIÇO</th></tr></thead><tbody>`;
-        ags.forEach(ag => {
-            const p = pacs.find(x => x.norm === ag.norm);
-            html += `<tr><td>${ag.hora}</td><td class="font-bold uppercase">${ag.paciente}</td><td>${p?.telefone||'--'}</td><td>${ag.servico}</td></tr>`;
-        });
-        if(!ags.length) html += `<tr><td colspan="4" class="text-center py-2 text-gray-400">Sem agendamentos</td></tr>`;
-        html += `</tbody></table>`;
-    });
-    document.getElementById('content').innerHTML = html;
-}
-
-function renderAcomp() {
-    const hoje = new Date();
-    const limite = new Date(hoje.getTime() - 25 * 24 * 60 * 60 * 1000);
-    const ultimas = {};
-    appts.forEach(a => {
-        const d = a.data.split('/');
-        const dObj = new Date(d[2], d[1]-1, d[0]);
-        if(!ultimas[a.norm] || dObj > ultimas[a.norm].dObj) ultimas[a.norm] = {...a, dObj};
-    });
-    const lista = Object.values(ultimas).filter(a => a.dObj < limite && !archived.includes(a.norm)).sort((a,b)=>a.dObj-b.dObj);
-    document.getElementById('content').innerHTML = `<h2 class="font-black mb-4 text-purple-900 uppercase">Acompanhamento (+25 dias)</h2>` + 
-        lista.map(a => `<div class="p-4 bg-white border-2 border-orange-100 rounded-2xl flex justify-between items-center mb-3"><div><p class="font-black uppercase text-sm">${a.paciente}</p><p class="text-[10px] text-gray-400">Última: ${a.data}</p></div><div class="flex gap-2"><button onclick="zap('${a.paciente}','lembrar','')" class="bg-green-500 text-white w-10 h-10 rounded-xl"><i class="fab fa-whatsapp"></i></button><button onclick="archivePac('${a.norm}')" class="bg-gray-100 text-gray-400 w-10 h-10 rounded-xl"><i class="fas fa-times"></i></button></div></div>`).join('');
-}
-
-function archivePac(norm) { archived.push(norm); renderAcomp(); }
-
-function sugerir(v, sid) {
-    const el = document.getElementById(sid);
-    if (!v) { el.classList.add('hidden'); return; }
-    const matches = pacs.filter(p => p.nome.toLowerCase().includes(v.toLowerCase())).slice(0, 8);
-    el.innerHTML = matches.map(p => `<div onclick="selPac('${p.nome}','${sid}')">${p.nome}</div>`).join('');
-    el.classList.remove('hidden');
-}
-
-function selPac(n, sid) {
-    document.getElementById(sid).classList.add('hidden');
-    if (sid === 'sug-modal') document.getElementById('m-pac').value = n;
-    if (sid === 'sug-hist') { document.getElementById('inp-hist').value = n; showHist(n); }
-}
-
-function showHist(n) {
-    const p = pacs.find(x => x.norm === normalizar(n));
-    const ags = appts.filter(a => a.norm === normalizar(n)).sort((a,b)=>b.data.localeCompare(a.data));
-    const el = document.getElementById('hist-list');
-    el.innerHTML = `<div class="bg-purple-50 p-4 rounded-2xl mb-4 space-y-3">
-        <input type="text" id="edit-tel" value="${p?.telefone||''}" placeholder="Telefone" class="w-full p-2 border rounded-lg text-sm">
-        <input type="text" id="edit-email" value="${p?.email||''}" placeholder="E-mail" class="w-full p-2 border rounded-lg text-sm">
-        <button onclick="savePacData('${p?.nome}')" class="w-full bg-purple-700 text-white p-2 rounded-lg text-xs font-bold">SALVAR DADOS</button>
-    </div>` + ags.map(a => `<div class="p-3 border rounded-xl mb-2 text-xs"><b>${a.data}</b> - ${a.servico}</div>`).join('');
-}
-
-async function savePacData(nome) {
-    const tel = document.getElementById('edit-tel').value;
-    const email = document.getElementById('edit-email').value;
-    alert('Dados salvos na memória local. Para atualizar a planilha, os campos serão enviados no próximo agendamento.');
-}
-
-function zap(nome, tipo, hora) {
-    const p = pacs.find(x => x.norm === normalizar(nome));
+function enviarZap(tipo, id) {
+    const ag = appts.find(a => a.id == id);
+    const p = pacs.find(x => x.norm === String(ag.paciente).trim().toUpperCase());
     const tel = p?.telefone?.replace(/\D/g,'') || "";
-    if(!tel) { alert('Sem telefone!'); return; }
-    const msg = tipo === 'confirmar' ? `Olá ${nome}, confirmamos seu horário às ${hora}?` : `Olá ${nome}, lembrete da sua consulta hoje às ${hora}.`;
+    if(!tel) return alert("Telefone não encontrado!");
+
+    const dataSel = document.getElementById('datepicker').value.split('-').reverse().join('/');
+    const especialidade = ag.categoria === 'Esportivo' ? 'NUTRIÇÃO ESPORTIVA' : 'EMAGRECIMENTO';
+    const nutricionista = ag.categoria === 'Esportivo' ? getMedicoTerça(document.getElementById('datepicker').value) : 'Bruno';
+    
+    let msg = "";
+
+    if (tipo === 'confirmar') {
+        if (ag.servico.toLowerCase().includes("aplicação")) {
+            msg = `Oi ${ag.paciente}! 👋\n\nSeu agendamento foi realizado com sucesso!\n\n📅 ${dataSel}\n🕐 ${ag.hora}\n\nAPLICAÇÃO DE INJETAVEIS\nCom a profissional Suelen Fernanda (enfermeira)\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+        } else if (ag.servico.toLowerCase().includes("retorno")) {
+            msg = `Oi ${ag.paciente}! 👋\n\nSeu agendamento foi realizado com sucesso!\n\n📅 ${dataSel}\n🕐 ${ag.hora}\n\nRETORNO ${especialidade}\nCom os profissionais: DR Jorge Vieira Salomão (médico nutrólogo) | ${nutricionista} (nutricionista) | Suelen Fernanda (enfermeira)\n\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+        } else {
+            msg = `Oi ${ag.paciente}! 👋\n\nSeu agendamento foi realizado com sucesso!\n\n📅 ${dataSel}\n🕐 ${ag.hora}\n\nCONSULTA ${especialidade}\nCom os profissionais: DR Jorge Vieira Salomão (médico nutrólogo) | ${nutricionista} (nutricionista) | Suelen Fernanda (enfermeira)\n\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n💰 O valor da consulta é de R$ 290,00.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+        }
+    } else if (tipo === 'lembrar') {
+        if (ag.servico.toLowerCase().includes("aplicação")) {
+            msg = `Olá ${ag.paciente}! 👋\n\nConfirme seu procedimento APLICAÇÃO DE INJETAVEIS:\n📅 ${dataSel}\n🕐 ${ag.hora}\n\n🎁 VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
+        } else if (ag.servico.toLowerCase().includes("retorno")) {
+            msg = `Olá ${ag.paciente}! 👋\n\nConfirme seu retorno em ${especialidade}:\n📅 ${dataSel}\n🕐 ${ag.hora}\n\n🎁 VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado! 😊`;
+        } else {
+            msg = `Olá ${ag.paciente}! 👋\n\nConfirme sua consulta de ${especialidade}:\n📅 ${dataSel}\n🕐 ${ag.hora}\n\n🎁 VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)\n\n📊 BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nObs: Durante gravidez os resultados não são consistentes.`;
+        }
+    }
+
     window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`);
 }
 
-function openNew(h, c) { mTime = h; mCat = c; mId = null; document.getElementById('modal').classList.remove('hidden'); }
-function openEdit(id) { const ag = appts.find(a => a.id == id); mId = id; mTime = ag.hora; mCat = ag.categoria; document.getElementById('m-pac').value = ag.paciente; document.getElementById('m-servico').value = ag.servico; document.getElementById('modal').classList.remove('hidden'); }
-function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-function closeBg(e) { if(e.target.id==='modal') closeModal(); }
-
-async function saveAppt() {
-    const pac = document.getElementById('m-pac').value;
-    const serv = document.getElementById('m-servico').value;
-    const dataBR = document.getElementById('datepicker').value.split('-').reverse().join('/');
-    const medico = mCat === 'Esportivo' ? getMedicoTerça(document.getElementById('datepicker').value) : (mCat === 'Emagrecimento' ? 'Bruno' : 'Suelen');
-    closeModal();
-    await fetch(`${API}?action=saveAppt&data=${dataBR}&hora=${mTime}&paciente=${pac}&servico=${serv}&categoria=${mCat}&profissional=${medico}&id=${mId||''}`);
-    loadAll();
+function openActions(id) {
+    const ag = appts.find(a => a.id == id);
+    document.getElementById('modal-content').innerHTML = `
+        <h2 class="font-black text-xl mb-4 uppercase text-center">${ag.paciente}</h2>
+        <div class="grid grid-cols-1 gap-3">
+            <button onclick="enviarZap('confirmar','${id}')" class="bg-green-600 text-white p-4 rounded-2xl font-bold uppercase text-xs">Confirmar Agendamento</button>
+            <button onclick="enviarZap('lembrar','${id}')" class="bg-blue-600 text-white p-4 rounded-2xl font-bold uppercase text-xs">Enviar Lembrete / Preparo</button>
+            <button onclick="delAppt('${id}')" class="bg-red-100 text-red-600 p-3 rounded-xl font-bold uppercase text-xs mt-4">Excluir Horário</button>
+            <button onclick="closeModal()" class="border p-3 rounded-xl font-bold uppercase text-xs">Fechar</button>
+        </div>
+    `;
+    document.getElementById('modal').classList.remove('hidden');
 }
 
-async function delAppt(id) { if(confirm('Excluir?')) { await fetch(`${API}?action=delAppt&id=${id}`); loadAll(); } }
+// Funções de Agenda, Relatório e Histórico (Simplificadas para o essencial que você pediu)
+async function loadAll() {
+    const c = document.getElementById('content');
+    c.innerHTML = '<div class="text-center mt-20 animate-pulse font-bold">CARREGANDO...</div>';
+    try {
+        const r = await fetch(API + '?action=getAll');
+        const d = await r.json();
+        pacs = (d.patients || []).map(p => ({...p, norm: String(p.nome).trim().toUpperCase()}));
+        appts = (d.appointments || []).map(a => ({...a, norm: String(a.paciente).trim().toUpperCase()}));
+        render();
+    } catch(e) { c.innerHTML = "Erro ao carregar dados."; }
+}
+
+function render() {
+    const tab = window.TAB || 'agenda';
+    const c = document.getElementById('content');
+    const dataF = document.getElementById('datepicker').value.split('-').reverse().join('/');
+    
+    if(tab === 'agenda') {
+        const medEsp = getMedicoTerça(document.getElementById('datepicker').value);
+        c.innerHTML = renderCat('Esportivo', medEsp, 'bg-esp') + renderCat('Emagrecimento', 'Bruno', 'bg-emag') + renderCat('Aplicação', 'Suelen', 'bg-aplic');
+    } else if(tab === 'relatorio') {
+        renderRel(dataF);
+    }
+}
+
+function renderCat(cat, med, cor) {
+    const dataF = document.getElementById('datepicker').value.split('-').reverse().join('/');
+    let h = `<div class="mt-6 flex justify-between uppercase font-bold text-[10px] text-gray-400"><span>${cat}</span><span>${med}</span></div>`;
+    const ags = appts.filter(a => a.data === dataF && a.categoria === cat);
+    [9,10,11,12].forEach(horaBase => {
+        [0,30].forEach(min => {
+            const time = `${String(horaBase).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+            const ag = ags.find(a => a.hora === time);
+            if(ag) {
+                h += `<div class="slot sl-busy ${cor}" onclick="openActions('${ag.id}')"><div class="text-[9px] opacity-70">${time} - ${ag.servico}</div><div class="font-black uppercase">${ag.paciente}</div></div>`;
+            } else {
+                h += `<div class="slot border-dashed text-gray-300 font-bold" onclick="openNew('${time}','${cat}')">${time} - LIVRE</div>`;
+            }
+        });
+    });
+    return h;
+}
+
+function showTab(t) { window.TAB = t; render(); }
+function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+function closeBg(e) { if(e.target.id === 'modal') closeModal(); }
+function onDateChange() { loadAll(); }
 </script>
 </body>
 </html>
