@@ -3,41 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Dr. Jorge Salomão</title>
+    <title>SGP - Dr. Jorge Salomão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root{--esp:#f97316;--emag:#3b82f6;--aplic:#a855f7}
-        body{background:#f9f9f9;font-family:'Quicksand',sans-serif;padding-bottom:100px}
-        .header-bar{background:linear-gradient(135deg,#4a148c,#7b1fa2);padding:15px;text-align:center;color:white;font-weight:800;text-transform:uppercase;font-size:12px}
-        .slot{border-radius:15px;border-left:6px solid #ddd;margin-bottom:8px;background:#fff;padding:15px;box-shadow:0 2px 5px rgba(0,0,0,0.05);cursor:pointer}
+        :root{--esp:#f97316;--emag:#3b82f6;--aplic:#a855f7;--roxo:#4a148c}
+        body{background:#f4f7f6;font-family:'Quicksand',sans-serif;padding-bottom:100px}
+        .header-bar{background:linear-gradient(135deg, var(--roxo), #7b1fa2);padding:15px;text-align:center;color:white;font-weight:900;text-transform:uppercase;font-size:12px;letter-spacing:1px}
+        .slot{border-radius:18px;border-left:8px solid #ddd;margin-bottom:12px;background:#fff;padding:18px;box-shadow:0 4px 6px rgba(0,0,0,0.05);transition:0.3s}
         .sl-esp{border-left-color:var(--esp)}.sl-emag{border-left-color:var(--emag)}.sl-aplic{border-left-color:var(--aplic)}
-        .sl-busy{background:#f3eaff;border-style:solid}
-        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:flex;align-items:flex-end;justify-content:center}
-        .modal-box{background:#fff;width:100%;max-width:480px;border-radius:25px 25px 0 0;padding:20px;max-height:90vh;overflow-y:auto}
-        .sug{background:#fff;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.1);max-height:200px;overflow-y:auto;position:absolute;width:100%;z-index:100}
-        .sug div{padding:12px;border-bottom:1px solid #eee;font-weight:bold;font-size:14px}
+        .sl-busy{background:#fdfaff;border-style:solid}
+        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+        .modal-box{background:#fff;width:100%;max-width:500px;border-radius:30px 30px 0 0;padding:25px;max-height:95vh;overflow-y:auto}
+        .btn-zap{width:100%;padding:15px;border-radius:15px;font-weight:800;text-transform:uppercase;font-size:11px;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
+        @media print{.no-print{display:none}body{background:white;padding:0}}
     </style>
 </head>
 <body>
 
-<header class="sticky top-0 z-50">
-    <div class="header-bar text-xs tracking-tighter">Gestão Clínica Integrada - Dr. Jorge Salomão</div>
+<header class="no-print">
+    <div class="header-bar text-xs">SISTEMA DE GESTÃO INTEGRADA - DR. JORGE SALOMÃO</div>
     <div class="flex justify-center p-4 bg-white border-b shadow-sm">
-        <input type="date" id="datepicker" onchange="loadAll()" class="border-2 rounded-xl p-3 font-bold border-purple-100 outline-none focus:border-purple-600">
+        <input type="date" id="datepicker" onchange="loadAll()" class="border-2 rounded-xl p-3 font-bold border-purple-100 focus:border-purple-600 outline-none">
     </div>
 </header>
 
 <main id="content" class="p-4 max-w-2xl mx-auto"></main>
 
-<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 shadow-2xl text-gray-400 text-[10px] font-bold uppercase">
-    <button onclick="showTab('agenda')" id="tab-agenda" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-calendar-day text-xl"></i>Agenda</button>
-    <button onclick="showTab('historico')" id="tab-historico" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-search text-xl"></i>Histórico</button>
-    <button onclick="showTab('relatorio')" id="tab-relatorio" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-file-invoice text-xl"></i>Relatório</button>
+<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 shadow-2xl text-gray-400 text-[10px] font-bold uppercase no-print">
+    <button onclick="showTab('agenda')" id="t-agenda" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-calendar-check text-xl"></i>Agenda</button>
+    <button onclick="showTab('pacientes')" id="t-pacientes" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-users text-xl"></i>Histórico</button>
+    <button onclick="showTab('relatorio')" id="t-relatorio" class="flex-1 flex flex-col items-center gap-1"><i class="fas fa-chart-line text-xl"></i>Relatório</button>
 </nav>
 
 <div id="modal" class="hidden modal-bg" onclick="if(event.target.id==='modal')closeModal()">
-    <div class="modal-box" id="modal-content"></div>
+    <div class="modal-box" id="m-content"></div>
 </div>
 
 <script>
@@ -46,120 +46,189 @@
 
     async function loadAll() {
         const c = document.getElementById('content');
-        c.innerHTML = '<div class="text-center mt-20 font-bold animate-pulse text-purple-600">SINCRONIZANDO...</div>';
+        c.innerHTML = '<div class="text-center mt-20 font-black animate-pulse text-purple-600">SINCRONIZANDO COM A NUVEM...</div>';
         try {
             const r = await fetch(API + '?action=getAll');
             const d = await r.json();
             pacs = d.patients || [];
             appts = d.appointments || [];
             render();
-        } catch(e) { c.innerHTML = '<div class="text-red-500 text-center font-bold">ERRO DE CONEXÃO</div>'; }
+        } catch(e) { c.innerHTML = '<div class="text-red-500 font-bold text-center">ERRO CRÍTICO DE CONEXÃO</div>'; }
     }
 
     function render() {
         const c = document.getElementById('content');
-        const dateVal = document.getElementById('datepicker').value;
+        const dVal = document.getElementById('datepicker').value;
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('text-purple-700','border-t-4','border-purple-700'));
-        document.getElementById('tab-'+currentTab).classList.add('text-purple-700','border-t-4','border-purple-700');
+        document.getElementById('t-'+currentTab).classList.add('text-purple-700','border-t-4','border-purple-700');
 
         if(currentTab === 'agenda') {
-            const d = new Date(dateVal + "T12:00:00");
-            if(d.getDay() !== 2) {
-                c.innerHTML = `<div class="mt-20 text-center opacity-30"><i class="fas fa-lock text-6xl mb-4"></i><p class="font-black uppercase">Agenda Fechada - Somente Terças</p></div>`;
+            const dt = new Date(dVal + "T12:00:00");
+            if(dt.getDay() !== 2) {
+                c.innerHTML = `<div class="mt-20 text-center opacity-40"><i class="fas fa-lock text-7xl mb-6"></i><p class="font-black text-lg">AGENDA TRAVADA<br><span class="text-sm">SELECIONE UMA TERÇA-FEIRA</span></p></div>`;
                 return;
             }
-            renderAgenda(c, dateVal);
-        } else if(currentTab === 'historico') {
-            renderHistorico(c);
+            renderAgenda(c, dVal);
+        } else if(currentTab === 'pacientes') {
+            renderPacientes(c);
+        } else {
+            renderRelatorio(c);
         }
     }
 
-    function renderAgenda(c, dateVal) {
-        const dataF = dateVal.split('-').reverse().join('/');
-        const ref = new Date("2026-05-19T12:00:00");
-        const alvo = new Date(dateVal + "T12:00:00");
-        const sem = Math.floor((alvo - ref)/(7*24*60*60*1000));
-        const medEsp = (sem % 2 === 0) ? "Geraldo" : "Líbia";
+    function renderAgenda(c, dVal) {
+        const dataF = dVal.split('-').reverse().join('/');
+        const ref = new Date("2026-05-19T12:00:00"), alvo = new Date(dVal + "T12:00:00");
+        const sem = Math.floor((alvo-ref)/(7*24*60*60*1000));
+        const nutri = (sem % 2 === 0) ? "Geraldo" : "Líbia";
 
         let html = "";
         const cats = [
-            {n:'Esportivo', m:medEsp, step:25, cor:'sl-esp'},
+            {n:'Esportivo', m:nutri, step:25, cor:'sl-esp'},
             {n:'Emagrecimento', m:'Bruno', step:35, cor:'sl-emag'},
-            {n:'Aplicação', m:'Suelen', step:30, cor:'sl-aplic', max:4}
+            {n:'Aplicação', m:'Suelen', step:30, cor:'sl-aplic', max:3}
         ];
 
         cats.forEach(cat => {
-            html += `<div class="mb-8"><div class="flex justify-between items-center mb-2 px-1"><span class="font-black text-[10px] text-gray-400 uppercase">${cat.n}</span><span class="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-1 rounded">${cat.m}</span></div>`;
-            const ags = appts.filter(a => a.data === dataF && a.categoria === cat.n);
+            html += `<div class="mb-10"><div class="flex justify-between items-center mb-3 px-2"><span class="font-black text-xs text-gray-500 tracking-widest uppercase">${cat.n}</span><span class="text-[10px] font-extrabold text-white bg-purple-900 px-3 py-1 rounded-full">${cat.m}</span></div>`;
+            const list = appts.filter(a => a.data === dataF && a.categoria === cat.n);
             
             if(cat.n === 'Aplicação') {
-                for(let i=1; i<=cat.max; i++){
-                    const ag = ags[i-1];
+                for(let i=1; i<=cat.max; i++) {
+                    const ag = list[i-1];
                     html += ag ? slotBusy(ag, cat.cor) : slotLivre('LIVRE', cat.n, cat.cor);
                 }
             } else {
                 let h=9, m=0;
-                while(h < 12 || (h===12 && m===0)){
+                while(h < 12 || (h===12 && m===0)) {
                     const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                    const ag = ags.find(a => a.hora === t);
+                    const ag = list.find(a => a.hora === t);
                     html += ag ? slotBusy(ag, cat.cor) : slotLivre(t, cat.n, cat.cor);
                     m += cat.step; if(m >= 60){ h++; m-=60; }
                 }
             }
-            html += `<div class="slot border-dashed border-2 border-purple-200 text-purple-400 font-black text-center text-xs py-2" onclick="openNew('ENCAIXE','${cat.n}')">+ ENCAIXE</div></div>`;
+            html += `<div class="slot border-dashed border-2 border-purple-200 text-purple-400 font-black text-center text-xs py-3 rounded-2xl" onclick="openNew('ENCAIXE','${cat.n}')"><i class="fas fa-plus-circle mr-2"></i>NOVO ENCAIXE</div></div>`;
         });
         c.innerHTML = html;
     }
 
-    function slotBusy(ag, cor){
-        return `<div class="slot sl-busy ${cor}" onclick="openActions('${ag.id}')"><div class="flex justify-between text-[10px] font-bold text-gray-400 mb-1"><span>${ag.hora} - ${ag.servico}</span><i class="fab fa-whatsapp text-green-500"></i></div><div class="font-black uppercase text-base">${ag.paciente}</div></div>`;
+    function slotBusy(ag, cor) {
+        return `<div class="slot sl-busy ${cor}" onclick="openActions('${ag.id}')">
+            <div class="flex justify-between items-start mb-2">
+                <span class="text-[11px] font-bold text-purple-400">${ag.hora} - ${ag.servico}</span>
+                <i class="fab fa-whatsapp text-green-500 text-xl"></i>
+            </div>
+            <div class="font-black uppercase text-gray-800 text-lg">${ag.paciente}</div>
+        </div>`;
     }
 
-    function slotLivre(t, cat, cor){
-        return `<div class="slot border-dashed border-2 opacity-40 flex justify-between items-center" onclick="openNew('${t}','${cat}')"><span class="text-xs font-bold text-gray-400">${t} - LIVRE</span><i class="fas fa-plus text-gray-200"></i></div>`;
+    function slotLivre(t, cat, cor) {
+        return `<div class="slot border-dashed border-2 opacity-30 flex justify-between items-center" onclick="openNew('${t}','${cat}')">
+            <span class="text-sm font-bold text-gray-400">${t} - DISPONÍVEL</span>
+            <i class="fas fa-user-plus text-gray-200"></i>
+        </div>`;
     }
 
-    function renderHistorico(c) {
-        c.innerHTML = `<div class="bg-white p-5 rounded-3xl border shadow-sm"><h2 class="font-black uppercase text-purple-900 mb-4 text-xs">Histórico</h2><div class="relative mb-4"><input id="inp-h" oninput="sugerir(this.value, 'sug-h')" placeholder="Buscar nome..." class="w-full p-4 border-2 rounded-2xl font-bold outline-none focus:border-purple-600"><div id="sug-h" class="sug hidden"></div></div><div id="pac-detail"></div></div>`;
+    function renderPacientes(c) {
+        c.innerHTML = `
+            <div class="bg-white p-6 rounded-3xl border shadow-sm mb-6">
+                <h2 class="font-black uppercase text-purple-900 mb-4 text-xs tracking-widest">Busca de Pacientes</h2>
+                <div class="relative">
+                    <input id="inp-p" oninput="sugerir(this.value, 's-pac')" placeholder="Comece a digitar o nome..." class="w-full p-4 border-2 rounded-2xl font-bold outline-none focus:border-purple-600 bg-gray-50">
+                    <div id="s-pac" class="absolute w-full bg-white shadow-2xl rounded-2xl mt-2 z-[100] hidden overflow-hidden"></div>
+                </div>
+            </div>
+            <div id="p-detail"></div>`;
+    }
+
+    function renderRelatorio(c) {
+        const hoje = new Date();
+        const sumidos = pacs.filter(p => {
+            if(!p.ultimaVisita) return false;
+            const parts = p.ultimaVisita.split('/');
+            const ult = new Date(parts[2], parts[1]-1, parts[0]);
+            return (hoje - ult) / (1000*60*60*24) > 25;
+        });
+
+        c.innerHTML = `
+            <div class="bg-white p-6 rounded-3xl shadow-sm mb-6 flex justify-between items-center">
+                <h2 class="font-black uppercase text-red-600 text-xs">Pacientes Ausentes (+25 dias)</h2>
+                <button onclick="window.print()" class="bg-black text-white px-4 py-2 rounded-xl font-bold text-[10px] no-print">IMPRIMIR PDF</button>
+            </div>
+            <div class="space-y-4">
+                ${sumidos.length ? sumidos.map(p => `
+                    <div class="bg-white p-5 rounded-2xl border-l-8 border-red-500 shadow-sm flex justify-between items-center">
+                        <div>
+                            <div class="font-black text-gray-800 uppercase">${p.nome}</div>
+                            <div class="text-[10px] font-bold text-gray-400">ÚLTIMA VISITA: ${p.ultimaVisita}</div>
+                        </div>
+                        <button onclick="abrirZapSumido('${p.nome}','${p.telefone}')" class="bg-green-100 text-green-700 p-3 rounded-full no-print"><i class="fab fa-whatsapp text-xl"></i></button>
+                    </div>
+                `).join('') : '<div class="text-center font-bold text-gray-400 py-10">Nenhum paciente ausente.</div>'}
+            </div>`;
     }
 
     function sugerir(v, tid) {
         const el = document.getElementById(tid);
         if(v.length < 2){ el.classList.add('hidden'); return; }
-        const matches = pacs.filter(p => p.nome.toLowerCase().includes(v.toLowerCase())).slice(0,6);
-        el.innerHTML = matches.map(p => `<div onclick="selPac('${p.nome}','${tid}')">${p.nome}</div>`).join('');
-        if(!matches.length) el.innerHTML = `<div class="text-red-500" onclick="openCadastro('${v}')">NÃO ENCONTRADO. CLIQUE PARA CADASTRAR.</div>`;
+        const ms = pacs.filter(p => p.nome.toLowerCase().includes(v.toLowerCase())).slice(0,6);
+        el.innerHTML = ms.map(p => `<div onclick="selectPac('${p.nome}','${tid}')" class="p-4 border-b hover:bg-purple-50 cursor-pointer font-bold uppercase text-sm">${p.nome}</div>`).join('');
+        if(!ms.length) el.innerHTML = `<div class="p-4 text-red-500 font-bold text-xs" onclick="openNewCadastro('${v}')">PACIENTE NÃO CADASTRADO. CLIQUE AQUI PARA CRIAR FICHA.</div>`;
         el.classList.remove('hidden');
     }
 
-    function selPac(n, tid){
+    function selectPac(n, tid){
         document.getElementById(tid).classList.add('hidden');
-        if(tid === 'sug-h') showPac(n); else document.getElementById('m-pac').value = n;
+        if(tid === 's-pac') showFicha(n); else document.getElementById('m-nome-ag').value = n;
     }
 
-    function showPac(n) {
+    function showFicha(n) {
         const p = pacs.find(x => x.nome.toUpperCase() === n.toUpperCase());
-        document.getElementById('pac-detail').innerHTML = `<div class="bg-purple-50 p-5 rounded-2xl animate-in slide-in-from-top duration-300"><div class="grid grid-cols-2 gap-4 text-[10px] font-bold uppercase text-purple-400"><div class="col-span-2">NOME: <div class="text-sm text-purple-900">${p.nome}</div></div><div>TEL: <div class="text-sm text-purple-900">${p.telefone || '-'}</div></div><div>NASC: <div class="text-sm text-purple-900">${p.nascimento || '-'}</div></div><div class="col-span-2">ÚLTIMA VISITA: <div class="text-sm text-red-600">${p.ultimaVisita || 'NÃO CONSTA'}</div></div></div></div>`;
-        window.scrollTo({top:0, behavior:'smooth'});
+        document.getElementById('p-detail').innerHTML = `
+            <div class="bg-white p-6 rounded-3xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="font-black text-2xl text-purple-900 leading-tight">${p.nome}</h3>
+                    <button onclick="editPac('${p.nome}')" class="text-purple-600 bg-purple-50 p-3 rounded-xl"><i class="fas fa-edit"></i></button>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-2xl">
+                        <span class="block text-[9px] font-black text-gray-400 uppercase">Telefone</span>
+                        <span class="font-bold text-gray-700">${p.telefone || '-'}</span>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-2xl">
+                        <span class="block text-[9px] font-black text-gray-400 uppercase">Nascimento</span>
+                        <span class="font-bold text-gray-700">${p.nascimento || '-'}</span>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-2xl col-span-2 border border-red-100">
+                        <span class="block text-[9px] font-black text-red-400 uppercase">Histórico / Última Visita</span>
+                        <span class="font-black text-red-600 text-lg">${p.ultimaVisita || 'NENHUMA REGISTRADA'}</span>
+                    </div>
+                </div>
+            </div>`;
     }
 
-    function openNew(h, c) {
-        document.getElementById('modal-content').innerHTML = `<h2 class="font-black text-xl mb-4 text-center uppercase">Agendar ${h}</h2><div class="relative mb-3"><input id="m-pac" oninput="sugerir(this.value, 'sug-m')" placeholder="Nome" class="w-full p-4 border-2 rounded-2xl font-bold"><div id="sug-m" class="sug hidden"></div></div><select id="m-serv" class="w-full p-4 border-2 rounded-2xl font-bold mb-4"><option>Consulta</option><option>Retorno</option><option>Aplicação</option><option>Primeira Consulta</option><option>Consulta Clinical</option><option>Retorno Clinical</option><option>Aplicação Clinical</option></select><button onclick="saveAppt('${h}','${c}')" class="w-full bg-black text-white p-4 rounded-2xl font-bold uppercase">Confirmar</button>`;
+    function openActions(id) {
+        const ag = appts.find(a => a.id == id);
+        const m = document.getElementById('m-content');
+        m.innerHTML = `
+            <h2 class="font-black text-xl mb-6 text-center text-purple-900 uppercase">${ag.paciente}</h2>
+            <button onclick="enviarZap('confirma','${id}')" class="btn-zap bg-green-600 text-white"><i class="fab fa-whatsapp"></i> Confirmar Consulta</button>
+            <button onclick="enviarZap('preparo','${id}')" class="btn-zap bg-blue-600 text-white"><i class="fas fa-flask"></i> Preparo / Bio / Lembrete</button>
+            <button onclick="enviarZap('pos','${id}')" class="btn-zap bg-purple-600 text-white"><i class="fas fa-heart"></i> Pós-Consulta / Atenção</button>
+            <div class="mt-6 flex gap-2">
+                <button onclick="delAppt('${id}')" class="flex-1 bg-red-50 text-red-600 p-4 rounded-2xl font-bold uppercase text-[10px]">Excluir</button>
+                <button onclick="closeModal()" class="flex-1 bg-gray-100 p-4 rounded-2xl font-bold uppercase text-[10px]">Fechar</button>
+            </div>`;
         document.getElementById('modal').classList.remove('hidden');
     }
 
-    function openCadastro(nome){
-        document.getElementById('modal-content').innerHTML = `<h2 class="font-black text-lg mb-4 uppercase">Novo Cadastro</h2><input id="c-nome" value="${nome}" class="w-full p-3 border rounded-xl mb-2 font-bold uppercase"><input id="c-tel" placeholder="Telefone" class="w-full p-3 border rounded-xl mb-2 font-bold"><input id="c-email" placeholder="Email" class="w-full p-3 border rounded-xl mb-2 font-bold"><input id="c-nasc" placeholder="Nascimento" class="w-full p-3 border rounded-xl mb-4 font-bold"><button onclick="saveCadastro()" class="w-full bg-purple-700 text-white p-4 rounded-2xl font-bold uppercase">Cadastrar</button>`;
-        document.getElementById('modal').classList.remove('hidden');
-    }
-
-    async function saveAppt(h, c) {
-        const pac = document.getElementById('m-pac').value;
-        const serv = document.getElementById('m-serv').value;
-        const data = document.getElementById('datepicker').value.split('-').reverse().join('/');
-        closeModal();
-        await fetch(`${API}?action=saveAppt&data=${data}&hora=${h}&paciente=${pac}&servico=${serv}&categoria=${c}`);
-        loadAll();
+    function enviarZap(tipo, id) {
+        const ag = appts.find(a => a.id == id);
+        const tel = pacs.find(p => p.nome === ag.paciente)?.telefone || '';
+        let msg = "";
+        if(tipo === 'confirma') msg = `Olá ${ag.paciente}, tudo bem? Aqui é da Clínica do Dr. Jorge Salomão. Confirmamos sua consulta para amanhã, dia ${ag.data} às ${ag.hora}?`;
+        if(tipo === 'preparo') msg = `Lembrete importante para ${ag.paciente}: Sua consulta é amanhã! Lembre-se do preparo para a Bioimpedância (jejum, roupas leves e hidratação). Até lá!`;
+        window.open(`https://wa.me/55${tel.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`);
     }
 
     function showTab(t){ currentTab = t; render(); }
