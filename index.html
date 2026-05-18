@@ -3,31 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SGP LOURDES</title>
+    <title>AGENDA LOURDES</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background:#f8fafc; font-family: 'Inter', sans-serif; color: #1e293b; padding-bottom: 100px; }
-        .ios-card { background: white; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .ios-card { background: white; border-radius: 20px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: all 0.3s; }
         .borda-esp { border-left: 8px solid #fed7aa; } 
         .borda-emag { border-left: 8px solid #bfdbfe; } 
         .borda-apl { border-left: 8px solid #e9d5ff; } 
+        .relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 8px; margin-top: 10px; }
+        .relatorio-tabela th { background: #f8fafc; padding: 6px 2px; border: 1px solid #e2e8f0; text-transform: uppercase; }
+        .relatorio-tabela td { padding: 6px 2px; border: 1px solid #e2e8f0; background: white; }
         .btn-loading { pointer-events: none; opacity: 0.6; }
         .suggestions-box { position: absolute; width: 100%; background: white; border-radius: 12px; max-height: 150px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .suggestion-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        @media print { .no-print { display: none !important; } }
+        @media print { .no-print { display: none !important; } .print-area { display: block !important; } }
     </style>
 </head>
 <body>
 
 <header class="no-print p-6 bg-white border-b flex justify-between items-center sticky top-0 z-40">
-    <h1 class="text-lg font-black uppercase italic">LOURDES <span class="text-orange-600">SGP</span></h1>
+    <h1 class="text-lg font-black uppercase italic">AGENDA <span class="text-orange-600">LOURDES</span></h1>
     <input type="date" id="datepicker" onchange="loadAll()" class="p-2 border rounded-xl font-bold text-xs bg-slate-50 outline-none">
 </header>
 
 <main id="content" class="p-4 max-w-[1200px] mx-auto"></main>
 
-<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 no-print">
+<nav class="fixed bottom-0 left-0 right-0 h-20 bg-white border-t flex items-center justify-around z-50 no-print shadow-xl">
     <button onclick="showTab('agenda')" id="t-agenda" class="flex flex-col items-center text-slate-400"><i class="fas fa-calendar-alt text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Agenda</span></button>
     <button onclick="showTab('relatorio')" id="t-relatorio" class="flex flex-col items-center text-slate-400"><i class="fas fa-file-medical text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Relatório</span></button>
     <button onclick="showTab('historico')" id="t-historico" class="flex flex-col items-center text-slate-400"><i class="fas fa-users text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Pacientes</span></button>
@@ -47,14 +50,14 @@
 
     async function loadAll() {
         const c = document.getElementById('content');
-        c.innerHTML = '<div class="text-center mt-20 font-black text-slate-300 animate-pulse text-xs">SINCRONIZANDO...</div>';
+        c.innerHTML = '<div class="text-center mt-20 font-black text-slate-300 animate-pulse text-xs">SINCRONIZANDO AGENDA...</div>';
         try {
             const r = await fetch(API + '?action=getAll');
             const d = await r.json();
             pacs = d.patients || [];
             appts = d.appointments || [];
             render();
-        } catch(e) { c.innerHTML = '<div class="text-center p-10 font-bold text-red-500 uppercase">ERRO NA CONEXÃO</div>'; }
+        } catch(e) { c.innerHTML = '<div class="text-center p-10 font-bold text-red-500 uppercase">ERRO DE CONEXÃO</div>'; }
     }
 
     function render() {
@@ -103,7 +106,7 @@
         document.getElementById('m-content').innerHTML = `
             <div class="text-center mb-8"><h2 class="font-black text-2xl uppercase italic">${ag.paciente}</h2></div>
             <div class="flex flex-col gap-3">
-                <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black uppercase text-[11px]">Confirmar Agendamento</button>
+                <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black uppercase text-[11px]">Confirmar WhatsApp</button>
                 <button onclick="enviarZap('lembrete','${id}')" class="w-full bg-green-500 text-white p-5 rounded-2xl font-black uppercase text-[11px]">Enviar Lembrete</button>
                 <button id="btnDel" onclick="deletarAgendamento('${id}')" class="w-full bg-red-50 text-red-500 p-5 rounded-2xl font-black uppercase text-[11px]">Excluir Agendamento</button>
                 <button onclick="closeModal()" class="text-slate-300 font-black text-[9px] uppercase mt-6">Voltar</button>
@@ -112,9 +115,8 @@
     }
 
     async function deletarAgendamento(id) {
-        if(!confirm("CANCERLAR AGENDAMENTO?")) return;
-        const btn = document.getElementById('btnDel');
-        btn.innerText = "EXCLUINDO..."; btn.classList.add('btn-loading');
+        if(!confirm("DESEJA REALMENTE EXCLUIR ESTE HORÁRIO?")) return;
+        const btn = document.getElementById('btnDel'); btn.innerText = "EXCLUINDO..."; btn.classList.add('btn-loading');
         await fetch(API, { method: 'POST', body: JSON.stringify({action: 'deleteAppointment', id: id}) });
         closeModal(); loadAll();
     }
@@ -127,14 +129,13 @@
 
         if (tipo === 'confirmar') {
             if (ag.categoria === 'APLICAÇÃO') {
-                msg = `Olá ${ag.paciente}! 👋\n\nConfirme seu procedimento *APLICAÇÃO DE INJETAVEIS*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\nResponda SIM para confirmar ou NÃO para remarcar. 😊`;
+                msg = `Olá ${ag.paciente}! 👋\n\nConfirme seu procedimento *APLICAÇÃO DE INJETAVEIS*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)\n\nResponda SIM para confirmar ou NÃO para remarcar. 😊`;
             } else if (ag.servico.includes('RETORNO')) {
                 msg = `Olá ${ag.paciente}! 👋\n\nConfirme seu retorno em *Nutrição Esportiva*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\nResponda SIM para confirmar ou NÃO para remarcar. 😊`;
             } else {
                 msg = `Olá ${ag.paciente}! 👋\n\nConfirme sua consulta de *Nutrição Esportiva*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n📊 *BIOIMPEDÂNCIA - PREPARAÇÃO*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nResponda SIM para confirmar ou NÃO para remarcar. 😊`;
             }
         } else {
-            // LEMBRETE
             if (ag.categoria === 'APLICAÇÃO') {
                 msg = `Oi ${ag.paciente}! 👋\n\nSeu agendamento foi realizado com sucesso!\n\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n*APLICAÇÃO DE INJETAVEIS*\nCom a profissional Suelen Fernanda (enfermeira)\n\n📍 Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n🅿️ Temos estacionamento próprio!\n\nObrigada e até lá! ❤️`;
             } else {
@@ -145,6 +146,62 @@
         window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`);
     }
 
+    function renderRelatorio(c, dVal) {
+        const dataF = dVal.split('-').reverse().join('/');
+        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Imprimir Relatório Completo</button></div><div class="print-area">`;
+        ['ESPORTIVO', 'EMAGRECIMENTO', 'APLICAÇÃO'].forEach(cat => {
+            const list = appts.filter(a => a.dataStr === dataF && a.categoria === cat);
+            html += `<h2 class="font-black text-[10px] mt-6 border-b border-black uppercase italic">${cat}</h2><table class="relatorio-tabela"><thead><tr><th>Hora</th><th>Paciente</th><th>WhatsApp</th><th>Nascimento</th><th>Altura</th><th>Últ. Consulta</th><th>Hoje</th><th>Obs</th></tr></thead><tbody>`;
+            list.forEach(a => {
+                const p = pacs.find(x => x.nome === a.paciente) || {};
+                const hPac = appts.filter(x => x.paciente === a.paciente && x.dataStr !== dataF);
+                const ultima = hPac.length > 0 ? hPac[hPac.length-1].dataStr : '-';
+                html += `<tr><td>${a.hora}</td><td class="font-bold">${a.paciente}</td><td>${p.telefone || '-'}</td><td>${p.nascimento || '-'}</td><td>${p.altura || '-'}</td><td>${ultima}</td><td class="font-bold">${a.servico}</td><td class="text-orange-600">${a.obs || ''}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+        });
+        c.innerHTML = html + `</div>`;
+    }
+
+    function renderHistorico(c) {
+        c.innerHTML = `<div class="p-2"><input type="text" id="histSearch" oninput="searchHist()" placeholder="PESQUISAR PACIENTE..." class="w-full p-5 rounded-2xl border-2 border-slate-100 font-black uppercase outline-none focus:border-orange-500 text-center"><div id="histResults" class="mt-8"></div></div>`;
+    }
+
+    function searchHist() {
+        const term = document.getElementById('histSearch').value.toUpperCase().trim();
+        const results = document.getElementById('histResults');
+        if(term.length < 3) return results.innerHTML = "";
+        const pac = pacs.find(p => p.nome.includes(term));
+        if(!pac) return results.innerHTML = "<p class='text-center text-slate-300 font-black'>NÃO ENCONTRADO</p>";
+        const hPac = appts.filter(x => x.paciente === pac.nome);
+        const ultima = hPac.length > 0 ? hPac[hPac.length-1].dataStr : 'Nunca consultou';
+        results.innerHTML = `
+            <div class="ios-card p-6 border-l-8 border-orange-500">
+                <h3 class="font-black text-lg uppercase mb-2">${pac.nome}</h3>
+                <p class="text-[10px] text-slate-400 font-bold mb-4 uppercase">Última consulta: ${ultima}</p>
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[8px] font-black block">WhatsApp</label><input type="text" id="eTel" value="${pac.telefone}" class="w-full bg-transparent font-bold outline-none"></div>
+                    <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[8px] font-black block">Altura</label><input type="text" id="eAlt" value="${pac.altura}" class="w-full bg-transparent font-bold outline-none"></div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="salvarEdicao('${pac.nome}')" class="flex-1 bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Salvar Dados</button>
+                    <button id="btnDelP" onclick="deletarPaciente('${pac.nome}')" class="bg-red-50 text-red-500 px-6 rounded-xl font-black"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>`;
+    }
+
+    async function salvarEdicao(nome) {
+        await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'editPatient', nome: nome, telefone: document.getElementById('eTel').value, altura: document.getElementById('eAlt').value }) });
+        alert("DADOS ATUALIZADOS!"); loadAll();
+    }
+
+    async function deletarPaciente(nome) {
+        if(!confirm("APAGAR CADASTRO DO PACIENTE?")) return;
+        const btn = document.getElementById('btnDelP'); btn.innerText = "...";
+        await fetch(API, { method: 'POST', body: JSON.stringify({action: 'deletePatient', nome: nome}) });
+        document.getElementById('histSearch').value = ""; loadAll();
+    }
+
     function renderAusentes(c) {
         const hoje = new Date();
         const faltosos = pacs.filter(p => {
@@ -152,48 +209,13 @@
             const h = appts.filter(a => a.paciente === p.nome);
             if(h.length === 0) return false;
             const u = h[h.length-1];
-            const dataP = u.dataStr.split('/');
-            const dV = new Date(dataP[2], dataP[1]-1, dataP[0]);
+            const dV = new Date(u.dataStr.split('/').reverse().join('-'));
             return ((hoje - dV)/(1000*3600*24)) > 25;
         });
-        c.innerHTML = `<h2 class="font-black text-slate-400 uppercase text-[10px] mb-6 italic">Retornos pendentes (+25 dias)</h2>` + 
-            (faltosos.length ? faltosos.map(p => `
-            <div class="ios-card p-6 mb-4 flex justify-between items-center border-l-8 border-red-50">
-                <p class="font-black uppercase">${p.nome}</p>
-                <div class="flex gap-2">
-                    <button onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}?text=Olá')" class="bg-green-50 text-green-500 p-3 rounded-full"><i class="fab fa-whatsapp"></i></button>
-                    <button onclick="excludeRetorno('${p.nome}')" class="bg-red-50 text-red-500 p-3 rounded-full"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            </div>`).join('') : '<p class="text-center py-10 text-slate-300 font-black uppercase text-[10px]">Tudo em dia!</p>');
+        c.innerHTML = `<h2 class="font-black text-slate-400 uppercase text-[10px] mb-6 italic">Retornos pendentes (+25 dias)</h2>` + (faltosos.length ? faltosos.map(p => `<div class="ios-card p-6 mb-4 flex justify-between items-center"><p class="font-black uppercase">${p.nome}</p><div class="flex gap-2"><button onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}?text=Olá')" class="bg-green-50 text-green-500 p-3 rounded-full"><i class="fab fa-whatsapp"></i></button><button onclick="excludeRetorno('${p.nome}')" class="bg-red-50 text-red-500 p-3 rounded-full"><i class="fas fa-trash-alt"></i></button></div></div>`).join('') : '<p class="text-center py-10 text-slate-300 font-black uppercase text-[10px]">Tudo em dia!</p>');
     }
 
     function excludeRetorno(nome) { excludedRetornos.push(nome); localStorage.setItem('excludedRetornos', JSON.stringify(excludedRetornos)); render(); }
-    function renderHistorico(c) { c.innerHTML = `<div class="p-2"><input type="text" id="histSearch" oninput="searchHist()" placeholder="BUSCAR PACIENTE..." class="w-full p-5 rounded-2xl border-2 border-slate-100 font-black uppercase outline-none focus:border-orange-500 text-center"><div id="histResults" class="mt-8"></div></div>`; }
-    function searchHist() {
-        const term = document.getElementById('histSearch').value.toUpperCase().trim();
-        const results = document.getElementById('histResults');
-        if(term.length < 3) return results.innerHTML = "";
-        const pac = pacs.find(p => p.nome.includes(term));
-        if(!pac) return results.innerHTML = "";
-        results.innerHTML = `<div class="ios-card p-6 border-l-8 border-orange-500"><h3 class="font-black text-lg uppercase mb-4 italic">${pac.nome}</h3><button id="btnDelP" onclick="deletarPaciente('${pac.nome}')" class="w-full bg-red-50 text-red-500 p-4 rounded-xl font-black uppercase text-[10px]">Excluir Cadastro</button></div>`;
-    }
-    async function deletarPaciente(nome) {
-        if(!confirm("APAGAR CADASTRO?")) return;
-        const btn = document.getElementById('btnDelP'); btn.innerText = "EXCLUINDO..."; btn.classList.add('btn-loading');
-        await fetch(API, { method: 'POST', body: JSON.stringify({action: 'deletePatient', nome: nome}) });
-        document.getElementById('histSearch').value = ""; loadAll();
-    }
-    function renderRelatorio(c, dVal) {
-        const dataF = dVal.split('-').reverse().join('/');
-        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Imprimir Relatório</button></div><div class="print-area bg-white p-2">`;
-        ['ESPORTIVO', 'EMAGRECIMENTO', 'APLICAÇÃO'].forEach(cat => {
-            const list = appts.filter(a => a.dataStr === dataF && a.categoria === cat);
-            html += `<h2 class="font-black text-[10px] uppercase mb-2 mt-4">${cat}</h2><table class="w-full text-[9px] border-collapse"><thead class="bg-slate-50"><tr><th class="border p-2">Hora</th><th class="border p-2 text-left">Paciente</th><th class="border p-2">WhatsApp</th></tr></thead><tbody>`;
-            list.forEach(a => { const p = pacs.find(x => x.nome === a.paciente) || {}; html += `<tr><td class="border p-2 text-center">${a.hora}</td><td class="border p-2 font-bold">${a.paciente}</td><td class="border p-2 text-center">${p.telefone || '-'}</td></tr>`; });
-            html += `</tbody></table>`;
-        });
-        c.innerHTML = html + `</div>`;
-    }
     function openAgendar(cat, hora) {
         document.getElementById('m-content').innerHTML = `<h2 class="font-black text-xl mb-6 uppercase text-center italic">${cat}</h2><div class="space-y-4 relative"><input type="text" id="newPac" placeholder="NOME DO PACIENTE" autocomplete="off" class="w-full p-4 bg-slate-50 rounded-xl font-black uppercase outline-none border-2 border-transparent focus:border-orange-500"><div id="suggestions" class="suggestions-box hidden"></div><button id="btnS" onclick="salvarNovo('${cat}', '${hora}')" class="w-full bg-slate-900 text-white p-5 rounded-[22px] font-black uppercase">Salvar Agendamento</button></div>`;
         document.getElementById('modal').classList.remove('hidden');
