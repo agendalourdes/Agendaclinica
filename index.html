@@ -46,7 +46,6 @@
 <script>
     const API = "https://script.google.com/macros/s/AKfycbyQ0Is21i54hYt5M0rpknsSBRZDRELKsHJIRwhvsfA9-J5D1AyjZiRvDIcg4kSZ2iM/exec"; 
     let pacs = [], appts = [], currentTab = 'agenda';
-    let excludedRetornos = JSON.parse(localStorage.getItem('excludedRetornos') || '[]');
 
     async function loadAll() {
         const c = document.getElementById('content');
@@ -57,7 +56,7 @@
             pacs = d.patients || [];
             appts = d.appointments || [];
             render();
-        } catch(e) { c.innerHTML = '<div class="text-center p-10 font-bold text-red-500 uppercase">Erro na Conexão</div>'; }
+        } catch(e) { c.innerHTML = '<div class="text-center p-10 font-bold text-red-500 uppercase text-xs">Erro de Conexão</div>'; }
     }
 
     function render() {
@@ -74,9 +73,8 @@
 
     function renderAgenda(c, dVal) {
         const dataF = dVal.split('-').reverse().join('/');
-        let html = `<div class="mb-6 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-orange-600 text-white px-10 py-3 rounded-2xl text-[10px] font-black uppercase">+ Encaixe</button></div>`;
+        let html = `<div class="mb-6 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-orange-600 text-white px-10 py-3 rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-orange-100">+ Encaixe</button></div>`;
         const config = [{n:'ESPORTIVO', b:'borda-esp', step:25},{n:'EMAGRECIMENTO', b:'borda-emag', step:35},{n:'APLICAÇÃO', b:'borda-apl', max:3}];
-        
         config.forEach(cat => {
             html += `<h3 class="font-black text-[10px] text-slate-400 mb-4 mt-8 uppercase tracking-widest border-l-4 border-slate-200 pl-2">${cat.n}</h3>`;
             const list = appts.filter(a => a.dataStr.includes(dataF) && a.categoria.toUpperCase().trim() === cat.n);
@@ -107,63 +105,56 @@
     function openAcoes(id) {
         const ag = appts.find(a => a.id == id);
         document.getElementById('m-content').innerHTML = `
-            <div class="text-center mb-8"><h2 class="font-black text-2xl uppercase italic">${ag.paciente}</h2><p class="text-[10px] font-bold text-orange-500 uppercase mt-2">${ag.obs ? 'OBS: ' + ag.obs : ''}</p></div>
+            <div class="text-center mb-8"><h2 class="font-black text-2xl uppercase italic">${ag.paciente}</h2></div>
             <div class="flex flex-col gap-3">
                 <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black uppercase text-[11px] flex justify-between items-center">Confirmar <i class="fas fa-check"></i></button>
                 <button onclick="enviarZap('lembrete','${id}')" class="w-full bg-green-500 text-white p-5 rounded-2xl font-black uppercase text-[11px] flex justify-between items-center">Lembrete <i class="fab fa-whatsapp"></i></button>
-                <button onclick="openEditarAgendamento('${id}')" class="w-full bg-slate-100 text-slate-600 p-5 rounded-2xl font-black uppercase text-[11px] flex justify-between items-center">Editar Agendamento <i class="fas fa-edit"></i></button>
-                <button onclick="closeModal()" class="text-slate-300 font-black text-[9px] uppercase mt-6">Fechar</button>
+                <button onclick="openEditarAgendamento('${id}')" class="w-full bg-slate-100 text-slate-600 p-5 rounded-2xl font-black uppercase text-[11px] flex justify-between items-center">Editar <i class="fas fa-edit"></i></button>
+                <button onclick="deletarAgendamento('${id}')" class="w-full bg-red-50 text-red-500 p-5 rounded-2xl font-black uppercase text-[11px] flex justify-between items-center">Cancelar Agendamento <i class="fas fa-trash-alt"></i></button>
+                <button onclick="closeModal()" class="text-slate-300 font-black text-[9px] uppercase mt-6">Voltar</button>
             </div>`;
         document.getElementById('modal').classList.remove('hidden');
     }
 
-    function openEditarAgendamento(id) {
-        const ag = appts.find(a => a.id == id);
-        // Ajusta data para o input HTML (AAAA-MM-DD)
-        const partes = ag.dataStr.split('/');
-        const dataParaInput = `${partes[2]}-${partes[1]}-${partes[0]}`;
+    async function deletarAgendamento(id) {
+        if(confirm("Deseja realmente CANCELAR este agendamento?")) {
+            await fetch(API, { method: 'POST', body: JSON.stringify({action: 'deleteAppointment', id: id}) });
+            closeModal(); loadAll();
+        }
+    }
 
-        document.getElementById('m-content').innerHTML = `
-            <h2 class="font-black text-xl mb-6 uppercase text-center italic">Editar Agendamento</h2>
-            <div class="space-y-4">
-                <div><label class="text-[8px] font-black text-slate-400 uppercase">Paciente</label>
-                <input type="text" id="editPac" value="${ag.paciente}" class="w-full p-3 bg-slate-50 rounded-xl font-bold uppercase outline-none"></div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[8px] font-black text-slate-400 uppercase">Data</label>
-                    <input type="date" id="editData" value="${dataParaInput}" class="w-full p-3 bg-slate-50 rounded-xl font-bold outline-none"></div>
-                    <div><label class="text-[8px] font-black text-slate-400 uppercase">Hora</label>
-                    <input type="text" id="editHora" value="${ag.hora}" class="w-full p-3 bg-slate-50 rounded-xl font-bold outline-none"></div>
+    function renderHistorico(c) {
+        c.innerHTML = `<div class="p-2"><input type="text" id="histSearch" oninput="searchHist()" placeholder="PESQUISAR PACIENTE..." class="w-full p-5 rounded-2xl border-2 border-slate-100 font-black uppercase outline-none focus:border-orange-500 shadow-sm mb-8 text-center"><div id="histResults"></div></div>`;
+    }
+
+    function searchHist() {
+        const term = document.getElementById('histSearch').value.toUpperCase().trim();
+        const results = document.getElementById('histResults');
+        if(term.length < 3) return results.innerHTML = "";
+        const pac = pacs.find(p => p.nome.includes(term));
+        if(!pac) return results.innerHTML = "";
+        results.innerHTML = `
+            <div class="ios-card p-6 border-l-8 border-orange-500 shadow-xl">
+                <h3 class="font-black text-lg uppercase mb-4 italic">${pac.nome}</h3>
+                <div class="grid grid-cols-2 gap-3 text-[10px] mb-6">
+                    <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[8px] text-slate-400 font-black uppercase block">WhatsApp</label><input type="text" id="eTel" value="${pac.telefone}" class="w-full bg-transparent font-bold outline-none"></div>
+                    <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[8px] text-slate-400 font-black uppercase block">Altura</label><input type="text" id="eAlt" value="${pac.altura}" class="w-full bg-transparent font-bold outline-none"></div>
                 </div>
-
-                <div><label class="text-[8px] font-black text-slate-400 uppercase">Serviço</label>
-                <input type="text" id="editServ" value="${ag.servico}" class="w-full p-3 bg-slate-50 rounded-xl font-bold uppercase outline-none"></div>
-
-                <div><label class="text-[8px] font-black text-slate-400 uppercase">Observação</label>
-                <textarea id="editObs" class="w-full p-3 bg-slate-50 rounded-xl font-bold text-xs uppercase outline-none">${ag.obs}</textarea></div>
-
-                <button onclick="salvarEdicaoAgendamento('${id}', '${ag.categoria}')" class="w-full bg-slate-900 text-white p-5 rounded-[22px] font-black uppercase shadow-2xl mt-4">Salvar Alterações</button>
+                <div class="flex gap-2">
+                    <button onclick="salvarEdicao('${pac.nome}')" class="flex-1 bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Salvar</button>
+                    <button onclick="deletarPaciente('${pac.nome}')" class="bg-red-50 text-red-500 px-6 rounded-xl font-black uppercase text-[10px]"><i class="fas fa-trash-alt"></i></button>
+                </div>
             </div>`;
     }
 
-    async function salvarEdicaoAgendamento(id, categoria) {
-        const novaData = document.getElementById('editData').value.split('-').reverse().join('/');
-        const obj = {
-            action: 'updateAppointment',
-            id: id,
-            paciente: document.getElementById('editPac').value.toUpperCase(),
-            data: novaData,
-            hora: document.getElementById('editHora').value,
-            servico: document.getElementById('editServ').value.toUpperCase(),
-            categoria: categoria,
-            obs: document.getElementById('editObs').value.toUpperCase()
-        };
-        await fetch(API, { method: 'POST', body: JSON.stringify(obj) });
-        closeModal();
-        loadAll();
+    async function deletarPaciente(nome) {
+        if(confirm("ATENÇÃO: Isso excluirá o CADASTRO do paciente. Deseja continuar?")) {
+            await fetch(API, { method: 'POST', body: JSON.stringify({action: 'deletePatient', nome: nome}) });
+            document.getElementById('histSearch').value = ""; loadAll();
+        }
     }
 
-    // --- MANUTENÇÃO DAS OUTRAS FUNÇÕES ---
+    // --- FUNÇÕES DE APOIO ---
     function openAgendar(cat, hora) {
         document.getElementById('m-content').innerHTML = `
             <h2 class="font-black text-xl mb-6 uppercase text-center italic">${cat}</h2>
@@ -179,7 +170,7 @@
                     </div>
                 </div>
                 <textarea id="nObs" placeholder="OBSERVAÇÃO" class="w-full p-4 bg-slate-50 rounded-xl font-bold text-xs uppercase outline-none min-h-[80px]"></textarea>
-                <button onclick="salvarNovo('${cat}', '${hora}')" class="w-full bg-slate-900 text-white p-5 rounded-[22px] font-black uppercase shadow-2xl">Confirmar</button>
+                <button onclick="salvarNovo('${cat}', '${hora}')" class="w-full bg-slate-900 text-white p-5 rounded-[22px] font-black uppercase shadow-2xl">Salvar</button>
             </div>`;
         document.getElementById('modal').classList.remove('hidden');
         const input = document.getElementById('newPac');
@@ -204,7 +195,9 @@
         const data = document.getElementById('datepicker').value.split('-').reverse().join('/');
         let servico = cat === 'APLICAÇÃO' ? 'APLICAÇÃO' : (cat === 'ESPORTIVO' ? 'NUTRIÇÃO ESPORTIVA' : 'EMAGRECIMENTO');
         const obj = { action: 'addAppointment', paciente: document.getElementById('newPac').value.toUpperCase(), servico: servico, data: data, hora: hora || 'ENCAIXE', categoria: cat, obs: document.getElementById('nObs').value.toUpperCase(), telefone: document.getElementById('nTel')?.value || "", nascimento: document.getElementById('nNasc')?.value || "", email: document.getElementById('nEmail')?.value || "", altura: document.getElementById('nAlt')?.value || "" };
-        await fetch(API, { method: 'POST', body: JSON.stringify(obj) }); closeModal(); loadAll();
+        await fetch(API, { method: 'POST', body: JSON.stringify(obj) });
+        // Se for novo paciente, adiciona na planilha de pacientes também (no script doPost já faz)
+        closeModal(); loadAll();
     }
 
     function renderRelatorio(c, dVal) {
@@ -225,10 +218,27 @@
         c.innerHTML = html + `</div>`;
     }
 
+    function openEditarAgendamento(id) {
+        const ag = appts.find(a => a.id == id);
+        const partes = ag.dataStr.split('/');
+        const dataParaInput = `${partes[2]}-${partes[1]}-${partes[0]}`;
+        document.getElementById('m-content').innerHTML = `<h2 class="font-black text-xl mb-6 uppercase text-center italic">Editar</h2><div class="space-y-4"><div><label class="text-[8px] font-black">Paciente</label><input type="text" id="editPac" value="${ag.paciente}" class="w-full p-3 bg-slate-50 rounded-xl font-bold uppercase outline-none"></div><div class="grid grid-cols-2 gap-4"><div><label class="text-[8px] font-black">Data</label><input type="date" id="editData" value="${dataParaInput}" class="w-full p-3 bg-slate-50 rounded-xl font-bold"></div><div><label class="text-[8px] font-black">Hora</label><input type="text" id="editHora" value="${ag.hora}" class="w-full p-3 bg-slate-50 rounded-xl font-bold"></div></div><div><label class="text-[8px] font-black">Serviço</label><input type="text" id="editServ" value="${ag.servico}" class="w-full p-3 bg-slate-50 rounded-xl font-bold uppercase"></div><textarea id="editObs" class="w-full p-3 bg-slate-50 rounded-xl font-bold text-xs uppercase outline-none">${ag.obs}</textarea><button onclick="salvarEdicaoAgendamento('${id}', '${ag.categoria}')" class="w-full bg-slate-900 text-white p-5 rounded-[22px] font-black uppercase">Salvar Alterações</button></div>`;
+    }
+
+    async function salvarEdicaoAgendamento(id, categoria) {
+        const novaData = document.getElementById('editData').value.split('-').reverse().join('/');
+        await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'updateAppointment', id: id, paciente: document.getElementById('editPac').value.toUpperCase(), data: novaData, hora: document.getElementById('editHora').value, servico: document.getElementById('editServ').value.toUpperCase(), categoria: categoria, obs: document.getElementById('editObs').value.toUpperCase() }) });
+        closeModal(); loadAll();
+    }
+
+    async function salvarEdicao(nome) {
+        await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'editPatient', nome: nome, telefone: document.getElementById('eTel').value, nascimento: "", email: "", altura: document.getElementById('eAlt').value }) });
+        alert("Atualizado!"); loadAll();
+    }
+
     function renderAusentes(c) {
         const hoje = new Date();
         const faltosos = pacs.filter(p => {
-            if(excludedRetornos.includes(p.nome)) return false;
             const h = appts.filter(a => a.paciente === p.nome);
             if(h.length === 0) return false;
             const u = h[h.length-1];
@@ -236,17 +246,12 @@
             const dV = new Date(dataP[2], dataP[1]-1, dataP[0]);
             return ((hoje - dV)/(1000*3600*24)) > 25;
         });
-        c.innerHTML = `<div class="flex justify-between items-center mb-6"><h2 class="font-black text-slate-400 uppercase text-[10px] italic">Acompanhamento (+25 dias)</h2><button onclick="clearExcluidos()" class="text-[8px] font-bold text-orange-500 underline">Resetar</button></div>` + (faltosos.length ? faltosos.map(p => `<div class="ios-card p-6 mb-4 flex justify-between items-center border-l-8 border-red-50"><div class="uppercase"><p class="font-black">${p.nome}</p></div><div class="flex gap-3"><button onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}?text=${encodeURIComponent('Lembrete de retorno...')}')" class="bg-green-50 text-green-500 p-3 rounded-full"><i class="fab fa-whatsapp text-xl"></i></button><button onclick="excludeRetorno('${p.nome}')" class="bg-slate-50 text-slate-300 p-3 rounded-full"><i class="fas fa-trash-alt"></i></button></div></div>`).join('') : '<p class="text-center py-10 text-slate-300 font-bold uppercase text-[10px]">Tudo em dia!</p>');
+        c.innerHTML = `<h2 class="font-black text-slate-400 uppercase text-[10px] mb-6 italic">Retornos pendentes</h2>` + (faltosos.length ? faltosos.map(p => `<div class="ios-card p-6 mb-4 flex justify-between items-center"><div class="uppercase"><p class="font-black">${p.nome}</p></div><button onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}?text=Ola')" class="bg-green-50 text-green-500 p-3 rounded-full"><i class="fab fa-whatsapp text-xl"></i></button></div>`).join('') : '<p class="text-center py-10 text-slate-300 font-black uppercase text-[10px]">Tudo em dia!</p>');
     }
 
-    function excludeRetorno(nome) { excludedRetornos.push(nome); localStorage.setItem('excludedRetornos', JSON.stringify(excludedRetornos)); render(); }
-    function clearExcluidos() { localStorage.removeItem('excludedRetornos'); excludedRetornos = []; render(); }
     function showTab(t){ currentTab = t; render(); }
     function closeModal(){ document.getElementById('modal').classList.add('hidden'); }
-    function renderHistorico(c) { c.innerHTML = `<div class="p-2"><input type="text" id="histSearch" oninput="searchHist()" placeholder="BUSCAR PACIENTE..." class="w-full p-5 rounded-2xl border-2 border-slate-100 font-black uppercase outline-none focus:border-orange-500 shadow-sm mb-8 text-center"><div id="histResults"></div></div>`; }
-    function searchHist() { const term = document.getElementById('histSearch').value.toUpperCase().trim(); const results = document.getElementById('histResults'); if(term.length < 3) return results.innerHTML = ""; const pac = pacs.find(p => p.nome.includes(term)); if(!pac) return results.innerHTML = ""; const visitas = appts.filter(a => a.paciente === pac.nome).reverse(); results.innerHTML = `<div class="ios-card p-6 border-l-8 border-orange-500 shadow-xl"><h3 class="font-black text-lg uppercase mb-4 italic">${pac.nome}</h3><div class="grid grid-cols-2 gap-3 text-[10px] mb-6"><div class="bg-slate-50 p-3 rounded-xl"><label class="text-[8px] text-slate-400 font-black uppercase block">WhatsApp</label><input type="text" id="eTel" value="${pac.telefone}" class="w-full bg-transparent font-bold outline-none"></div><div class="bg-slate-50 p-3 rounded-xl"><label class="text-[8px] text-slate-400 font-black uppercase block">Altura</label><input type="text" id="eAlt" value="${pac.altura}" class="w-full bg-transparent font-bold outline-none"></div></div><button onclick="salvarEdicao('${pac.nome}')" class="w-full bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Salvar</button></div>`; }
-    async function salvarEdicao(nome) { const obj = { action: 'editPatient', nome: nome, telefone: document.getElementById('eTel').value, nascimento: "", email: "", altura: document.getElementById('eAlt').value }; await fetch(API, { method: 'POST', body: JSON.stringify(obj) }); alert("Dados atualizados!"); loadAll(); }
-    function enviarZap(tipo, id) { const ag = appts.find(a => a.id == id); const p = pacs.find(x => x.nome === ag.paciente) || {}; const tel = (p.telefone || "").replace(/\D/g,''); let msg = (tipo === 'confirmar') ? `Oi ${ag.paciente}! Agendado para ${ag.dataStr} às ${ag.hora}.` : `Olá ${ag.paciente}! Confirmamos amanha às ${ag.hora}.`; window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`); }
+    function enviarZap(tipo, id) { const ag = appts.find(a => a.id == id); const p = pacs.find(x => x.nome === ag.paciente) || {}; const tel = (p.telefone || "").replace(/\D/g,''); let msg = (tipo === 'confirmar') ? `Oi ${ag.paciente}! Confirmado para ${ag.dataStr} as ${ag.hora}.` : `Lembrete de consulta amanha as ${ag.hora}.`; window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`); }
     window.onload = () => { document.getElementById('datepicker').value = new Date().toISOString().split('T')[0]; loadAll(); };
 </script>
 </body>
