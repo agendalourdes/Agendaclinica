@@ -15,7 +15,7 @@
         .slot-livre { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 15px; color: #94a3b8; font-weight: 700; cursor: pointer; }
         .relatorio-tabela { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         .relatorio-tabela th, .relatorio-tabela td { border: 0.5px solid #cbd5e1; padding: 8px; text-align: left; font-size: 10px; }
-        .cat-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; font-weight: 900; font-size: 11px; text-transform: uppercase; margin-top: 10px; background: #f8fafc; }
+        .cat-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; font-weight: 900; font-size: 11px; text-transform: uppercase; margin-top: 10px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
         @media print { .no-print { display: none !important; } .print-area { display: block !important; } }
     </style>
 </head>
@@ -24,9 +24,9 @@
 <header class="no-print p-6 bg-white border-b flex justify-between items-center sticky top-0 z-40">
     <div>
         <h1 class="text-xl font-black italic uppercase">CLÍNICA <span class="text-orange-600">LOURDES</span></h1>
-        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Dr. Jorge Salomão & Equipe</p>
+        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sistemas de Gestão de Pacientes</p>
     </div>
-    <input type="date" id="datepicker" onchange="loadAll()" class="p-2 border rounded-xl font-bold text-sm bg-slate-50 outline-none shadow-sm">
+    <input type="date" id="datepicker" onchange="loadAll()" class="p-2 border rounded-xl font-bold text-sm bg-slate-50 outline-none">
 </header>
 
 <main id="content" class="p-4 max-w-5xl mx-auto"></main>
@@ -45,12 +45,12 @@
 </div>
 
 <script>
-    const API = "https://script.google.com/macros/s/AKfycbw4O50x65B1-SiwoCy_zkx2u1YGbTCkFEJl2rziLkQsItGJBdhkgZBQ-Yi-SuOjNjed/exec"; 
+    const API = "https://script.google.com/macros/s/AKfycbxZ50zl574QAPToqo9KaYqK8Iegcg6rmQituENbLxcqKHOkUkGbAx94JtFEiHjhaJs/exec"; 
     let pacs = [], appts = [], currentTab = 'agenda';
 
     async function loadAll() {
         const c = document.getElementById('content');
-        c.innerHTML = '<div class="text-center mt-20 font-black text-slate-300 animate-pulse uppercase">Conectando à Planilha...</div>';
+        c.innerHTML = '<div class="text-center mt-20 font-black text-slate-300 animate-pulse uppercase">Sincronizando Dados...</div>';
         try {
             const r = await fetch(API + '?action=getAll');
             const d = await r.json();
@@ -58,7 +58,7 @@
             appts = d.appointments || [];
             render();
         } catch(e) {
-            c.innerHTML = '<div class="text-center p-10 font-bold text-red-500 uppercase">Erro na Conexão! Verifique o link da API.</div>';
+            c.innerHTML = '<div class="text-center p-10 font-bold text-red-500 uppercase">Erro na Conexão.</div>';
         }
     }
 
@@ -74,22 +74,23 @@
         else renderAusentes(c);
     }
 
+    // --- AGENDA ---
     function renderAgenda(c, dVal) {
         const dataF = dVal.split('-').reverse().join('/');
-        let html = `<div class="mb-6 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-black text-white px-8 py-3 rounded-full text-[10px] font-black uppercase shadow-lg">+ Encaixe</button></div>`;
+        let html = `<div class="mb-6 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-black text-white px-8 py-3 rounded-full text-[10px] font-black uppercase shadow-lg">+ Novo Encaixe</button></div>`;
         const config = [{n:'ESPORTIVO', b:'borda-esp', step:25},{n:'EMAGRECIMENTO', b:'borda-emag', step:35},{n:'APLICAÇÃO', b:'borda-apl', max:3}];
         
         config.forEach(cat => {
-            html += `<h3 class="font-black text-[10px] text-slate-400 mb-4 tracking-[0.2em] mt-8 uppercase border-b pb-2">* ${cat.n}</h3>`;
+            html += `<h3 class="font-black text-[10px] text-slate-400 mb-4 mt-8 uppercase border-b pb-2 tracking-widest">* ${cat.n}</h3>`;
             const list = appts.filter(a => a.data.includes(dataF) && a.categoria.toUpperCase().trim() === cat.n);
             if(cat.n === 'APLICAÇÃO') {
-                for(let i=1; i<=cat.max; i++) html += list[i-1] ? slotBusy(list[i-1], cat.b) : `<div onclick="openAgendar('${cat.n}', '')" class="slot-livre p-5 mb-4 text-[10px] uppercase">DISPONÍVEL</div>`;
+                for(let i=1; i<=cat.max; i++) html += list[i-1] ? slotBusy(list[i-1], cat.b) : `<div onclick="openAgendar('${cat.n}', '')" class="slot-livre p-5 mb-4 text-[10px]">LIVRE</div>`;
             } else {
                 let h=9, m=0;
                 while(h < 12 || (h == 11 && m <= 55)){
                     const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
                     const ag = list.find(a => a.hora.includes(t));
-                    html += ag ? slotBusy(ag, cat.b) : `<div onclick="openAgendar('${cat.n}', '${t}')" class="slot-livre p-5 mb-4 flex justify-between text-[10px] uppercase"><span>${t}</span><span>DISPONÍVEL</span></div>`;
+                    html += ag ? slotBusy(ag, cat.b) : `<div onclick="openAgendar('${cat.n}', '${t}')" class="slot-livre p-5 mb-4 flex justify-between text-[10px]"><span>${t}</span><span>LIVRE</span></div>`;
                     m += cat.step; if(m>=60){ h++; m-=60; }
                 }
             }
@@ -98,31 +99,35 @@
     }
 
     function slotBusy(ag, borda) {
-        return `<div class="ios-card p-6 mb-4 ${borda} flex justify-between items-center" onclick="openAcoes('${ag.id}')">
+        return `<div class="ios-card p-6 mb-4 ${borda} flex justify-between items-center shadow-md" onclick="openAcoes('${ag.id}')">
             <div><p class="text-[9px] font-bold text-slate-400 uppercase mb-1">${ag.hora} — ${ag.servico}</p>
             <p class="font-black text-slate-800 uppercase text-base leading-tight">${ag.paciente}</p></div>
             <i class="fab fa-whatsapp text-green-500 text-2xl"></i>
         </div>`;
     }
 
+    // --- RELATÓRIO MÉDICO ---
     function renderRelatorio(c, dVal) {
         const dataF = dVal.split('-').reverse().join('/');
-        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black uppercase text-[11px] shadow-xl italic tracking-widest">Imprimir Relatório</button></div>
-        <div class="print-area bg-white p-2"><h2 class="text-center font-black mb-8 border-b-2 border-black pb-2 uppercase text-sm">AGENDA CLÍNICA LOURDES — ${dataF}</h2>`;
+        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black uppercase text-[11px] shadow-xl">Imprimir Relatório</button></div>
+        <div class="print-area bg-white p-2"><h2 class="text-center font-black mb-8 border-b-2 border-black pb-2 uppercase text-sm italic">AGENDA MÉDICA — ${dataF}</h2>`;
         
         [{n:'ESPORTIVO', prof:'GERALDO'}, {n:'EMAGRECIMENTO', prof:'BRUNO'}, {n:'APLICAÇÃO', prof:'SUELLEN'}].forEach(cat => {
             const list = appts.filter(a => a.data.includes(dataF) && a.categoria.toUpperCase().trim() === cat.n);
-            html += `<div class="cat-header"><span>* ${cat.n}</span><span>PROF: ${cat.prof}</span></div>
-            <table class="relatorio-tabela"><thead><tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Nasc.</th><th>Hoje</th></tr></thead><tbody>`;
+            html += `<div class="cat-header"><span>* ${cat.n}</span><span class="text-[8px] text-slate-400 italic">PROFISSIONAL RESPONSÁVEL</span></div>
+            <table class="relatorio-tabela"><thead><tr><th>Hora</th><th>Paciente</th><th>Telefone</th><th>Última Visita</th><th>Hoje</th></tr></thead><tbody>`;
             list.forEach(a => {
                 const p = pacs.find(x => x.nome.toUpperCase().trim() === a.paciente.toUpperCase().trim()) || {};
-                html += `<tr><td>${a.hora}</td><td class="font-black uppercase">${a.paciente}</td><td>${p.telefone}</td><td>${p.nascimento}</td><td class="font-bold uppercase">${a.servico}</td></tr>`;
+                const hPac = appts.filter(x => x.paciente.toUpperCase().trim() === a.paciente.toUpperCase().trim() && x.data !== dataF);
+                const ultima = hPac.length > 0 ? hPac[hPac.length-1].data : "Primeira Vez";
+                html += `<tr><td>${a.hora}</td><td class="font-black uppercase">${a.paciente}</td><td>${p.telefone || ''}</td><td>${ultima}</td><td class="font-bold">${a.servico}</td></tr>`;
             });
             html += `</tbody></table>`;
         });
         c.innerHTML = html + `</div>`;
     }
 
+    // --- HISTÓRICO E PESQUISA ---
     function renderHistorico(c) {
         c.innerHTML = `<div class="p-2"><h2 class="font-black text-xs uppercase text-slate-400 mb-6 text-center italic">Pesquisar Paciente</h2><input type="text" id="histSearch" oninput="searchHist()" placeholder="NOME DO PACIENTE..." class="w-full p-5 rounded-2xl border-2 border-slate-100 font-black uppercase outline-none focus:border-orange-500 shadow-sm mb-8"><div id="histResults"></div></div>`;
     }
@@ -132,33 +137,38 @@
         const results = document.getElementById('histResults');
         if(term.length < 3) return results.innerHTML = "";
         const pac = pacs.find(p => p.nome.toUpperCase().includes(term));
-        if(!pac) return results.innerHTML = "<p class='text-center text-slate-300 font-bold'>Não encontrado.</p>";
+        if(!pac) return results.innerHTML = "<p class='text-center text-slate-300 font-bold'>Paciente não encontrado.</p>";
         const visitas = appts.filter(a => a.paciente.toUpperCase().trim() === pac.nome.toUpperCase().trim()).reverse();
         results.innerHTML = `
-            <div class="ios-card p-6 border-l-8 border-orange-500">
+            <div class="ios-card p-6 border-l-8 border-orange-500 shadow-lg">
                 <h3 class="font-black text-lg uppercase mb-4">${pac.nome}</h3>
                 <div class="grid grid-cols-2 gap-4 text-[10px] mb-6">
-                    <div><label class="text-slate-400 font-black uppercase block">WhatsApp</label><p class="font-bold">${pac.telefone}</p></div>
-                    <div><label class="text-slate-400 font-black uppercase block">Altura</label><p class="font-bold">${pac.altura}</p></div>
+                    <div><label class="text-slate-400 font-black uppercase block text-[8px]">WhatsApp</label><p class="font-bold">${pac.telefone}</p></div>
+                    <div><label class="text-slate-400 font-black uppercase block text-[8px]">Nascimento</label><p class="font-bold">${pac.nascimento}</p></div>
+                    <div class="col-span-2"><label class="text-slate-400 font-black uppercase block text-[8px]">Email</label><p class="font-bold">${pac.email}</p></div>
                 </div>
-                <div class="border-t pt-4"><p class="text-slate-400 font-black text-[9px] uppercase mb-2">Últimas Visitas:</p>
-                ${visitas.slice(0,5).map(v => `<div class="flex justify-between text-[10px] py-1 border-b border-slate-50 italic"><span>${v.data}</span><span class="font-bold">${v.servico}</span></div>`).join('')}</div>
+                <div class="border-t pt-4"><p class="text-slate-400 font-black text-[9px] uppercase mb-2 italic">Histórico de Consultas:</p>
+                <div class="max-h-40 overflow-y-auto">
+                    ${visitas.map(v => `<div class="flex justify-between text-[10px] py-1 border-b border-slate-50 italic"><span>${v.data}</span><span class="font-bold">${v.servico}</span></div>`).join('')}
+                </div></div>
             </div>`;
     }
 
+    // --- ACOMPANHAMENTO (FALTOSOS) ---
     function renderAusentes(c) {
         const hoje = new Date();
         const faltosos = pacs.filter(p => {
-            const histPac = appts.filter(a => a.paciente.toUpperCase().trim() === p.nome.toUpperCase().trim());
-            if(histPac.length === 0) return false;
-            const ult = histPac[histPac.length - 1].data.split('/');
-            const dataV = new Date(ult[2], ult[1]-1, ult[0]);
-            return ((hoje - dataV) / (1000 * 3600 * 24)) > 25;
+            const h = appts.filter(a => a.paciente.toUpperCase().trim() === p.nome.toUpperCase().trim());
+            if(h.length === 0) return false;
+            const u = h[h.length-1].data.split('/');
+            const dV = new Date(u[2], u[1]-1, u[0]);
+            return ((hoje - dV)/(1000*3600*24)) > 25;
         });
-        c.innerHTML = `<h2 class="font-black text-slate-400 mb-6 uppercase text-[10px] text-center italic">Acompanhamento (+25 dias)</h2>` + 
-        (faltosos.length ? faltosos.map(p => `<div class="ios-card p-6 mb-4 border-l-8 border-red-200 flex justify-between items-center"><div class="uppercase"><p class="font-black">${p.nome}</p></div><i class="fab fa-whatsapp text-green-500 text-3xl" onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}')"></i></div>`).join('') : '<p class="text-center py-10 text-slate-300 font-bold uppercase text-[10px]">Tudo em dia!</p>');
+        c.innerHTML = `<h2 class="font-black text-slate-400 mb-6 uppercase text-[10px] text-center italic">Acompanhamento (+25 dias sem retorno)</h2>` + 
+        (faltosos.length ? faltosos.map(p => `<div class="ios-card p-6 mb-4 border-l-8 border-red-200 flex justify-between items-center"><div class="uppercase"><p class="font-black">${p.nome}</p><p class="text-[8px] text-red-500 font-bold italic">PRECISA DE ACOMPANHAMENTO</p></div><i class="fab fa-whatsapp text-green-500 text-3xl" onclick="window.open('https://wa.me/55${p.telefone.replace(/\D/g,'')}')"></i></div>`).join('') : '<p class="text-center py-10 text-slate-300 font-bold uppercase text-[10px]">Tudo em dia!</p>');
     }
 
+    // --- MODAL DE AÇÕES ---
     function openAcoes(id) {
         const ag = appts.find(a => a.id == id);
         document.getElementById('m-content').innerHTML = `
@@ -166,36 +176,67 @@
             <div class="flex flex-col gap-4">
                 <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-blue-600 text-white p-5 rounded-[22px] font-black uppercase text-[11px] shadow-lg">Confirmar Agendamento</button>
                 <button onclick="enviarZap('lembrete','${id}')" class="w-full bg-green-500 text-white p-5 rounded-[22px] font-black uppercase text-[11px] shadow-lg">Enviar Lembrete</button>
-                <button onclick="deletarAg('${id}')" class="text-red-500 font-black text-[10px] uppercase mt-6 text-center">Desmarcar</button>
+                <button onclick="deletarAg('${id}')" class="text-red-400 font-black text-[9px] uppercase mt-6 text-center">Remover da Agenda</button>
             </div>`;
         document.getElementById('modal').classList.remove('hidden');
     }
 
+    // --- MENSAGENS DE WHATSAPP (CORRIGIDAS) ---
     function enviarZap(tipo, id) {
         const ag = appts.find(a => a.id == id);
         const p = pacs.find(x => x.nome.toUpperCase().trim() === ag.paciente.toUpperCase().trim()) || {};
         const tel = (p.telefone || "").replace(/\D/g,'');
         let msg = "";
+        
         if(tipo === 'confirmar') {
             msg = `Oi ${ag.paciente}! 👋\n\nSeu agendamento foi realizado com sucesso!\n\n📅 ${ag.data}\n🕐 ${ag.hora}\n\n*${ag.servico.toUpperCase()}*\nCom os profissionais: DR Jorge Vieira Salomão (médico nutrólogo) | Geraldo (nutricionista) | Suelen Fernanda (enfermeira)\n\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5º andar - Lourdes.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nAguardamos por você!`;
         } else {
-            msg = `Olá ${ag.paciente}! 👋\n\nConfirme sua consulta de *${ag.servico.toUpperCase()}*:\n📅 ${ag.data}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER*\nPagamento em dinheiro tem 10% OFF em Injetáveis!\n\n📊 *BIOIMPEDÂNCIA - PREPARAÇÃO*\n✓ Não se exercite nas últimas 4 horas\n✓ Não coma 2 horas antes\n✓ Sem álcool 24h antes.\n\nResponda SIM para confirmar. 😊`;
+            msg = `Olá ${ag.paciente}! 👋\n\nConfirme sua consulta de *${ag.servico.toUpperCase()}* para AMANHÃ:\n📅 ${ag.data}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER*\nPagamento em dinheiro tem 10% OFF em Injetáveis!\n\n📊 *BIOIMPEDÂNCIA - PREPARAÇÃO*\n✓ Não se exercite nas últimas 4 horas\n✓ Não coma 2 horas antes\n✓ Sem álcool 24h antes.\n\nResponda SIM para confirmar. 😊`;
         }
         window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`);
     }
 
+    // --- AGENDAR E CADASTRAR NOVO PACIENTE ---
     function openAgendar(cat, hora) {
         document.getElementById('m-content').innerHTML = `
-            <h2 class="font-black text-xl mb-6 uppercase text-center italic">AGENDAR: ${cat} ${hora}</h2>
-            <div class="space-y-4"><input type="text" id="newPac" placeholder="NOME DO PACIENTE" class="w-full p-5 border-2 rounded-2xl font-black uppercase outline-none"><button onclick="verificarESalvar('${cat}', '${hora}')" class="w-full bg-black text-white p-6 rounded-[25px] font-black uppercase mt-4 shadow-2xl">Salvar na Agenda</button></div>`;
+            <h2 class="font-black text-xl mb-6 uppercase text-center italic">AGENDAR: ${cat}</h2>
+            <div class="space-y-4">
+                <input type="text" id="newPac" placeholder="NOME COMPLETO" class="w-full p-5 border-2 rounded-2xl font-black uppercase outline-none focus:border-orange-500">
+                <div id="cadastroExtra" class="hidden space-y-3 p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                    <p class="text-[8px] font-black text-orange-600 uppercase">Novo Paciente! Preencha os dados:</p>
+                    <input type="text" id="newTel" placeholder="TELEFONE (COM DDD)" class="w-full p-3 border rounded-xl text-xs font-bold">
+                    <input type="text" id="newNasc" placeholder="NASCIMENTO (DD/MM/AAAA)" class="w-full p-3 border rounded-xl text-xs font-bold">
+                    <input type="text" id="newEmail" placeholder="EMAIL" class="w-full p-3 border rounded-xl text-xs font-bold">
+                </div>
+                <button onclick="verificarESalvar('${cat}', '${hora}')" class="w-full bg-black text-white p-6 rounded-[25px] font-black uppercase shadow-2xl">Salvar na Agenda</button>
+            </div>`;
         document.getElementById('modal').classList.remove('hidden');
+        
+        // Lógica para mostrar cadastro extra se o nome não for achado
+        document.getElementById('newPac').addEventListener('input', function() {
+            const term = this.value.toUpperCase().trim();
+            const existe = pacs.some(p => p.nome.toUpperCase().trim() === term);
+            document.getElementById('cadastroExtra').classList.toggle('hidden', term.length < 5 || existe);
+        });
     }
 
     async function verificarESalvar(cat, hora) {
         const data = document.getElementById('datepicker').value.split('-').reverse().join('/');
         let servico = cat === 'APLICAÇÃO' ? 'APLICAÇÃO' : (cat === 'ESPORTIVO' ? 'NUTRIÇÃO ESPORTIVA' : 'EMAGRECIMENTO');
-        const obj = { action: 'addAppointment', paciente: document.getElementById('newPac').value.toUpperCase(), servico: servico, data: data, hora: hora || 'ENCAIXE', categoria: cat };
-        await fetch(API, { method: 'POST', body: JSON.stringify(obj) }); closeModal(); loadAll();
+        const obj = { 
+            action: 'addAppointment', 
+            paciente: document.getElementById('newPac').value.toUpperCase(), 
+            servico: servico, 
+            data: data, 
+            hora: hora || 'ENCAIXE', 
+            categoria: cat,
+            telefone: document.getElementById('newTel')?.value || "",
+            nascimento: document.getElementById('newNasc')?.value || "",
+            email: document.getElementById('newEmail')?.value || ""
+        };
+        await fetch(API, { method: 'POST', body: JSON.stringify(obj) }); 
+        closeModal(); 
+        loadAll();
     }
 
     function showTab(t){ currentTab = t; render(); }
