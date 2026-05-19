@@ -157,21 +157,44 @@
             agensPorCat[cat] = appts.filter(a => a.dataStr === dataF && a.categoria === cat).sort((a,b) => a.hora.localeCompare(b.hora));
         });
         
-        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Imprimir Relatório Completo</button></div><div class="print-area">`;
-        html += `<div style="text-align:center; margin-bottom:20px; font-weight:900; font-size:14px;">AGENDA LOURDES — ${dataF}</div>`;
+        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Imprimir Relatório Completo</button></div><div class="print-area" style="background:white; padding:20px;">`;
+        html += `<div style="text-align:center; margin-bottom:30px; font-weight:900; font-size:16px; text-transform:uppercase; letter-spacing:2px;">AGENDA LOURDES — ${dataF}</div>`;
+        
+        const cores = {'ESPORTIVO': '#fde8d8', 'EMAGRECIMENTO': '#d8eafd', 'APLICAÇÃO': '#f3d8fd'};
+        const corTexto = {'ESPORTIVO': '#b45309', 'EMAGRECIMENTO': '#1e40af', 'APLICAÇÃO': '#6b21a8'};
         
         ['ESPORTIVO', 'EMAGRECIMENTO', 'APLICAÇÃO'].forEach(cat => {
             const list = agensPorCat[cat];
             if(list.length === 0) return;
-            html += `<h2 style="font-weight:900; font-size:11px; margin-top:15px; margin-bottom:8px; border-bottom:2px solid #000;">${cat}</h2>`;
-            html += `<table class="relatorio-tabela"><thead><tr><th>Hora</th><th>Paciente</th><th>WhatsApp</th><th>Nasc.</th><th>Alt.</th><th>Últ. Consulta</th><th>Serviço</th><th>Obs</th></tr></thead><tbody>`;
+            
+            const cor = cores[cat];
+            const corTxt = corTexto[cat];
+            const prof = cat === 'ESPORTIVO' ? 'GERALDO/LÍBIA' : cat === 'EMAGRECIMENTO' ? 'BRUNO' : 'SUELEN';
+            
+            html += `<div style="page-break-inside:avoid; margin-bottom:25px;">`;
+            html += `<div style="background:${cor}; padding:12px 16px; border-radius:8px 8px 0 0; font-weight:900; font-size:12px; color:${corTxt}; text-transform:uppercase;">* ${cat} — ${prof}</div>`;
+            html += `<table class="relatorio-tabela" style="margin-bottom:20px;">`;
+            html += `<thead><tr style="background:${cor}; border:none;"><th style="color:${corTxt}; border:1px solid #ddd; padding:10px 6px; text-align:left; font-size:9px;">Hora</th><th style="color:${corTxt}; border:1px solid #ddd; padding:10px 6px; text-align:left; font-size:9px;">Paciente</th><th style="color:${corTxt}; border:1px solid #ddd; padding:10px 6px; text-align:left; font-size:9px;">Telefone</th><th style="color:${corTxt}; border:1px solid #ddd; padding:10px 6px; text-align:left; font-size:9px;">Nasc.</th><th style="color:${corTxt}; border:1px solid #ddd; padding:10px 6px; text-align:left; font-size:9px;">Alt.</th><th style="color:${corTxt}; border:1px solid #ddd; padding:10px 6px; text-align:left; font-size:9px;">Últ. Consulta</th><th style="color:${corTxt}; border:1px solid #ddd; padding:10px 6px; text-align:left; font-size:9px;">Serviço Hoje</th><th style="color:${corTxt}; border:1px solid #ddd; padding:10px 6px; text-align:left; font-size:9px;">Obs</th></tr></thead>`;
+            html += `<tbody>`;
+            
             list.forEach(a => {
                 const p = pacs.find(x => x.nome === a.paciente) || {};
                 const hPac = appts.filter(x => x.paciente === a.paciente && x.dataStr !== dataF).sort((x,y) => y.dataStr.localeCompare(x.dataStr));
                 const ultima = hPac.length > 0 ? hPac[0].dataStr : '-';
-                html += `<tr><td>${a.hora}</td><td style="font-weight:900;">${a.paciente}</td><td>${p.telefone || '-'}</td><td>${p.nascimento || '-'}</td><td>${p.altura || '-'}</td><td>${ultima}</td><td style="font-weight:900;">${a.servico}</td><td style="color:#ea580c;">${a.obs || ''}</td></tr>`;
+                html += `<tr style="border:1px solid #ddd; background:white;">`;
+                html += `<td style="border:1px solid #ddd; padding:8px 6px; font-weight:900; font-size:9px;">${a.hora}</td>`;
+                html += `<td style="border:1px solid #ddd; padding:8px 6px; font-weight:900; font-size:9px; text-transform:uppercase;">${a.paciente}</td>`;
+                html += `<td style="border:1px solid #ddd; padding:8px 6px; font-size:9px;">${p.telefone || '-'}</td>`;
+                html += `<td style="border:1px solid #ddd; padding:8px 6px; font-size:9px;">${p.nascimento || '-'}</td>`;
+                html += `<td style="border:1px solid #ddd; padding:8px 6px; font-size:9px;">${p.altura || '-'}</td>`;
+                html += `<td style="border:1px solid #ddd; padding:8px 6px; font-size:9px;">${ultima}</td>`;
+                html += `<td style="border:1px solid #ddd; padding:8px 6px; font-weight:900; font-size:9px; color:${corTxt};">${a.servico}</td>`;
+                html += `<td style="border:1px solid #ddd; padding:8px 6px; font-size:9px; color:#d97706;">${a.obs || ''}</td>`;
+                html += `</tr>`;
             });
+            
             html += `</tbody></table>`;
+            html += `</div>`;
         });
         
         c.innerHTML = html + `</div>`;
