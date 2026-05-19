@@ -12,9 +12,10 @@
         .borda-esp { border-left: 8px solid #fed7aa; } 
         .borda-emag { border-left: 8px solid #bfdbfe; } 
         .borda-apl { border-left: 8px solid #e9d5ff; } 
-        .relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 8px; margin-top: 10px; }
-        .relatorio-tabela th { background: #f8fafc; padding: 6px 2px; border: 1px solid #e2e8f0; text-transform: uppercase; }
-        .relatorio-tabela td { padding: 6px 2px; border: 1px solid #e2e8f0; background: white; }
+        .relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 9px; margin-top: 10px; }
+        .relatorio-tabela th { background: #f8fafc; padding: 8px 4px; border: 1px solid #e2e8f0; text-transform: uppercase; font-weight: 900; }
+        .relatorio-tabela td { padding: 8px 4px; border: 1px solid #e2e8f0; background: white; }
+        .relatorio-tabela tr:nth-child(even) { background: #f8fafc; }
         .btn-loading { pointer-events: none; opacity: 0.6; }
         .suggestions-box { position: absolute; width: 100%; background: white; border-radius: 12px; max-height: 150px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .suggestion-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 11px; font-weight: bold; text-transform: uppercase; }
@@ -54,8 +55,11 @@
         try {
             const r = await fetch(API + '?action=getAll');
             const d = await r.json();
-            pacs = d.patients || [];
-            appts = d.appointments || [];
+            pacs = (d.patients || []).map(p => ({...p, nome: p.nome.trim().toUpperCase()}));
+            appts = (d.appointments || []).map(a => ({...a, paciente: a.paciente.trim().toUpperCase()})).sort((a,b) => {
+                const cmp = a.dataStr.localeCompare(b.dataStr);
+                return cmp !== 0 ? cmp : a.hora.localeCompare(b.hora);
+            });
             render();
         } catch(e) { c.innerHTML = '<div class="text-center p-10 font-bold text-red-500 uppercase">ERRO DE CONEXÃO</div>'; }
     }
@@ -77,7 +81,7 @@
         const config = [{n:'ESPORTIVO', b:'borda-esp', step:25},{n:'EMAGRECIMENTO', b:'borda-emag', step:35},{n:'APLICAÇÃO', b:'borda-apl', max:3}];
         config.forEach(cat => {
             html += `<h3 class="font-black text-[10px] text-slate-400 mb-4 mt-8 uppercase tracking-widest border-l-4 border-slate-200 pl-2">${cat.n}</h3>`;
-            const list = appts.filter(a => a.dataStr === dataF && a.categoria === cat.n);
+            const list = appts.filter(a => a.dataStr === dataF && a.categoria === cat.n).sort((a,b) => a.hora.localeCompare(b.hora));
             if(cat.n === 'APLICAÇÃO') {
                 for(let i=1; i<=cat.max; i++) html += list[i-1] ? slotBusy(list[i-1], cat.b) : `<div onclick="openAgendar('${cat.n}', '')" class="bg-white border border-dashed p-4 mb-4 text-[10px] rounded-xl text-slate-300 text-center italic">Livre</div>`;
             } else {
@@ -94,7 +98,7 @@
     }
 
     function slotBusy(ag, borda) {
-        return `<div class="ios-card p-5 mb-4 ${borda} flex justify-between items-center" onclick="openAcoes('${ag.id}')">
+        return `<div class="ios-card p-5 mb-4 ${borda} flex justify-between items-center cursor-pointer" onclick="openAcoes('${ag.id}')">
             <div><p class="text-[9px] font-bold text-slate-400 uppercase">${ag.hora} — ${ag.servico}</p>
             <p class="font-black text-slate-800 uppercase text-base">${ag.paciente}</p></div>
             <i class="fab fa-whatsapp text-green-500 text-2xl"></i>
@@ -148,18 +152,28 @@
 
     function renderRelatorio(c, dVal) {
         const dataF = dVal.split('-').reverse().join('/');
-        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Imprimir Relatório Completo</button></div><div class="print-area">`;
+        const agensPorCat = {};
         ['ESPORTIVO', 'EMAGRECIMENTO', 'APLICAÇÃO'].forEach(cat => {
-            const list = appts.filter(a => a.dataStr === dataF && a.categoria === cat);
-            html += `<h2 class="font-black text-[10px] mt-6 border-b border-black uppercase italic">${cat}</h2><table class="relatorio-tabela"><thead><tr><th>Hora</th><th>Paciente</th><th>WhatsApp</th><th>Nascimento</th><th>Altura</th><th>Últ. Consulta</th><th>Hoje</th><th>Obs</th></tr></thead><tbody>`;
+            agensPorCat[cat] = appts.filter(a => a.dataStr === dataF && a.categoria === cat).sort((a,b) => a.hora.localeCompare(b.hora));
+        });
+        
+        let html = `<div class="no-print mb-6"><button onclick="window.print()" class="w-full bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Imprimir Relatório Completo</button></div><div class="print-area">`;
+        html += `<div style="text-align:center; margin-bottom:20px; font-weight:900; font-size:14px;">AGENDA LOURDES — ${dataF}</div>`;
+        
+        ['ESPORTIVO', 'EMAGRECIMENTO', 'APLICAÇÃO'].forEach(cat => {
+            const list = agensPorCat[cat];
+            if(list.length === 0) return;
+            html += `<h2 style="font-weight:900; font-size:11px; margin-top:15px; margin-bottom:8px; border-bottom:2px solid #000;">${cat}</h2>`;
+            html += `<table class="relatorio-tabela"><thead><tr><th>Hora</th><th>Paciente</th><th>WhatsApp</th><th>Nasc.</th><th>Alt.</th><th>Últ. Consulta</th><th>Serviço</th><th>Obs</th></tr></thead><tbody>`;
             list.forEach(a => {
                 const p = pacs.find(x => x.nome === a.paciente) || {};
-                const hPac = appts.filter(x => x.paciente === a.paciente && x.dataStr !== dataF);
-                const ultima = hPac.length > 0 ? hPac[hPac.length-1].dataStr : '-';
-                html += `<tr><td>${a.hora}</td><td class="font-bold">${a.paciente}</td><td>${p.telefone || '-'}</td><td>${p.nascimento || '-'}</td><td>${p.altura || '-'}</td><td>${ultima}</td><td class="font-bold">${a.servico}</td><td class="text-orange-600">${a.obs || ''}</td></tr>`;
+                const hPac = appts.filter(x => x.paciente === a.paciente && x.dataStr !== dataF).sort((x,y) => y.dataStr.localeCompare(x.dataStr));
+                const ultima = hPac.length > 0 ? hPac[0].dataStr : '-';
+                html += `<tr><td>${a.hora}</td><td style="font-weight:900;">${a.paciente}</td><td>${p.telefone || '-'}</td><td>${p.nascimento || '-'}</td><td>${p.altura || '-'}</td><td>${ultima}</td><td style="font-weight:900;">${a.servico}</td><td style="color:#ea580c;">${a.obs || ''}</td></tr>`;
             });
             html += `</tbody></table>`;
         });
+        
         c.innerHTML = html + `</div>`;
     }
 
@@ -170,13 +184,14 @@
     function searchHist() {
         const term = document.getElementById('histSearch').value.toUpperCase().trim();
         const results = document.getElementById('histResults');
-        if(term.length < 3) return results.innerHTML = "";
+        if(term.length < 2) return results.innerHTML = "";
         const pac = pacs.find(p => p.nome.includes(term));
         if(!pac) return results.innerHTML = "<p class='text-center text-slate-300 font-black'>NÃO ENCONTRADO</p>";
-        const hPac = appts.filter(x => x.paciente === pac.nome);
-        const ultima = hPac.length > 0 ? hPac[hPac.length-1].dataStr : 'Nunca consultou';
-        results.innerHTML = `
-            <div class="ios-card p-6 border-l-8 border-orange-500">
+        
+        const hPac = appts.filter(x => x.paciente === pac.nome).sort((a,b) => b.dataStr.localeCompare(a.dataStr));
+        const ultima = hPac.length > 0 ? hPac[0].dataStr : 'Nunca consultou';
+        
+        let histHtml = `<div class="mb-6"><div class="ios-card p-6 border-l-8 border-orange-500">
                 <h3 class="font-black text-lg uppercase mb-2">${pac.nome}</h3>
                 <p class="text-[10px] text-slate-400 font-bold mb-4 uppercase">Última consulta: ${ultima}</p>
                 <div class="grid grid-cols-2 gap-3 mb-6">
@@ -187,7 +202,19 @@
                     <button onclick="salvarEdicao('${pac.nome}')" class="flex-1 bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">Salvar Dados</button>
                     <button id="btnDelP" onclick="deletarPaciente('${pac.nome}')" class="bg-red-50 text-red-500 px-6 rounded-xl font-black"><i class="fas fa-trash-alt"></i></button>
                 </div>
-            </div>`;
+            </div></div>`;
+        
+        if(hPac.length > 0) {
+            histHtml += `<h4 class="font-black text-slate-400 uppercase text-[9px] mb-3 mt-6">Histórico de Consultas</h4>`;
+            hPac.forEach(ag => {
+                histHtml += `<div class="ios-card p-4 mb-2 ${ag.categoria === 'ESPORTIVO' ? 'borda-esp' : ag.categoria === 'EMAGRECIMENTO' ? 'borda-emag' : 'borda-apl'}">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">${ag.dataStr} — ${ag.hora}</p>
+                    <p class="font-black text-slate-800 text-sm">${ag.servico}</p>
+                </div>`;
+            });
+        }
+        
+        results.innerHTML = histHtml;
     }
 
     async function salvarEdicao(nome) {
@@ -204,11 +231,12 @@
 
     function renderAusentes(c) {
         const hoje = new Date();
+        const pacComConsulta = new Set(appts.map(a => a.paciente));
         const faltosos = pacs.filter(p => {
-            if(excludedRetornos.includes(p.nome)) return false;
+            if(!pacComConsulta.has(p.nome) || excludedRetornos.includes(p.nome)) return false;
             const h = appts.filter(a => a.paciente === p.nome);
             if(h.length === 0) return false;
-            const u = h[h.length-1];
+            const u = h.sort((a,b) => b.dataStr.localeCompare(a.dataStr))[0];
             const dV = new Date(u.dataStr.split('/').reverse().join('-'));
             return ((hoje - dV)/(1000*3600*24)) > 25;
         });
