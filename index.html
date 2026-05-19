@@ -64,6 +64,7 @@
 </div>
 
 <script>
+    // Link do seu Apps Script inserido de forma limpa e direta
     const API = "https://script.google.com/macros/s/AKfycbxmaWUWvspZKA9OqHyoyGo0Mcy0hTwLhZ_f5JFfkep1GSYN_3_JhNTgb1trwUc2HcNe/exec"; 
     let pacs = [], appts = [], currentTab = 'agenda';
     let excludedRetornos = JSON.parse(localStorage.getItem('excludedRetornos') || '[]');
@@ -89,8 +90,10 @@
             b.classList.add('text-slate-400');
         });
         const activeBtn = document.getElementById('t-'+currentTab);
-        activeBtn.classList.remove('text-slate-400');
-        activeBtn.classList.add('text-clinica-vinho');
+        if (activeBtn) {
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('text-clinica-vinho');
+        }
 
         if(currentTab === 'agenda') renderAgenda(c, dVal);
         else if(currentTab === 'relatorio') renderRelatorio(c, dVal);
@@ -104,6 +107,7 @@
     }
 
     function renderAgenda(c, dVal) {
+        if (!dVal) return;
         const dataF = dVal.split('-').reverse().join('/');
         let html = `<div class="mb-6 text-center"><button onclick="openAgendar('ENCAIXE','')" class="bg-clinica-vinho text-white px-10 py-3 rounded-xl text-[10px] font-black uppercase shadow-md shadow-purple-100 hover:opacity-90 transition">+ Encaixe do Dia</button></div>`;
         const config = [{n:'ESPORTIVO', b:'borda-esp', step:25},{n:'EMAGRECIMENTO', b:'borda-emag', step:35},{n:'APLICAÇÃO', b:'borda-apl'}];
@@ -133,64 +137,4 @@
                 fixos.sort((a,b) => a.hora.localeCompare(b.hora));
                 fixos.forEach(f => { html += slotBusy(f, cat.b); });
                 html += `<div onclick="openAgendar('${cat.n}', '')" class="bg-white border border-dashed border-slate-200 p-4 mb-3 text-[10px] rounded-xl text-slate-300 text-center italic cursor-pointer">+ Incluir Nova Aplicação com Horário</div>`;
-            } else {
-                let h=9, m=0;
-                while(h < 12 || (h == 11 && m <= 55)){
-                    const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                    const agsNoHorario = list.filter(a => a.hora === t);
-                    
-                    if(agsNoHorario.length === 0) {
-                        html += `<div onclick="openAgendar('${cat.n}', '${t}')" class="bg-white border border-dashed border-slate-200 p-4 mb-2 flex justify-between text-[10px] rounded-xl text-slate-400 font-medium cursor-pointer hover:bg-slate-50 transition"><span>${t}</span><span class="text-slate-300 italic font-normal">Disponível</span></div>`;
-                    } else {
-                        agsNoHorario.forEach(ag => { html += slotBusy(ag, cat.b); });
-                    }
-                    m += cat.step; if(m>=60){ h++; m-=60; }
-                }
-                
-                const encaixesComHora = list.filter(a => a.hora !== 'ENCAIXE' && a.hora !== '' && (parseInt(a.hora.split(':')[0]) < 9 || parseInt(a.hora.split(':')[0]) >= 12 || !['00','25','35','50'].includes(a.hora.split(':')[1])));
-                encaixesComHora.sort((a,b) => a.hora.localeCompare(b.hora));
-                encaixesComHora.forEach(ec => { html += slotBusy(ec, cat.b); });
             }
-        });
-        c.innerHTML = html;
-    }
-
-    function slotBusy(ag, borda) {
-        return `<div class="ios-card p-4 mb-2 ${borda} flex justify-between items-center cursor-pointer" onclick="openAcoes('${ag.id}')">
-            <div>
-                <p class="text-[9px] font-bold text-slate-400 uppercase">${ag.hora || 'ENCAIXE'} — ${ag.servico}</p>
-                <p class="font-black text-slate-700 uppercase text-sm tracking-wide mt-0.5">${ag.paciente}</p>
-                ${ag.obs ? `<p class="text-[9px] text-clinica-vinho font-semibold mt-0.5">Obs: ${ag.obs}</p>` : ''}
-            </div>
-            <div class="text-green-500 bg-green-50 p-2.5 rounded-full"><i class="fab fa-whatsapp text-lg"></i></div>
-        </div>`;
-    }
-
-    function openAcoes(id) {
-        const ag = appts.find(a => a.id == id);
-        document.getElementById('m-content').innerHTML = `
-            <div class="text-center mb-6"><h2 class="font-black text-xl uppercase tracking-wide text-slate-700">${ag.paciente}</h2><p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">${ag.hora} - ${ag.servico}</p></div>
-            <div class="flex flex-col gap-2.5">
-                <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl font-black uppercase text-[10px] tracking-wider transition">Confirmar WhatsApp</button>
-                <button onclick="enviarZap('lembrete','${id}')" class="w-full bg-green-500 hover:bg-green-600 text-white p-4 rounded-xl font-black uppercase text-[10px] tracking-wider transition">Enviar Lembrete</button>
-                <button id="btnDel" onclick="deletarAgendamento('${id}')" class="w-full bg-red-50 text-red-500 hover:bg-red-100 p-4 rounded-xl font-black uppercase text-[10px] tracking-wider transition">Excluir Horário</button>
-                <button onclick="closeModal()" class="text-slate-400 font-bold text-[9px] uppercase mt-4 tracking-widest text-center">Fechar</button>
-            </div>`;
-        document.getElementById('modal').classList.remove('hidden');
-    }
-
-    async function deletarAgendamento(id) {
-        if(!confirm("REMOVER ESTE AGENDAMENTO DA AGENDA?")) return;
-        const btn = document.getElementById('btnDel'); btn.innerText = "REMOVENDO..."; btn.classList.add('btn-loading');
-        await fetch(API, { method: 'POST', body: JSON.stringify({action: 'deleteAppointment', id: id}) });
-        closeModal(); loadAll();
-    }
-
-    function enviarZap(tipo, id) {
-        const ag = appts.find(a => a.id == id);
-        const p = pacs.find(x => x.nome === ag.paciente) || {};
-        const tel = (p.telefone || "").replace(/\D/g,'');
-        
-        let profs = "DR Jorge Vieira Salomão (médico nutrólogo) | Geraldo (nutricionista) | Suelen Fernanda (enfermeira)";
-        if(ag.servico.includes("LÍBIA")) {
-            profs = "
