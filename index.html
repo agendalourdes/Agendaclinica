@@ -9,35 +9,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         body { background:#fdfdfd; font-family: 'Inter', sans-serif; color: #1e293b; padding-bottom: 100px; }
-        
-        /* Cores de Luxo da Clínica */
-        .text-vinho { color: #722f51; }
-        .bg-vinho { background-color: #722f51; }
-        .text-ouro { color: #bca374; }
-        .bg-ouro { background-color: #bca374; }
+        .text-vinho { color: #722f51; } .bg-vinho { background-color: #722f51; }
+        .text-ouro { color: #bca374; } .bg-ouro { background-color: #bca374; }
         .border-ouro { border-color: #bca374; }
-
-        /* Estilo Card Premium */
         .premium-card { background: white; border-radius: 22px; border: 1px solid #f1f5f9; box-shadow: 0 10px 25px rgba(114, 47, 81, 0.04); transition: all 0.3s ease; }
         .premium-card:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(114, 47, 81, 0.08); }
-        
-        /* Bordas Coloridas da Agenda */
         .borda-esp { border-left: 8px solid #ffedd5; } 
         .borda-emag { border-left: 8px solid #dbeafe; } 
         .borda-apl { border-left: 8px solid #f3e8ff; } 
-        
-        /* Tabelas Relatório */
         .relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 15px; background: white; border-radius: 15px; overflow: hidden; border: 1px solid #f1f5f9; }
         .relatorio-tabela th { padding: 12px; text-transform: uppercase; font-weight: 800; font-size: 10px; background-color: #722f51; color: white; border: 1px solid #8a3c63; }
         .relatorio-tabela td { padding: 12px; border: 1px solid #f1f5f9; color: #334155; }
-        
         .btn-vinho { background-color: #722f51; color: white; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s; border-radius: 16px; box-shadow: 0 4px 12px rgba(114, 47, 81, 0.2); }
         .btn-vinho:hover { opacity: 0.9; transform: scale(1.01); }
-
         .suggestions-box { position: absolute; width: 100%; background: white; border-radius: 16px; max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; }
         .suggestion-item { padding: 14px; cursor: pointer; border-bottom: 1px solid #f8fafc; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-        
-        /* Estilo da Impressão Profissional */
         #print-header { display: none; }
         @media print { 
             .no-print { display: none !important; } 
@@ -87,7 +73,6 @@
 </div>
 
 <script>
-    // Conector oficial com a sua Planilha
     const API = "https://script.google.com/macros/s/AKfycbxmaWUWvspZKA9OqHyoyGo0Mcy0hTwLhZ_f5JFfkep1GSYN_3_JhNTgb1trwUc2HcNe/exec"; 
     
     let pacs = [], appts = [], currentTab = 'agenda';
@@ -227,11 +212,11 @@
         
         blocos.forEach(b => {
             let list = appts.filter(a => a.dataStr === dataF && a.categoria === b.id).sort((a, b) => (a.hora === 'ENCAIXE' ? 1 : b.hora === 'ENCAIXE' ? -1 : a.hora.localeCompare(b.hora)));
-            html += `<div class="mt-8 border-b-2 border-vinho pb-1 flex items-center justify-between"><h2 class="font-black text-[12px] text-vinho uppercase tracking-widest"><i class="fas ${b.icon} mr-2 text-ouro"></i>${b.title}</h2></div><table class="relatorio-tabela"><thead><tr><th>Hora</th><th>Paciente</th><th>WhatsApp</th><th>Nascimento</th><th>Hoje</th><th>Observações</th></tr></thead><tbody>`;
-            if(!list.length) html += `<tr><td colspan="6" class="text-center p-6 text-slate-300 italic">Sem pacientes listados</td></tr>`;
+            html += `<div class="mt-8 border-b-2 border-vinho pb-1 flex items-center justify-between"><h2 class="font-black text-[12px] text-vinho uppercase tracking-widest"><i class="fas ${b.icon} mr-2 text-ouro"></i>${b.title}</h2></div><table class="relatorio-tabela"><thead><tr><th>Hora</th><th>Paciente</th><th>WhatsApp</th><th>Nasc</th><th>Email</th><th>Altura</th><th>Hoje</th><th>Obs</th></tr></thead><tbody>`;
+            if(!list.length) html += `<tr><td colspan="8" class="text-center p-6 text-slate-300 italic">Sem pacientes listados</td></tr>`;
             else list.forEach(a => {
                 const p = pacs.find(x => x.nome === a.paciente) || {};
-                html += `<tr><td class="text-center font-black">${a.hora || 'ENC'}</td><td class="font-black text-vinho">${a.paciente}</td><td class="text-center">${p.telefone || '-'}</td><td class="text-center">${p.nascimento || '-'}</td><td class="font-bold uppercase text-[9px]">${a.servico}</td><td class="text-vinho font-semibold italic">${a.obs || ''}</td></tr>`;
+                html += `<tr><td class="text-center font-black">${a.hora || 'ENC'}</td><td class="font-black text-vinho">${a.paciente}</td><td class="text-center">${p.telefone || '-'}</td><td class="text-center">${p.nascimento || '-'}</td><td class="text-center">${p.email || '-'}</td><td class="text-center">${p.altura || '-'}</td><td class="font-bold uppercase text-[9px]">${a.servico}</td><td class="text-vinho font-semibold italic">${a.obs || ''}</td></tr>`;
             });
             html += `</tbody></table>`;
         });
@@ -247,6 +232,7 @@
                     <input type="text" id="cadTel" placeholder="WHATSAPP" class="p-4 bg-slate-50 border rounded-2xl font-bold text-xs outline-none focus:border-vinho">
                     <input type="text" id="cadNas" placeholder="NASCIMENTO (DD/MM/AAAA)" class="p-4 bg-slate-50 border rounded-2xl font-bold text-xs outline-none focus:border-vinho">
                     <input type="text" id="cadEmail" placeholder="EMAIL" class="p-4 bg-slate-50 border rounded-2xl font-bold text-xs outline-none focus:border-vinho">
+                    <input type="text" id="cadAlt" placeholder="ALTURA" class="p-4 bg-slate-50 border rounded-2xl font-bold text-xs outline-none focus:border-vinho">
                 </div>
                 <button id="btnCad" onclick="salvarCadastroCompleto()" class="btn-vinho w-full p-5 mt-6">Gravar Paciente no Sistema</button>
             </div>
@@ -273,6 +259,8 @@
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[7px] font-black text-slate-400 block uppercase">Tel</label><input type="text" id="eTel-${safeId}" value="${pac.telefone || ''}" class="w-full bg-transparent font-bold text-xs outline-none"></div>
                         <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[7px] font-black text-slate-400 block uppercase">Nasc</label><input type="text" id="eNas-${safeId}" value="${pac.nascimento || ''}" class="w-full bg-transparent font-bold text-xs outline-none"></div>
+                        <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[7px] font-black text-slate-400 block uppercase">Email</label><input type="text" id="eEmail-${safeId}" value="${pac.email || ''}" class="w-full bg-transparent font-bold text-xs outline-none"></div>
+                        <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[7px] font-black text-slate-400 block uppercase">Alt</label><input type="text" id="eAlt-${safeId}" value="${pac.altura || ''}" class="w-full bg-transparent font-bold text-xs outline-none"></div>
                     </div>
                     <div class="mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
                         <p class="text-[8px] font-black text-slate-400 uppercase mb-2"><i class="fas fa-clock-rotate-left mr-1"></i> Histórico Recente</p>
@@ -289,14 +277,14 @@
 
     async function salvarEdicao(nomeOrig) {
         const safeId = nomeOrig.replace(/\s+/g,'');
-        await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'editPatient', nome: nomeOrig, novoNome: document.getElementById(`eNome-${safeId}`).value.toUpperCase().trim(), telefone: document.getElementById(`eTel-${safeId}`).value, nascimento: document.getElementById(`eNas-${safeId}`).value }) });
+        await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'editPatient', nome: nomeOrig, novoNome: document.getElementById(`eNome-${safeId}`).value.toUpperCase().trim(), telefone: document.getElementById(`eTel-${safeId}`).value, nascimento: document.getElementById(`eNas-${safeId}`).value, email: document.getElementById(`eEmail-${safeId}`).value, altura: document.getElementById(`eAlt-${safeId}`).value }) });
         alert("ATUALIZADO!"); loadAll();
     }
 
     async function salvarCadastroCompleto() {
         const n = document.getElementById('cadNome').value.toUpperCase().trim(); if(!n) return alert("NOME OBRIGATÓRIO!");
         document.getElementById('btnCad').innerText = "GRAVANDO...";
-        await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'addPatient', nome: n, telefone: document.getElementById('cadTel').value, nascimento: document.getElementById('cadNas').value, email: document.getElementById('cadEmail').value }) });
+        await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'addPatient', nome: n, telefone: document.getElementById('cadTel').value, nascimento: document.getElementById('cadNas').value, email: document.getElementById('cadEmail').value, altura: document.getElementById('cadAlt').value }) });
         alert("CADASTRADO COM SUCESSO!"); loadAll();
     }
 
