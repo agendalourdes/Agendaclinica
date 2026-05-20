@@ -317,41 +317,56 @@
         document.getElementById('data-label-data').innerText = `${dia}/${mes}/${ano}`;
     }
 
+    /* ─────────────────────────────────────────────
+       CONTROLE DE DIAS
+       diasExcecao   → dias que SUBSTITUEM uma terça
+       diasCancelados → terças que NÃO acontecem
+    ───────────────────────────────────────────── */
+    const diasExcecao    = ['2026-07-13', '2026-07-24'];
+    const diasCancelados = ['2026-07-14', '2026-07-21'];
+
+    /* Gera lista ordenada de todos os dias válidos num intervalo de ±2 anos */
+    function getDiasValidos() {
+        const hoje   = new Date();
+        const inicio = new Date(hoje); inicio.setFullYear(hoje.getFullYear() - 1);
+        const fim    = new Date(hoje); fim.setFullYear(hoje.getFullYear() + 2);
+        const dias   = [];
+        for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
+            const str = d.toISOString().split('T')[0];
+            if (d.getDay() === 2 && !diasCancelados.includes(str)) dias.push(str);
+            else if (diasExcecao.includes(str))                      dias.push(str);
+        }
+        return dias.sort();
+    }
+
+    function proximaTerca(from) {
+        const ref  = from || new Date().toISOString().split('T')[0];
+        const dias = getDiasValidos();
+        return dias.find(d => d >= ref) || dias[dias.length - 1];
+    }
+
     function navegarTerca(direcao) {
-        const val = document.getElementById('datepicker').value;
-        const dt  = val ? new Date(val + 'T12:00:00') : new Date();
-        /* avança ou recua 7 dias (sempre cai na mesma terça da semana seguinte/anterior) */
-        dt.setDate(dt.getDate() + direcao * 7);
-        const novaData = dt.toISOString().split('T')[0];
-        /* respeita exceções: se não for terça E não for exceção, não faz nada */
-        const isTerca   = dt.getDay() === 2;
-        const isExcecao = diasExcecao.includes(novaData);
-        if (!isTerca && !isExcecao) return;
+        const val  = document.getElementById('datepicker').value || proximaTerca();
+        const dias = getDiasValidos();
+        const idx  = dias.indexOf(val);
+        const novo = idx === -1
+            ? (direcao > 0 ? dias.findIndex(d => d > val) : [...dias].reverse().findIndex(d => d < val))
+            : idx + direcao;
+        if (novo < 0 || novo >= dias.length) return;
+        const novaData = idx === -1
+            ? (direcao > 0 ? dias.find(d => d > val) : [...dias].reverse().find(d => d < val))
+            : dias[novo];
+        if (!novaData) return;
         document.getElementById('datepicker').value = novaData;
         atualizarLabel(novaData);
         loadAll();
     }
 
-    const diasExcecao = [
-        // ex: '2026-07-10', '2026-08-14'
-    ];
-
-    function proximaTerca(from) {
-        const d   = from ? new Date(from + 'T12:00:00') : new Date();
-        const day = d.getDay();                   // 0=Dom … 2=Ter … 6=Sáb
-        const diff = (2 - day + 7) % 7;           // 0 se já é terça, senão dias até a próxima
-        d.setDate(d.getDate() + diff);
-        return d.toISOString().split('T')[0];
-    }
-
     function onDateChange() {
-        const val = document.getElementById('datepicker').value;
+        const val  = document.getElementById('datepicker').value;
         if (!val) return;
-        const dt  = new Date(val + 'T12:00:00');
-        const isTerca   = dt.getDay() === 2;
-        const isExcecao = diasExcecao.includes(val);
-        if (!isTerca && !isExcecao) {
-            /* Redireciona para a próxima terça a partir da data escolhida */
+        const dias = getDiasValidos();
+        if (!dias.includes(val)) {
             document.getElementById('datepicker').value = proximaTerca(val);
         }
         atualizarLabel(document.getElementById('datepicker').value);
