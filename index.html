@@ -471,7 +471,9 @@
     }
 
     /* ══════════════════════════════════════════
-       RELATÓRIO(c, dVal) {
+       RELATÓRIO
+    ══════════════════════════════════════════ */
+    function renderRelatorio(c, dVal) {
         if (!dVal) return;
         const dataF = dVal.split('-').reverse().join('/');
         document.getElementById('print-date-label').innerText = "RELATÓRIO DE ATENDIMENTOS — " + dataF;
