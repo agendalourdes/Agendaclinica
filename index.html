@@ -225,8 +225,22 @@
         </div>
     </div>
     <div class="flex items-center gap-3">
-        <input type="date" id="datepicker" onchange="loadAll()"
-            class="p-3 border-2 border-slate-100 rounded-2xl font-black text-xs bg-white outline-none text-vinho shadow-sm transition-all cursor-pointer">
+        <div class="flex items-center gap-2">
+            <button onclick="navegarTerca(-1)"
+                class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-vinho hover:text-white text-slate-500 transition-all font-black text-sm shadow-sm active:scale-95">
+                ‹
+            </button>
+            <div onclick="document.getElementById('datepicker').showPicker()" class="flex flex-col items-center cursor-pointer px-2">
+                <span id="data-label-dia"  class="text-[9px] font-black text-ouro uppercase tracking-widest leading-none">Terça-feira</span>
+                <span id="data-label-data" class="text-sm font-black text-vinho leading-tight mt-0.5">00/00/0000</span>
+            </div>
+            <button onclick="navegarTerca(1)"
+                class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-vinho hover:text-white text-slate-500 transition-all font-black text-sm shadow-sm active:scale-95">
+                ›
+            </button>
+            <!-- input escondido mantém a lógica existente -->
+            <input type="date" id="datepicker" onchange="onDateChange()" class="sr-only">
+        </div>
     </div>
 </header>
 
@@ -283,6 +297,65 @@
         if (categoria === 'EMAGRECIMENTO' || s.includes('EMAGRECIMENTO')) return ret ? 'RETORNO EMAGRECIMENTO' : 'CONSULTA EMAGRECIMENTO';
         if (categoria === 'APLICAÇÃO'     || s.includes('APLICAÇÃO'))     return ret ? 'RETORNO APLICAÇÃO'     : 'APLICAÇÃO';
         return servico;
+    }
+
+    /* ─────────────────────────────────────────────
+       CONTROLE DE DIAS — só Terças + exceções
+       Para liberar um dia extra: adicione a data
+       no formato 'AAAA-MM-DD' no array abaixo.
+    ───────────────────────────────────────────── */
+    function atualizarLabel(val) {
+        if (!val) return;
+        const dt   = new Date(val + 'T12:00:00');
+        const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        const meses= ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        const dia  = String(dt.getDate()).padStart(2,'0');
+        const mes  = String(dt.getMonth()+1).padStart(2,'0');
+        const ano  = dt.getFullYear();
+        const nomeDia = dias[dt.getDay()];
+        document.getElementById('data-label-dia').innerText  = `${nomeDia}, ${meses[dt.getMonth()]} ${ano}`;
+        document.getElementById('data-label-data').innerText = `${dia}/${mes}/${ano}`;
+    }
+
+    function navegarTerca(direcao) {
+        const val = document.getElementById('datepicker').value;
+        const dt  = val ? new Date(val + 'T12:00:00') : new Date();
+        /* avança ou recua 7 dias (sempre cai na mesma terça da semana seguinte/anterior) */
+        dt.setDate(dt.getDate() + direcao * 7);
+        const novaData = dt.toISOString().split('T')[0];
+        /* respeita exceções: se não for terça E não for exceção, não faz nada */
+        const isTerca   = dt.getDay() === 2;
+        const isExcecao = diasExcecao.includes(novaData);
+        if (!isTerca && !isExcecao) return;
+        document.getElementById('datepicker').value = novaData;
+        atualizarLabel(novaData);
+        loadAll();
+    }
+
+    const diasExcecao = [
+        // ex: '2026-07-10', '2026-08-14'
+    ];
+
+    function proximaTerca(from) {
+        const d   = from ? new Date(from + 'T12:00:00') : new Date();
+        const day = d.getDay();                   // 0=Dom … 2=Ter … 6=Sáb
+        const diff = (2 - day + 7) % 7;           // 0 se já é terça, senão dias até a próxima
+        d.setDate(d.getDate() + diff);
+        return d.toISOString().split('T')[0];
+    }
+
+    function onDateChange() {
+        const val = document.getElementById('datepicker').value;
+        if (!val) return;
+        const dt  = new Date(val + 'T12:00:00');
+        const isTerca   = dt.getDay() === 2;
+        const isExcecao = diasExcecao.includes(val);
+        if (!isTerca && !isExcecao) {
+            /* Redireciona para a próxima terça a partir da data escolhida */
+            document.getElementById('datepicker').value = proximaTerca(val);
+        }
+        atualizarLabel(document.getElementById('datepicker').value);
+        loadAll();
     }
 
     async function loadAll() {
@@ -939,7 +1012,9 @@
     function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 
     window.onload = () => {
-        document.getElementById('datepicker').value = new Date().toISOString().split('T')[0];
+        const terca = proximaTerca();
+        document.getElementById('datepicker').value = terca;
+        atualizarLabel(terca);
         loadAll();
     };
 </script>
