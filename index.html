@@ -170,6 +170,35 @@
             outline: none;
         }
 
+        /* ── FAB Disponibilidade ── */
+        .fab-disp {
+            position: fixed;
+            bottom: 88px;
+            right: 18px;
+            z-index: 49;
+            background: linear-gradient(135deg, #25d366 0%, #1da851 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 13px 18px;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 6px 22px rgba(37,211,102,0.45);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            animation: zapPulse 2.5s ease-in-out infinite;
+        }
+        .fab-disp:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 10px 30px rgba(37,211,102,0.55);
+        }
+        .fab-disp:active { transform: scale(0.96); }
+
         /* ── Print ── */
         #print-header { display: none; }
         @media print {
@@ -224,6 +253,12 @@
         <i class="fas fa-clock-rotate-left text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Retornos</span>
     </button>
 </nav>
+
+<!-- ── FAB Disponibilidade ── -->
+<button class="fab-disp no-print" onclick="openDisponibilidade()">
+    <i class="fab fa-whatsapp text-base"></i>
+    Horários Livres
+</button>
 
 <!-- ── MODAL ── -->
 <div id="modal" class="hidden fixed inset-0 z-[100] bg-vinho/20 backdrop-blur-md flex items-center justify-center p-4" onclick="closeModal()">
@@ -751,6 +786,144 @@
         excludedRetornos.push(n);
         localStorage.setItem('excludedRetornos', JSON.stringify(excludedRetornos));
         render();
+    }
+
+    /* ══════════════════════════════════════════
+       DISPONIBILIDADE RÁPIDA — WhatsApp
+    ══════════════════════════════════════════ */
+    function openDisponibilidade() {
+        document.getElementById('m-content').innerHTML = `
+            <div class="text-center mb-6">
+                <div class="inline-block bg-green-50 p-4 rounded-3xl shadow-inner">
+                    <i class="fab fa-whatsapp text-green-500 text-3xl"></i>
+                </div>
+                <h2 class="font-black text-xl mt-3 uppercase text-vinho">Horários Livres</h2>
+                <p class="text-[10px] text-slate-400 mt-1">Gera mensagem com os 2 próximos horários</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2 ml-1">Especialidade</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="selecionarEsp(this,'ESPORTIVO')"
+                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
+                            <i class="fas fa-dumbbell block text-lg mb-1"></i>Esportivo
+                        </button>
+                        <button onclick="selecionarEsp(this,'EMAGRECIMENTO')"
+                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
+                            <i class="fas fa-weight-scale block text-lg mb-1"></i>Emagrecimento
+                        </button>
+                        <button onclick="selecionarEsp(this,'APLICAÇÃO')"
+                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
+                            <i class="fas fa-syringe block text-lg mb-1"></i>Aplicação
+                        </button>
+                    </div>
+                </div>
+                <div id="disp-preview" class="hidden">
+                    <div class="bg-green-50 border border-green-200 rounded-2xl p-4 mt-2">
+                        <p class="text-[9px] font-black text-green-700 uppercase tracking-widest mb-3">
+                            <i class="fas fa-eye mr-1"></i>Prévia da mensagem
+                        </p>
+                        <p id="disp-texto" class="text-[11px] text-slate-700 font-medium whitespace-pre-line leading-relaxed"></p>
+                    </div>
+                    <button id="btnZapDisp" onclick="enviarDisponibilidade()"
+                        class="w-full mt-4 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white shadow-xl transition-all"
+                        style="background:linear-gradient(135deg,#25d366,#1da851);box-shadow:0 4px 14px rgba(37,211,102,0.4);">
+                        <i class="fab fa-whatsapp mr-2"></i>Abrir WhatsApp
+                    </button>
+                </div>
+                <div id="disp-vazio" class="hidden text-center py-6">
+                    <i class="fas fa-calendar-xmark text-slate-300 text-3xl mb-3 block"></i>
+                    <p class="text-[11px] font-black text-slate-400 uppercase">Nenhum horário livre nos próximos 14 dias</p>
+                </div>
+                <button onclick="closeModal()" class="w-full text-slate-400 font-black text-[10px] uppercase mt-2 tracking-widest text-center hover:text-slate-600 transition-all">Cancelar</button>
+            </div>`;
+
+        document.getElementById('modal').classList.remove('hidden');
+        const pop = document.querySelector('#modal > div');
+        pop.classList.remove('modal-pop'); void pop.offsetWidth; pop.classList.add('modal-pop');
+    }
+
+    let _espSelecionada = '';
+    let _msgDisp = '';
+
+    function selecionarEsp(btn, esp) {
+        /* highlight do botão */
+        document.querySelectorAll('.esp-btn').forEach(b => {
+            b.classList.remove('border-vinho','text-vinho','bg-vinho/5');
+            b.classList.add('border-slate-200','text-slate-600');
+        });
+        btn.classList.remove('border-slate-200','text-slate-600');
+        btn.classList.add('border-vinho','text-vinho','bg-vinho/5');
+
+        _espSelecionada = esp;
+        const livres = getProximosLivres(esp, 2);
+
+        const preview  = document.getElementById('disp-preview');
+        const vazio    = document.getElementById('disp-vazio');
+        const textoEl  = document.getElementById('disp-texto');
+
+        if (!livres.length) {
+            preview.classList.add('hidden');
+            vazio.classList.remove('hidden');
+            return;
+        }
+        vazio.classList.add('hidden');
+
+        const espLabel = esp === 'ESPORTIVO'
+            ? `Nutrição Esportiva (${currentEspProf})`
+            : esp === 'EMAGRECIMENTO'
+                ? 'Nutrição Emagrecimento'
+                : 'Aplicação de Injetáveis';
+
+        const linhas = livres.map(l => `📅 ${l.dataFmt} às ${l.hora}`).join('\n');
+        _msgDisp = `Olá! 😊\nTemos estes horários disponíveis para *${espLabel}*:\n\n${linhas}\n\nQual prefere?`;
+
+        textoEl.innerText = _msgDisp;
+        preview.classList.remove('hidden');
+    }
+
+    function getProximosLivres(esp, quantidade) {
+        const diasNome = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        const stepMap  = { 'ESPORTIVO': 25, 'EMAGRECIMENTO': 35 };
+        const livres   = [];
+        const hoje     = new Date();
+
+        for (let d = 0; d <= 20 && livres.length < quantidade; d++) {
+            const dt   = new Date(hoje);
+            dt.setDate(hoje.getDate() + d);
+            const ano  = dt.getFullYear();
+            const mes  = String(dt.getMonth()+1).padStart(2,'0');
+            const dia  = String(dt.getDate()).padStart(2,'0');
+            const dataF = `${dia}/${mes}/${ano}`;
+            const diaNome = diasNome[dt.getDay()];
+
+            const ocupados = appts
+                .filter(a => a.dataStr === dataF && a.categoria === esp)
+                .map(a => a.hora);
+
+            if (esp === 'APLICAÇÃO') {
+                /* Aplicação não tem grade fixa: oferece o dia como disponível */
+                if (!ocupados.length) {
+                    livres.push({ dataFmt: `${diaNome} ${dataF}`, hora: 'horário a combinar' });
+                }
+            } else {
+                /* Gera grade fixa e pega os livres */
+                let h = 9, m = 0;
+                const step = stepMap[esp];
+                while (h < 12 && livres.length < quantidade) {
+                    const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                    if (!ocupados.includes(t)) {
+                        livres.push({ dataFmt: `${diaNome} ${dataF}`, hora: t });
+                    }
+                    m += step; if (m >= 60) { h++; m -= 60; }
+                }
+            }
+        }
+        return livres;
+    }
+
+    function enviarDisponibilidade() {
+        window.open(`https://wa.me/?text=${encodeURIComponent(_msgDisp)}`);
     }
 
     function showTab(t)   { currentTab = t; render(); }
