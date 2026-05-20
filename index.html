@@ -467,13 +467,11 @@
         } else {
             msg = `Olá ${ag.paciente}! 👋\nConfirme seu agendamento amanha\n *${ag.servico}*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 hours\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado!`;
         }
-        window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`);
+        abrirZap(tel, msg);
     }
 
     /* ══════════════════════════════════════════
-       RELATÓRIO
-    ══════════════════════════════════════════ */
-    function renderRelatorio(c, dVal) {
+       RELATÓRIO(c, dVal) {
         if (!dVal) return;
         const dataF = dVal.split('-').reverse().join('/');
         document.getElementById('print-date-label').innerText = "RELATÓRIO DE ATENDIMENTOS — " + dataF;
@@ -778,8 +776,19 @@
             : '<p class="text-center py-20 text-slate-300 font-black text-xs tracking-widest">✓ LISTA DE RETORNOS LIMPA!</p>');
     }
 
+    /* ─── Abre WhatsApp Business no Android; wa.me no iOS/desktop ─── */
+    function abrirZap(tel, msg) {
+        const encoded = encodeURIComponent(msg);
+        const fone    = tel ? `55${tel.replace(/\D/g,'')}` : '';
+        if (/android/i.test(navigator.userAgent)) {
+            window.location.href = `intent://send?phone=${fone}&text=${encoded}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;end`;
+        } else {
+            window.open(`https://wa.me/${fone}?text=${encoded}`);
+        }
+    }
+
     function chamarRetorno(n, t) {
-        window.open(`https://wa.me/55${t.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá ${n}! 👋\nGostaríamos de convidá-lo(a) a retornar ao consultório para dar continuidade às suas metas! 📊✨\nPodemos agendar um horário para você esta semana?`)}`);
+        abrirZap(t, `Olá ${n}! 👋\nGostaríamos de convidá-lo(a) a retornar ao consultório para dar continuidade às suas metas! 📊✨\nPodemos agendar um horário para você esta semana?`);
     }
 
     function excludeRetorno(n) {
@@ -883,38 +892,36 @@
     }
 
     function getProximosLivres(esp, quantidade) {
-        const diasNome = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-        const stepMap  = { 'ESPORTIVO': 25, 'EMAGRECIMENTO': 35 };
-        const livres   = [];
-        const hoje     = new Date();
+        const stepMap = { 'ESPORTIVO': 25, 'EMAGRECIMENTO': 35 };
+        const livres  = [];
+        const hoje    = new Date();
 
-        for (let d = 0; d <= 20 && livres.length < quantidade; d++) {
-            const dt   = new Date(hoje);
+        for (let d = 0; d <= 60 && livres.length < quantidade; d++) {
+            const dt = new Date(hoje);
             dt.setDate(hoje.getDate() + d);
-            const ano  = dt.getFullYear();
-            const mes  = String(dt.getMonth()+1).padStart(2,'0');
-            const dia  = String(dt.getDate()).padStart(2,'0');
+
+            /* ── SOMENTE TERÇAS (getDay() === 2) ── */
+            if (dt.getDay() !== 2) continue;
+
+            const dia   = String(dt.getDate()).padStart(2,'0');
+            const mes   = String(dt.getMonth()+1).padStart(2,'0');
+            const ano   = dt.getFullYear();
             const dataF = `${dia}/${mes}/${ano}`;
-            const diaNome = diasNome[dt.getDay()];
 
             const ocupados = appts
                 .filter(a => a.dataStr === dataF && a.categoria === esp)
                 .map(a => a.hora);
 
             if (esp === 'APLICAÇÃO') {
-                /* Aplicação não tem grade fixa: oferece o dia como disponível */
-                if (!ocupados.length) {
-                    livres.push({ dataFmt: `${diaNome} ${dataF}`, hora: 'horário a combinar' });
-                }
+                if (!ocupados.length)
+                    livres.push({ dataFmt: `Terça ${dataF}`, hora: 'horário a combinar' });
             } else {
-                /* Gera grade fixa e pega os livres */
                 let h = 9, m = 0;
                 const step = stepMap[esp];
                 while (h < 12 && livres.length < quantidade) {
                     const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                    if (!ocupados.includes(t)) {
-                        livres.push({ dataFmt: `${diaNome} ${dataF}`, hora: t });
-                    }
+                    if (!ocupados.includes(t))
+                        livres.push({ dataFmt: `Terça ${dataF}`, hora: t });
                     m += step; if (m >= 60) { h++; m -= 60; }
                 }
             }
@@ -923,7 +930,7 @@
     }
 
     function enviarDisponibilidade() {
-        window.open(`https://wa.me/?text=${encodeURIComponent(_msgDisp)}`);
+        abrirZap('', _msgDisp);
     }
 
     function showTab(t)   { currentTab = t; render(); }
