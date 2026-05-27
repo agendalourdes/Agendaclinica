@@ -1028,7 +1028,7 @@
                         </p>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <button onclick="chamarProtocolo('${p.nome}','${p.telefone}','${servLabel}')"
+                        <button onclick="chamarProtocolo('${p.nome}','${p.telefone}','${servLabel}','${ult.categoria}')"
                             class="bg-green-50 text-green-600 p-3 rounded-2xl zap-btn hover:bg-green-100 transition-all">
                             <i class="fab fa-whatsapp text-lg"></i>
                         </button>
@@ -1046,8 +1046,18 @@
 
     function setFiltroRetorno(f) { filtroRetorno = f; render(); }
 
-    function chamarProtocolo(nome, tel, servico) {
-        const msg = `Olá ${nome}! 👋\nEstamos passando para avisar que está na hora de renovar o seu *protocolo de ${servico}*! 💊✨\n\nPodemos agendar sua consulta para esta semana? 📅`;
+    function chamarProtocolo(nome, tel, servico, categoria) {
+        const livres = getProximosLivres(categoria, 2);
+
+        let horariosMsg = '';
+        if (livres.length) {
+            horariosMsg = '\n\n📅 *Horários disponíveis:*\n' +
+                livres.map(l => `▪️ ${l.dataFmt} às ${l.hora}`).join('\n');
+        } else {
+            horariosMsg = '\n\nPodemos verificar um horário disponível para você!';
+        }
+
+        const msg = `Olá ${nome}! 👋\nEstamos passando para avisar que está na hora de renovar o seu *protocolo de ${servico}*! 💊✨${horariosMsg}\n\nQual prefere? 😊`;
         abrirZap(tel, msg);
     }
 
