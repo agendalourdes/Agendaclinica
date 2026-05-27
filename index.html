@@ -898,31 +898,146 @@
     }
 
     /* ══════════════════════════════════════════
-       RETORNOS
+       RENOVAÇÃO DE PROTOCOLO
     ══════════════════════════════════════════ */
+    const PRAZO_PROTOCOLO = 28; /* dias — margem antes dos 30 */
+    let filtroRetorno = 'urgente';
+
     function renderAusentes(c) {
-        const hoje = new Date();
-        const faltosos = pacs.filter(p => {
-            if (excludedRetornos.includes(p.nome)) return false;
-            const h = appts.filter(a => a.paciente===p.nome);
-            if (!h.length) return false;
-            const u  = h[h.length-1];
-            const dp = u.dataStr.split('/');
-            return ((hoje - new Date(dp[2],dp[1]-1,dp[0]))/(1000*3600*24)) > 25;
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+        /* Monta lista de todos os pacientes com histórico, ignorando os ocultos */
+        const lista = pacs
+            .filter(p => !excludedRetornos.includes(p.nome))
+            .map(p => {
+                const hist = appts
+                    .filter(a => a.paciente === p.nome)
+                    .sort((a,b) => {
+                        const da = a.dataStr.split('/'); const db = b.dataStr.split('/');
+                        return new Date(db[2],db[1]-1,db[0]) - new Date(da[2],da[1]-1,da[0]);
+                    });
+                if (!hist.length) return null;
+                const ult  = hist[0];
+                const dp   = ult.dataStr.split('/');
+                const dtUlt= new Date(dp[2],dp[1]-1,dp[0]);
+                const dtRet= new Date(dtUlt); dtRet.setDate(dtUlt.getDate() + PRAZO_PROTOCOLO);
+                const diasRestantes = Math.round((dtRet - hoje)/(1000*3600*24));
+                return { p, ult, dtRet, diasRestantes };
+            })
+            .filter(Boolean)
+            .sort((a,b) => a.diasRestantes - b.diasRestantes); /* mais urgentes primeiro */
+
+        /* Aplica filtro */
+        const filtrado = lista.filter(item => {
+            if (filtroRetorno === 'urgente')  return item.diasRestantes <= 0;
+            if (filtroRetorno === 'semana')   return item.diasRestantes > 0 && item.diasRestantes <= 7;
+            return true; /* todos */
         });
-        c.innerHTML = `<h2 class="font-black text-slate-600 uppercase text-[10px] mb-6 tracking-widest">
-            <i class="fas fa-clock-rotate-left text-ouro mr-2"></i>Contatos Pendentes (+25 dias)
-        </h2>` + (faltosos.length
-            ? faltosos.map((p,i) => `
-                <div class="premium-card p-5 mb-3 flex justify-between items-center border-l-8 border-red-300"
-                    style="animation:slideInUp 0.4s ease ${(i*0.06).toFixed(2)}s both;">
-                    <div><p class="font-black uppercase text-vinho text-xs tracking-tight">${p.nome}</p></div>
-                    <div class="flex gap-3">
-                        <button onclick="chamarRetorno('${p.nome}','${p.telefone}')" class="bg-green-50 text-green-600 p-3 rounded-2xl zap-btn hover:bg-green-100 transition-all"><i class="fab fa-whatsapp"></i></button>
-                        <button onclick="excludeRetorno('${p.nome}')"                class="bg-slate-100 text-slate-500 p-3 rounded-2xl hover:bg-slate-200 transition-all"><i class="fas fa-eye-slash"></i></button>
+
+        /* Contadores para os badges */
+        const cUrgente = lista.filter(i => i.diasRestantes <= 0).length;
+        const cSemana  = lista.filter(i => i.diasRestantes > 0 && i.diasRestantes <= 7).length;
+        const cTodos   = lista.length;
+
+        const btnClass  = (k) => filtroRetorno === k
+            ? 'btn-vinho px-4 py-2 text-[9px] rounded-2xl'
+            : 'bg-slate-100 text-slate-500 px-4 py-2 text-[9px] font-black uppercase rounded-2xl hover:bg-slate-200 transition-all';
+
+        let html = `
+        <div class="mb-6">
+            <h2 class="font-black text-slate-700 uppercase text-[11px] mb-4 tracking-widest">
+                <i class="fas fa-rotate text-ouro mr-2"></i>Renovação de Protocolo
+            </h2>
+            <div class="flex gap-2 flex-wrap">
+                <button onclick="setFiltroRetorno('urgente')" class="${btnClass('urgente')}">
+                    🔴 Vencido <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cUrgente}</span>
+                </button>
+                <button onclick="setFiltroRetorno('semana')" class="${btnClass('semana')}">
+                    🟠 Esta semana <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cSemana}</span>
+                </button>
+                <button onclick="setFiltroRetorno('todos')" class="${btnClass('todos')}">
+                    📋 Todos <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cTodos}</span>
+                </button>
+            </div>
+        </div>`;
+
+        if (!filtrado.length) {
+            const msgs = {
+                urgente: '✓ Nenhum protocolo vencido!',
+                semana:  '✓ Nenhum vencimento esta semana!',
+                todos:   '✓ Nenhum paciente com histórico.'
+            };
+            html += `<p class="text-center py-20 text-slate-300 font-black text-xs tracking-widest">${msgs[filtroRetorno]}</p>`;
+            c.innerHTML = html; return;
+        }
+
+        filtrado.forEach((item, i) => {
+            const { p, ult, dtRet, diasRestantes } = item;
+            const diaRet = String(dtRet.getDate()).padStart(2,'0');
+            const mesRet = String(dtRet.getMonth()+1).padStart(2,'0');
+            const anoRet = dtRet.getFullYear();
+            const dataRetFmt = `${diaRet}/${mesRet}/${anoRet}`;
+            const servLabel  = formatServico(ult.servico, ult.categoria);
+
+            /* cor e status */
+            let borda, statusIcon, statusTxt, bgStatus;
+            if (diasRestantes < 0) {
+                borda='border-red-400'; bgStatus='bg-red-50'; statusIcon='🔴';
+                statusTxt=`VENCIDO HÁ ${Math.abs(diasRestantes)} DIA${Math.abs(diasRestantes)>1?'S':''}`;
+            } else if (diasRestantes === 0) {
+                borda='border-red-300'; bgStatus='bg-red-50'; statusIcon='🔴';
+                statusTxt='VENCE HOJE';
+            } else if (diasRestantes <= 3) {
+                borda='border-orange-400'; bgStatus='bg-orange-50'; statusIcon='🟠';
+                statusTxt=`VENCE EM ${diasRestantes} DIA${diasRestantes>1?'S':''}`;
+            } else if (diasRestantes <= 7) {
+                borda='border-yellow-400'; bgStatus='bg-yellow-50'; statusIcon='🟡';
+                statusTxt=`VENCE EM ${diasRestantes} DIAS`;
+            } else if (diasRestantes <= 14) {
+                borda='border-blue-300'; bgStatus='bg-blue-50'; statusIcon='🔵';
+                statusTxt=`VENCE EM ${diasRestantes} DIAS`;
+            } else {
+                borda='border-green-300'; bgStatus='bg-green-50'; statusIcon='🟢';
+                statusTxt=`VENCE EM ${diasRestantes} DIAS`;
+            }
+
+            html += `
+            <div class="premium-card p-5 mb-3 border-l-8 ${borda}"
+                style="animation:slideInUp 0.4s ease ${(i*0.06).toFixed(2)}s both;">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1 min-w-0 mr-3">
+                        <p class="font-black uppercase text-vinho text-sm tracking-tight leading-tight">${p.nome}</p>
+                        <p class="text-[10px] text-slate-500 font-medium mt-1">${servLabel} • Últ: ${ult.dataStr}</p>
+                        <div class="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-xl ${bgStatus}">
+                            <span class="text-[10px]">${statusIcon}</span>
+                            <span class="text-[9px] font-black uppercase tracking-wide text-slate-600">${statusTxt}</span>
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-medium mt-1.5">
+                            <i class="fas fa-calendar-check mr-1"></i>Retorno sugerido: <span class="font-black text-slate-600">${dataRetFmt}</span>
+                        </p>
                     </div>
-                </div>`).join('')
-            : '<p class="text-center py-20 text-slate-300 font-black text-xs tracking-widest">✓ LISTA DE RETORNOS LIMPA!</p>');
+                    <div class="flex flex-col gap-2">
+                        <button onclick="chamarProtocolo('${p.nome}','${p.telefone}','${servLabel}')"
+                            class="bg-green-50 text-green-600 p-3 rounded-2xl zap-btn hover:bg-green-100 transition-all">
+                            <i class="fab fa-whatsapp text-lg"></i>
+                        </button>
+                        <button onclick="excludeRetorno('${p.nome}')"
+                            class="bg-slate-100 text-slate-400 p-3 rounded-2xl hover:bg-slate-200 transition-all">
+                            <i class="fas fa-eye-slash text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        c.innerHTML = html;
+    }
+
+    function setFiltroRetorno(f) { filtroRetorno = f; render(); }
+
+    function chamarProtocolo(nome, tel, servico) {
+        const msg = `Olá ${nome}! 👋\nEstamos passando para avisar que está na hora de renovar o seu *protocolo de ${servico}*! 💊✨\n\nPodemos agendar seu retorno para esta semana? 📅`;
+        abrirZap(tel, msg);
     }
 
     /* ─── Abre WhatsApp Business no Android; wa.me no iOS/desktop ─── */
