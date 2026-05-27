@@ -288,6 +288,63 @@
     let excludedRetornos = JSON.parse(localStorage.getItem('excludedRetornos') || '[]');
     let currentEspProf = 'GERALDO';
 
+
+    /* ─── Helpers de normalização ─────────────────────────────────────
+       Garante que diferenças de espaço, caixa ou acento não quebrem
+       a busca de paciente entre a planilha de agendamentos e a de cadastros.
+    ─────────────────────────────────────────────────────────────────── */
+    function normalizar(str) {
+        return (str || '')
+            .trim()
+            .toUpperCase()
+            .replace(/\s+/g, ' ')                      // espaços duplos
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos p/ comparação
+    }
+
+    function buscarPac(nome) {
+        if (!nome) return {};
+        const n = normalizar(nome);
+
+        /* 1. Correspondência exata normalizada */
+        let pac = pacs.find(x => normalizar(x.nome) === n);
+        if (pac) return pac;
+
+        /* 2. Um contém o outro (ex: "ANA KARINE" dentro de "ANA KARINE FERREIRA") */
+        pac = pacs.find(x => {
+            const xn = normalizar(x.nome);
+            return xn.includes(n) || n.includes(xn);
+        });
+        if (pac) return pac;
+
+        /* 3. Todas as palavras do nome buscado existem no cadastro */
+        const palavras = n.split(' ').filter(p => p.length > 1);
+        pac = pacs.find(x => {
+            const xn = normalizar(x.nome);
+            return palavras.every(p => xn.includes(p));
+        });
+        if (pac) return pac;
+
+        /* 4. Pelo menos 2 palavras em comum (evita falso positivo em nomes curtos) */
+        if (palavras.length >= 2) {
+            pac = pacs.find(x => {
+                const xn = normalizar(x.nome);
+                const comuns = palavras.filter(p => xn.includes(p));
+                return comuns.length >= 2;
+            });
+            if (pac) return pac;
+        }
+
+        return {};
+    }
+
+    /* Formata telefone: remove tudo que não é dígito, garante 55 uma só vez */
+    function formatarTel(tel) {
+        const nums = (tel || '').replace(/\D/g, '');
+        if (!nums) return '';
+        if (nums.startsWith('55') && nums.length >= 12) return nums;
+        return '55' + nums;
+    }
+
     /* ─── formato curto do serviço para exibição nos cards da agenda ─── */
     function formatServico(servico, categoria) {
         if (!servico) return '';
@@ -305,12 +362,12 @@
        no formato 'AAAA-MM-DD' no array abaixo.
     ───────────────────────────────────────────── */
     /* ─── Profissional alternado por semana ───
-       Referência: 02/06/2026 = LÍBIA, depois alterna a cada terça ─── */
+       Referência: 02/06/2026 = GERALDO, depois alterna a cada terça ─── */
     function getProfPadrao(dateStr) {
-        const ref     = new Date('2026-06-02T12:00:00'); // LÍBIA
+        const ref     = new Date('2026-06-02T12:00:00'); // GERALDO
         const d       = new Date(dateStr + 'T12:00:00');
         const semanas = Math.round((d - ref) / (7 * 24 * 3600 * 1000));
-        return semanas % 2 === 0 ? 'LÍBIA' : 'GERALDO';
+        return semanas % 2 === 0 ? 'GERALDO' : 'LÍBIA';
     }
 
     function atualizarLabel(val) {
@@ -593,8 +650,8 @@
     /* ─── WhatsApp ─── */
     function enviarZap(tipo, id) {
         const ag  = appts.find(a => a.id == id);
-        const p   = pacs.find(x => x.nome === ag.paciente) || {};
-        const tel = (p.telefone || "").replace(/\D/g,'');
+        const p   = buscarPac(ag.paciente);
+        const tel = formatarTel(p.telefone);
         const isRetorno   = ag.servico.toUpperCase().includes('RETORNO');
         const isAplicacao = ag.categoria === 'APLICAÇÃO';
 
@@ -673,7 +730,7 @@
                 });
 
             const rows = list.map(a => {
-                const pac  = pacs.find(x => x.nome===a.paciente) || {};
+                const pac  = buscarPac(a.paciente);
                 const hist = appts.filter(x => x.paciente===a.paciente && x.dataStr!==dataF)
                     .sort((x,y)=>{
                         const dx=x.dataStr.split('/'), dy=y.dataStr.split('/');
@@ -789,10 +846,10 @@
         const input = document.getElementById('newPac');
         const Snowy = document.getElementById('suggestions');
         input.addEventListener('input', () => {
-            const val = input.value.toUpperCase().trim();
+            const val = normalizar(input.value);
             Snowy.innerHTML = '';
             if (val.length < 2) { Snowy.classList.add('hidden'); return; }
-            const filtered = pacs.filter(p => p.nome.includes(val)).slice(0,5);
+            const filtered = pacs.filter(p => normalizar(p.nome).includes(val)).slice(0,5);
             if (filtered.length) {
                 Snowy.classList.remove('hidden');
                 filtered.forEach(p => {
@@ -848,10 +905,10 @@
     }
 
     function searchHist() {
-        const term    = document.getElementById('histSearch').value.toUpperCase().trim();
+        const term    = normalizar(document.getElementById('histSearch').value);
         const results = document.getElementById('histResults');
         if (term.length < 3) return results.innerHTML = "";
-        const matches = pacs.filter(p => p.nome.includes(term));
+        const matches = pacs.filter(p => normalizar(p.nome).includes(term));
         let html = "";
         matches.forEach(pac => {
             const safeId = pac.nome.replace(/\s+/g,'');
@@ -1064,7 +1121,7 @@
     /* ─── Abre WhatsApp Business no Android; wa.me no iOS/desktop ─── */
     function abrirZap(tel, msg) {
         const encoded = encodeURIComponent(msg);
-        const fone    = tel ? `55${tel.replace(/\D/g,'')}` : '';
+        const fone    = tel.startsWith('55') ? tel : formatarTel(tel);
         if (/android/i.test(navigator.userAgent)) {
             window.location.href = `intent://send?phone=${fone}&text=${encoded}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;end`;
         } else {
