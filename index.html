@@ -519,13 +519,57 @@
             <div class="flex flex-col gap-3">
                 <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-slate-800 transition-all">Confirmar WhatsApp</button>
                 <button onclick="enviarZap('lembrete','${id}')"  class="w-full bg-green-500 text-white p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-green-600 transition-all">Enviar Lembrete</button>
+                <button onclick="openEditar('${id}')" class="w-full bg-blue-50 text-blue-600 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-100 transition-all"><i class="fas fa-pen mr-2"></i>Editar Agendamento</button>
                 <button id="btnDel" onclick="deletarAgendamento('${id}')" class="w-full bg-red-50 text-red-500 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-100 transition-all">Excluir Horário</button>
                 <button onclick="closeModal()" class="text-slate-400 font-black text-[10px] uppercase mt-4 tracking-widest text-center hover:text-slate-600 transition-all">Voltar</button>
             </div>`;
         document.getElementById('modal').classList.remove('hidden');
-        /* reaplica animação ao abrir */
         const pop = document.querySelector('#modal > div');
         pop.classList.remove('modal-pop'); void pop.offsetWidth; pop.classList.add('modal-pop');
+    }
+
+    function openEditar(id) {
+        const ag = appts.find(a => a.id==id);
+        document.getElementById('m-content').innerHTML = `
+            <div class="text-center mb-6">
+                <div class="inline-block bg-blue-50 p-4 rounded-3xl shadow-inner">
+                    <i class="fas fa-pen text-blue-500 text-2xl"></i>
+                </div>
+                <h2 class="font-black text-xl mt-3 uppercase text-vinho">${ag.paciente}</h2>
+                <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">${formatServico(ag.servico,ag.categoria)}</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Nova Data</label>
+                    <input type="date" id="editData" value="${ag.dataStr.split('/').reverse().join('-')}"
+                        class="w-full p-4 bg-slate-50 border rounded-2xl font-black text-xs outline-none text-vinho transition-all">
+                </div>
+                <div>
+                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Novo Horário</label>
+                    <input type="text" id="editHora" value="${ag.hora||''}" placeholder="HH:MM ou ENCAIXE"
+                        class="w-full p-4 bg-slate-50 border rounded-2xl font-black text-xs outline-none transition-all">
+                </div>
+                <div>
+                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Observação</label>
+                    <input type="text" id="editObs" value="${ag.obs||''}" placeholder="OPCIONAL"
+                        class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-xs outline-none transition-all">
+                </div>
+                <button id="btnSalvarEdit" onclick="salvarEdicaoAgendamento('${id}')"
+                    class="btn-vinho w-full p-5 mt-2">Salvar Alteração</button>
+                <button onclick="openAcoes('${id}')" class="w-full text-slate-400 font-black text-[10px] uppercase tracking-widest text-center hover:text-slate-600 transition-all">Voltar</button>
+            </div>`;
+    }
+
+    async function salvarEdicaoAgendamento(id) {
+        const ag      = appts.find(a => a.id==id);
+        const novaData = document.getElementById('editData').value.split('-').reverse().join('/');
+        const novaHora = document.getElementById('editHora').value.trim() || 'ENCAIXE';
+        const novaObs  = document.getElementById('editObs').value;
+        document.getElementById('btnSalvarEdit').innerText = "SALVANDO...";
+        /* Remove o antigo e cria o novo */
+        await fetch(API,{method:'POST',body:JSON.stringify({action:'deleteAppointment',id:id})});
+        await fetch(API,{method:'POST',body:JSON.stringify({action:'addAppointment',paciente:ag.paciente,servico:ag.servico,data:novaData,hora:novaHora,categoria:ag.categoria,obs:novaObs})});
+        closeModal(); loadAll();
     }
 
     async function deletarAgendamento(id) {
@@ -535,25 +579,40 @@
         closeModal(); loadAll();
     }
 
-    /* ─── WhatsApp — INALTERADO ─── */
+    /* ─── WhatsApp ─── */
     function enviarZap(tipo, id) {
-        const ag = appts.find(a => a.id == id);
-        const p  = pacs.find(x => x.nome === ag.paciente) || {};
+        const ag  = appts.find(a => a.id == id);
+        const p   = pacs.find(x => x.nome === ag.paciente) || {};
         const tel = (p.telefone || "").replace(/\D/g,'');
+        const isRetorno   = ag.servico.toUpperCase().includes('RETORNO');
+        const isAplicacao = ag.categoria === 'APLICAÇÃO';
+
         let profs = "DR Jorge Vieira Salomão (médico nutrólogo) | Geraldo (nutricionista) | Suelen Fernanda (enfermeira)";
-        if (ag.servico.includes("LÍBIA"))       profs = "DR Jorge Vieira Salomão (médico nutrólogo) | Líbia (nutricionista) | Suelen Fernanda (enfermeira)";
-        else if (ag.servico.includes("BRUNO"))  profs = "DR Jorge Vieira Salomão (médico nutrólogo) | Bruno (nutricionista) | Suelen Fernanda (enfermeira)";
-        if (ag.categoria === 'APLICAÇÃO')       profs = "Suelen Fernanda (enfermeira)";
+        if (ag.servico.includes("LÍBIA"))      profs = "DR Jorge Vieira Salomão (médico nutrólogo) | Líbia (nutricionista) | Suelen Fernanda (enfermeira)";
+        else if (ag.servico.includes("BRUNO")) profs = "DR Jorge Vieira Salomão (médico nutrólogo) | Bruno (nutricionista) | Suelen Fernanda (enfermeira)";
+        if (isAplicacao)                       profs = "Suelen Fernanda (enfermeira)";
+
         let msg = "";
         if (tipo === 'confirmar') {
-            if (ag.servico.includes("RETORNO"))
-                msg = `Ola ${ag.paciente}! 👋\n Seu agendamento foi realizado com sucesso!\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n*RETORNO NUTRIÇÃO ESPORTIVA*\nCom os profissionais: ${profs}\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
-            else if (ag.categoria === 'APLICAÇÃO')
-                msg = `Ola ${ag.paciente}! 👋\n Seu agendamento foi realizado com sucesso!\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n*APLICAÇÃO DE INJETÁVEIS*\nCom a profissional: ${profs}\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
+            if (isRetorno)
+                msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n*RETORNO NUTRIÇÃO ESPORTIVA*\nCom os profissionais: ${profs}\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
+            else if (isAplicacao)
+                msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n*APLICAÇÃO DE INJETÁVEIS*\nCom a profissional: ${profs}\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
             else
-                msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso\n *Consulta ${ag.servico.includes("EMAGRECIMENTO") ? "Nutrição Emagrecimento" : "Nutrição Esportiva"}*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\nCom os profissionais: ${profs}\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n💰 O valor da consulta é de R$ 290,00.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
+                msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n*Consulta ${ag.servico.includes("EMAGRECIMENTO") ? "Nutrição Emagrecimento" : "Nutrição Esportiva"}*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\nCom os profissionais: ${profs}\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n💰 O valor da consulta é de R$ 290,00.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
         } else {
-            msg = `Olá ${ag.paciente}! 👋\nConfirme seu agendamento amanha\n *${ag.servico}*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n🎁 *VALE DESCONTO ESTHETIC CENTER*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n\n📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 hours\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado!`;
+            /* ── LEMBRETE ── */
+            const desconto = `🎁 *VALE DESCONTO — INJETÁVEIS*\nPague seus injetáveis em dinheiro e ganhe até 10% de desconto!\n_(Este desconto é válido exclusivamente para aplicação de injetáveis, não para consultas)_`;
+
+            if (isRetorno) {
+                /* Retorno: sem bioimpedância */
+                msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar seu *retorno* amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
+            } else if (isAplicacao) {
+                msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar sua *aplicação de injetáveis* amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
+            } else {
+                /* Consulta: com bioimpedância */
+                msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar seu agendamento amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\n📊 *BIOIMPEDÂNCIA — PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
+            }
         }
         abrirZap(tel, msg);
     }
