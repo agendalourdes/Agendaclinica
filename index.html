@@ -3,1287 +3,1376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AGENDA LOURDES — OFICIAL</title>
+    <title>AGENDA LOURDES</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* ── Base ── */
-        body {
-            background: linear-gradient(160deg, #fdf8fb 0%, #f8f4f9 50%, #f5f8fd 100%);
-            font-family: 'Inter', sans-serif;
-            color: #1e293b;
-            padding-bottom: 100px;
-            min-height: 100vh;
-        }
-
-        /* ── Brand colors ── */
-        .text-vinho { color: #722f51; }
-        .bg-vinho   { background-color: #722f51; }
-        .text-ouro  { color: #bca374; }
-        .bg-ouro    { background-color: #bca374; }
-        .border-ouro{ border-color: #bca374; }
-
-        /* ── Animations ── */
-        @keyframes slideInUp {
-            from { opacity: 0; transform: translateY(18px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
-        }
-        @keyframes zapPulse {
-            0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.45); }
-            60%      { box-shadow: 0 0 0 9px rgba(34,197,94,0); }
-        }
-        @keyframes logoGlow {
-            0%,100% { text-shadow: 0 0 8px rgba(188,163,116,0.25); }
-            50%      { text-shadow: 0 0 22px rgba(188,163,116,0.6); }
-        }
-        @keyframes headerShimmer {
-            0%   { background-position: -300% center; }
-            100% { background-position: 300% center; }
-        }
-        @keyframes bounceSoft {
-            0%,100% { transform: translateY(0); }
-            50%      { transform: translateY(-5px); }
-        }
-        @keyframes popIn {
-            0%   { opacity:0; transform: scale(0.88); }
-            70%  { transform: scale(1.04); }
-            100% { opacity:1; transform: scale(1); }
-        }
-        @keyframes navDot {
-            from { transform: scaleX(0); }
-            to   { transform: scaleX(1); }
-        }
-
-        .logo-glow    { animation: logoGlow 3.5s ease-in-out infinite; }
-        .zap-btn      { animation: zapPulse 2.2s ease-in-out infinite; }
-        .modal-pop    { animation: popIn 0.28s cubic-bezier(0.34,1.56,0.64,1) both; }
-        .bounce-icon  { animation: bounceSoft 2s ease-in-out infinite; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { background: #f8fafc; font-family: 'Inter', system-ui, sans-serif; color: #1e293b; padding-bottom: 110px; }
 
         /* ── Cards ── */
-        .premium-card {
-            background: #ffffff;
-            border-radius: 22px;
-            border: 1px solid rgba(241,245,249,0.9);
-            box-shadow: 0 4px 18px rgba(114,47,81,0.06), 0 1px 3px rgba(0,0,0,0.04);
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .premium-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 18px 40px rgba(114,47,81,0.12), 0 4px 10px rgba(0,0,0,0.06);
-        }
-        .premium-card:active { transform: scale(0.985); }
-
-        /* ── Left borders ── */
-        .borda-esp  { border-left: 6px solid #f9c784; }
-        .borda-emag { border-left: 6px solid #7ab8f5; }
-        .borda-apl  { border-left: 6px solid #c084fc; }
-
-        /* ── Buttons ── */
-        .btn-vinho {
-            background: linear-gradient(135deg, #722f51 0%, #8c3965 100%);
-            color: white;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
-            border-radius: 16px;
-            box-shadow: 0 4px 14px rgba(114,47,81,0.28);
-        }
-        .btn-vinho:hover {
-            box-shadow: 0 8px 22px rgba(114,47,81,0.38);
-            transform: translateY(-1px) scale(1.01);
-        }
-        .btn-vinho:active { transform: scale(0.97); }
-
-        /* ── Autocomplete ── */
-        .suggestions-box {
-            position: absolute; width: 100%; background: white;
-            border-radius: 16px; max-height: 200px; overflow-y: auto;
-            z-index: 100;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+        .ios-card {
+            background: white;
+            border-radius: 20px;
             border: 1px solid #f1f5f9;
-            animation: slideInUp 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            transition: transform 0.15s;
         }
-        .suggestion-item {
-            padding: 14px; cursor: pointer;
-            border-bottom: 1px solid #f8fafc;
-            font-size: 12px; font-weight: 700; text-transform: uppercase;
-            transition: background 0.15s;
-        }
-        .suggestion-item:hover { background: #fdf4f8; }
+        .ios-card:active { transform: scale(0.98); }
 
-        /* ── Header ── */
-        header {
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-        }
-        .logo-icon-wrap {
-            background: linear-gradient(135deg, #fdf4f8, #f5eef6);
-            box-shadow: inset 0 2px 6px rgba(114,47,81,0.08);
-        }
-
-        /* ── Nav ── */
-        nav {
-            background: rgba(255,255,255,0.94);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        nav button { transition: all 0.2s ease; position: relative; }
-        nav button.nav-active::after {
-            content: '';
-            display: block;
-            height: 3px;
-            border-radius: 2px;
-            background: #722f51;
-            margin-top: 4px;
-            animation: navDot 0.25s ease;
-        }
-        nav button:not(.nav-active)::after {
-            content: '';
-            display: block;
-            height: 3px;
-        }
+        /* ── Bordas categoria ── */
+        .borda-esp  { border-left: 7px solid #fdba74; }
+        .borda-emag { border-left: 7px solid #93c5fd; }
+        .borda-apl  { border-left: 7px solid #d8b4fe; }
 
         /* ── Slot livre ── */
         .slot-livre {
             background: white;
-            border: 1.5px dashed #d1d5db;
-            border-radius: 22px;
-            transition: all 0.2s ease;
+            border: 1.5px dashed #e2e8f0;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .slot-livre:hover {
-            border-color: #bca374;
-            background: #fffbf5;
-            box-shadow: 0 4px 14px rgba(188,163,116,0.1);
+        .slot-livre:hover  { border-color: #fb923c; background: #fff7ed; }
+        .slot-livre:active { transform: scale(0.98); }
+        .slot-livre .hora  { font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; }
+        .slot-livre .livre { font-size: 9px;  font-weight: 700; color: #cbd5e1; }
+
+        /* ── Pills ── */
+        .tipo-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 11px 18px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.18s;
+            background: white;
+            color: #475569;
+        }
+        .tipo-pill.active { border-color: #1e293b; background: #1e293b; color: white; }
+        .tipo-pill:hover:not(.active) { border-color: #94a3b8; }
+
+        .prof-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.18s;
+            background: white;
+            color: #475569;
+        }
+        .prof-pill.active { border-color: #ea580c; background: #ea580c; color: white; }
+
+        /* ── Tags ── */
+        .encaixe-tag {
+            background: #fef9c3;
+            color: #a16207;
+            font-size: 8px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 8px;
+            font-weight: 900;
         }
 
-        /* ── Input focus ── */
-        input:focus, select:focus {
-            border-color: #bca374 !important;
-            box-shadow: 0 0 0 3px rgba(188,163,116,0.15);
-            outline: none;
+        /* ── Autocomplete ── */
+        .suggestions-box {
+            position: absolute;
+            width: 100%;
+            background: white;
+            border-radius: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 300;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.14);
+            border: 1px solid #f1f5f9;
+            top: calc(100% + 6px);
+            left: 0;
         }
-
-        /* ── FAB Disponibilidade ── */
-        .fab-disp {
-            position: fixed;
-            bottom: 88px;
-            right: 18px;
-            z-index: 49;
-            background: linear-gradient(135deg, #25d366 0%, #1da851 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 13px 18px;
+        .suggestion-item {
+            padding: 13px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
             font-size: 11px;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 6px 22px rgba(37,211,102,0.45);
+            color: #1e293b;
+            transition: background 0.1s;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover      { background: #f8fafc; }
+
+        /* ── Retornos tabs ── */
+        .ret-tab {
+            flex: 1;
+            padding: 10px 4px;
+            border-radius: 14px;
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-align: center;
             cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #f1f5f9;
+            background: white;
+            color: #94a3b8;
+        }
+        .ret-tab.active-red    { background: #fef2f2; border-color: #ef4444; color: #b91c1c; }
+        .ret-tab.active-yellow { background: #fefce8; border-color: #eab308; color: #92400e; }
+        .ret-tab.active-green  { background: #f0fdf4; border-color: #22c55e; color: #15803d; }
+        .ret-tab.active-all    { background: #f8fafc; border-color: #64748b; color: #334155; }
+
+        /* ── Relatório ── */
+        .rep-card {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        }
+        .rep-header {
+            padding: 14px 20px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
             gap: 8px;
-            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-            animation: zapPulse 2.5s ease-in-out infinite;
         }
-        .fab-disp:hover {
-            transform: translateY(-2px) scale(1.04);
-            box-shadow: 0 10px 30px rgba(37,211,102,0.55);
+        .rep-table { width: 100%; border-collapse: collapse; }
+        .rep-table th {
+            padding: 9px 8px;
+            text-align: left;
+            font-weight: 900;
+            font-size: 8px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #f1f5f9;
+            white-space: nowrap;
         }
-        .fab-disp:active { transform: scale(0.96); }
+        .rep-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #f8fafc;
+            font-size: 9px;
+            vertical-align: middle;
+        }
+        .rep-table tbody tr:last-child td { border-bottom: none; }
+        .rep-table tbody tr:hover td      { background: #fafafa; }
+
+        /* ── Spinner ── */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .fa-spin { animation: spin 0.8s linear infinite; }
+
+        /* ── Loading state ── */
+        .btn-loading { pointer-events: none; opacity: 0.5; }
+
+        /* ── Pulse ── */
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+        .animate-pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+        /* ── Spinner div ── */
+        @keyframes spin2 { to { transform: rotate(360deg); } }
+        .spin-border {
+            width: 32px; height: 32px;
+            border: 4px solid #fed7aa;
+            border-top-color: #ea580c;
+            border-radius: 50%;
+            animation: spin2 0.7s linear infinite;
+        }
 
         /* ── Print ── */
-        #print-header { display: none; }
         @media print {
             .no-print { display: none !important; }
-            .print-area { display: block !important; padding: 0 !important; }
-            body { background: white !important; padding: 0 !important; }
-            .relatorio-section { page-break-inside: avoid; }
-            .premium-card { box-shadow: none !important; animation: none !important; }
+            body { padding-bottom: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .rep-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; break-inside: avoid; }
+            .rep-table th, .rep-table td { font-size: 8px !important; padding: 6px 5px !important; }
         }
     </style>
 </head>
 <body>
 
-<!-- ── HEADER ── -->
-<header class="no-print p-5 border-b flex flex-wrap gap-4 justify-between items-center sticky top-0 z-40 shadow-sm">
-    <div class="flex items-center">
-        <div class="logo-icon-wrap p-2.5 rounded-2xl mr-3">
-            <i class="fas fa-apple-whole text-ouro text-2xl bounce-icon"></i>
-        </div>
+<!-- ═══════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════ -->
+<header class="no-print sticky top-0 z-40 bg-white border-b"
+    style="box-shadow: 0 1px 8px rgba(0,0,0,0.06);">
+    <div class="flex justify-between items-center px-5 py-4 max-w-[900px] mx-auto">
         <div>
-            <h1 class="text-lg font-black uppercase tracking-tighter text-vinho logo-glow">
-                AGENDA <span class="text-ouro">LOURDES</span>
+            <h1 class="text-lg font-black uppercase italic leading-none tracking-tight">
+                AGENDA <span class="text-orange-600">LOURDES</span>
             </h1>
+            <p id="dataLabel" class="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-wider"></p>
         </div>
-    </div>
-    <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2">
-            <button onclick="navegarTerca(-1)"
-                class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-vinho hover:text-white text-slate-500 transition-all font-black text-sm shadow-sm active:scale-95">
-                ‹
-            </button>
-            <div onclick="document.getElementById('datepicker').showPicker()" class="flex flex-col items-center cursor-pointer px-2">
-                <span id="data-label-dia"  class="text-[9px] font-black text-ouro uppercase tracking-widest leading-none">Terça-feira</span>
-                <span id="data-label-data" class="text-sm font-black text-vinho leading-tight mt-0.5">00/00/0000</span>
-            </div>
-            <button onclick="navegarTerca(1)"
-                class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-vinho hover:text-white text-slate-500 transition-all font-black text-sm shadow-sm active:scale-95">
-                ›
-            </button>
-            <!-- input escondido mantém a lógica existente -->
-            <input type="date" id="datepicker" onchange="onDateChange()" class="sr-only">
-        </div>
+        <input
+            type="date"
+            id="datepicker"
+            onchange="loadAll()"
+            class="p-2 border-2 border-slate-100 rounded-xl font-bold text-xs bg-slate-50 outline-none focus:border-orange-400 transition-colors cursor-pointer">
     </div>
 </header>
 
-<div id="print-header">
-    <i class="fas fa-apple-whole" style="font-size:30px;color:#bca374;"></i>
-    <h1 style="font-size:24px;font-weight:900;color:#722f51;margin:5px 0;">AGENDA LOURDES</h1>
-    <p style="font-size:12px;font-weight:800;color:#bca374;letter-spacing:2px;text-transform:uppercase;" id="print-date-label"></p>
-</div>
+<!-- ═══════════════════════════════════════════
+     CONTEÚDO PRINCIPAL
+════════════════════════════════════════════ -->
+<main id="content" class="p-4 max-w-[900px] mx-auto"></main>
 
-<main id="content" class="p-5 max-w-[1200px] mx-auto"></main>
-
-<!-- ── NAV ── -->
-<nav class="fixed bottom-0 left-0 right-0 bg-white/90 border-t flex items-center justify-around z-50 no-print shadow-[0_-8px_30px_rgba(114,47,81,0.07)] px-2 py-3">
-    <button onclick="showTab('agenda')"    id="t-agenda"    class="flex flex-col items-center px-5 py-2 rounded-2xl transition-all">
-        <i class="fas fa-calendar-day text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Agenda</span>
-    </button>
-    <button onclick="showTab('relatorio')" id="t-relatorio" class="flex flex-col items-center px-5 py-2 rounded-2xl transition-all">
-        <i class="fas fa-print text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Relatório</span>
-    </button>
-    <button onclick="showTab('historico')" id="t-historico" class="flex flex-col items-center px-5 py-2 rounded-2xl transition-all">
-        <i class="fas fa-address-book text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Pacientes</span>
-    </button>
-    <button onclick="showTab('ausentes')"  id="t-ausentes"  class="flex flex-col items-center px-5 py-2 rounded-2xl transition-all">
-        <i class="fas fa-clock-rotate-left text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Retornos</span>
-    </button>
+<!-- ═══════════════════════════════════════════
+     NAVEGAÇÃO INFERIOR
+════════════════════════════════════════════ -->
+<nav class="no-print fixed bottom-0 left-0 right-0 bg-white border-t z-50"
+    style="box-shadow: 0 -4px 20px rgba(0,0,0,0.08); height: 72px;">
+    <div class="flex items-center justify-around h-full max-w-[900px] mx-auto">
+        <button onclick="showTab('agenda')" id="t-agenda"
+            class="flex flex-col items-center gap-1 text-slate-400 transition-colors w-1/4 py-2">
+            <i class="fas fa-calendar-alt text-xl"></i>
+            <span class="text-[8px] font-black uppercase">Agenda</span>
+        </button>
+        <button onclick="showTab('relatorio')" id="t-relatorio"
+            class="flex flex-col items-center gap-1 text-slate-400 transition-colors w-1/4 py-2">
+            <i class="fas fa-file-medical text-xl"></i>
+            <span class="text-[8px] font-black uppercase">Relatório</span>
+        </button>
+        <button onclick="showTab('historico')" id="t-historico"
+            class="flex flex-col items-center gap-1 text-slate-400 transition-colors w-1/4 py-2">
+            <i class="fas fa-users text-xl"></i>
+            <span class="text-[8px] font-black uppercase">Pacientes</span>
+        </button>
+        <button onclick="showTab('ausentes')" id="t-ausentes"
+            class="flex flex-col items-center gap-1 text-slate-400 transition-colors w-1/4 py-2">
+            <i class="fas fa-clock text-xl"></i>
+            <span class="text-[8px] font-black uppercase">Retornos</span>
+        </button>
+    </div>
 </nav>
 
-<!-- ── FAB Disponibilidade ── -->
-<button class="fab-disp no-print" onclick="openDisponibilidade()">
-    <i class="fab fa-whatsapp text-base"></i>
-    Horários Livres
-</button>
-
-<!-- ── MODAL ── -->
-<div id="modal" class="hidden fixed inset-0 z-[100] bg-vinho/20 backdrop-blur-md flex items-center justify-center p-4" onclick="closeModal()">
-    <div class="modal-pop bg-white w-full max-w-lg rounded-[35px] p-8 shadow-2xl overflow-y-auto max-h-[90vh]" onclick="event.stopPropagation()">
-        <div id="m-content"></div>
+<!-- ═══════════════════════════════════════════
+     MODAL BOTTOM SHEET
+════════════════════════════════════════════ -->
+<div id="modal"
+    class="hidden fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-end justify-center"
+    onclick="closeModal()">
+    <div
+        class="bg-white w-full max-w-lg rounded-t-[32px] shadow-2xl overflow-y-auto max-h-[93vh]"
+        onclick="event.stopPropagation()">
+        <!-- Handle bar -->
+        <div class="flex justify-center pt-4 pb-2">
+            <div class="w-10 h-1 bg-slate-200 rounded-full"></div>
+        </div>
+        <!-- Conteúdo dinâmico -->
+        <div id="m-content" class="px-7 pb-10 pt-2"></div>
     </div>
 </div>
 
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════ -->
 <script>
-    const API = "https://script.google.com/macros/s/AKfycbxmaWUWvspZKA9OqHyoyGo0Mcy0hTwLhZ_f5JFfkep1GSYN_3_JhNTgb1trwUc2HcNe/exec";
 
-    let pacs = [], appts = [], currentTab = 'agenda';
-    let excludedRetornos = JSON.parse(localStorage.getItem('excludedRetornos') || '[]');
-    let currentEspProf = 'GERALDO';
+// ────────────────────────────────────────────
+//  CONFIGURAÇÃO GLOBAL
+// ────────────────────────────────────────────
+const API = "https://script.google.com/macros/s/AKfycbxmaWUWvspZKA9OqHyoyGo0Mcy0hTwLhZ_f5JFfkep1GSYN_3_JhNTgb1trwUc2HcNe/exec";
 
+let pacs             = [];
+let appts            = [];
+let currentTab       = 'agenda';
+let retTab           = 'red';
+let profEsp          = localStorage.getItem('profEsp') || 'GERALDO';
+let excludedRetornos = JSON.parse(localStorage.getItem('excludedRetornos') || '[]');
 
-    /* ─── Helpers de normalização ─────────────────────────────────────
-       Garante que diferenças de espaço, caixa ou acento não quebrem
-       a busca de paciente entre a planilha de agendamentos e a de cadastros.
-    ─────────────────────────────────────────────────────────────────── */
-    function normalizar(str) {
-        return (str || '')
-            .trim()
-            .toUpperCase()
-            .replace(/\s+/g, ' ')                      // espaços duplos
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos p/ comparação
-    }
+// Estado do modal de agendamento
+let _bookCat  = 'ESPORTIVO';
+let _bookHora = '';
+let _bookTipo = 'CONSULTA';
 
-    function buscarPac(nome) {
-        if (!nome) return {};
-        const n = normalizar(nome);
-
-        /* 1. Correspondência exata normalizada */
-        let pac = pacs.find(x => normalizar(x.nome) === n);
-        if (pac) return pac;
-
-        /* 2. Um contém o outro (ex: "ANA KARINE" dentro de "ANA KARINE FERREIRA") */
-        pac = pacs.find(x => {
-            const xn = normalizar(x.nome);
-            return xn.includes(n) || n.includes(xn);
-        });
-        if (pac) return pac;
-
-        /* 3. Todas as palavras do nome buscado existem no cadastro */
-        const palavras = n.split(' ').filter(p => p.length > 1);
-        pac = pacs.find(x => {
-            const xn = normalizar(x.nome);
-            return palavras.every(p => xn.includes(p));
-        });
-        if (pac) return pac;
-
-        /* 4. Pelo menos 2 palavras em comum (evita falso positivo em nomes curtos) */
-        if (palavras.length >= 2) {
-            pac = pacs.find(x => {
-                const xn = normalizar(x.nome);
-                const comuns = palavras.filter(p => xn.includes(p));
-                return comuns.length >= 2;
-            });
-            if (pac) return pac;
-        }
-
-        return {};
-    }
-
-    /* Formata telefone: remove tudo que não é dígito, garante 55 uma só vez */
-    function formatarTel(tel) {
-        const nums = (tel || '').replace(/\D/g, '');
-        if (!nums) return '';
-        if (nums.startsWith('55') && nums.length >= 12) return nums;
-        return '55' + nums;
-    }
-
-    /* ─── formato curto do serviço para exibição nos cards da agenda ─── */
-    function formatServico(servico, categoria) {
-        if (!servico) return '';
-        const s = servico.toUpperCase();
-        const ret = s.includes('RETORNO');
-        if (categoria === 'ESPORTIVO'     || s.includes('ESPORTIVO'))     return ret ? 'RETORNO ESPORTIVO'     : 'CONSULTA ESPORTIVO';
-        if (categoria === 'EMAGRECIMENTO' || s.includes('EMAGRECIMENTO')) return ret ? 'RETORNO EMAGRECIMENTO' : 'CONSULTA EMAGRECIMENTO';
-        if (categoria === 'APLICAÇÃO'     || s.includes('APLICAÇÃO'))     return ret ? 'RETORNO APLICAÇÃO'     : 'APLICAÇÃO';
-        return servico;
-    }
-
-    /* ─────────────────────────────────────────────
-       CONTROLE DE DIAS — só Terças + exceções
-       Para liberar um dia extra: adicione a data
-       no formato 'AAAA-MM-DD' no array abaixo.
-    ───────────────────────────────────────────── */
-    /* ─── Profissional alternado por semana ───
-       Referência: 02/06/2026 = GERALDO, depois alterna a cada terça ─── */
-    function getProfPadrao(dateStr) {
-        const ref     = new Date('2026-06-02T12:00:00'); // GERALDO
-        const d       = new Date(dateStr + 'T12:00:00');
-        const semanas = Math.round((d - ref) / (7 * 24 * 3600 * 1000));
-        return semanas % 2 === 0 ? 'GERALDO' : 'LÍBIA';
-    }
-
-    function atualizarLabel(val) {
-        if (!val) return;
-        const dt   = new Date(val + 'T12:00:00');
-        const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-        const meses= ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        const dia  = String(dt.getDate()).padStart(2,'0');
-        const mes  = String(dt.getMonth()+1).padStart(2,'0');
-        const ano  = dt.getFullYear();
-        const nomeDia = dias[dt.getDay()];
-        document.getElementById('data-label-dia').innerText  = `${nomeDia}, ${meses[dt.getMonth()]} ${ano}`;
-        document.getElementById('data-label-data').innerText = `${dia}/${mes}/${ano}`;
-        /* define automaticamente o profissional padrão da semana */
-        currentEspProf = getProfPadrao(val);
-    }
-
-    /* ─────────────────────────────────────────────
-       CONTROLE DE DIAS
-       diasExcecao   → dias que SUBSTITUEM uma terça
-       diasCancelados → terças que NÃO acontecem
-    ───────────────────────────────────────────── */
-    const diasExcecao    = ['2026-07-13', '2026-07-24'];
-    const diasCancelados = ['2026-07-14', '2026-07-21'];
-
-    /* Gera lista ordenada de todos os dias válidos num intervalo de ±2 anos */
-    function getDiasValidos() {
-        const hoje   = new Date();
-        const inicio = new Date(hoje); inicio.setFullYear(hoje.getFullYear() - 1);
-        const fim    = new Date(hoje); fim.setFullYear(hoje.getFullYear() + 2);
-        const dias   = [];
-        for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
-            const str = d.toISOString().split('T')[0];
-            if (d.getDay() === 2 && !diasCancelados.includes(str)) dias.push(str);
-            else if (diasExcecao.includes(str))                      dias.push(str);
-        }
-        return dias.sort();
-    }
-
-    function proximaTerca(from) {
-        const ref  = from || new Date().toISOString().split('T')[0];
-        const dias = getDiasValidos();
-        return dias.find(d => d >= ref) || dias[dias.length - 1];
-    }
-
-    function navegarTerca(direcao) {
-        const val  = document.getElementById('datepicker').value || proximaTerca();
-        const dias = getDiasValidos();
-        const idx  = dias.indexOf(val);
-        const novo = idx === -1
-            ? (direcao > 0 ? dias.findIndex(d => d > val) : [...dias].reverse().findIndex(d => d < val))
-            : idx + direcao;
-        if (novo < 0 || novo >= dias.length) return;
-        const novaData = idx === -1
-            ? (direcao > 0 ? dias.find(d => d > val) : [...dias].reverse().find(d => d < val))
-            : dias[novo];
-        if (!novaData) return;
-        document.getElementById('datepicker').value = novaData;
-        atualizarLabel(novaData);
-        loadAll();
-    }
-
-    function onDateChange() {
-        const val  = document.getElementById('datepicker').value;
-        if (!val) return;
-        const dias = getDiasValidos();
-        if (!dias.includes(val)) {
-            document.getElementById('datepicker').value = proximaTerca(val);
-        }
-        atualizarLabel(document.getElementById('datepicker').value);
-        loadAll();
-    }
-
-    async function loadAll() {
-        const c = document.getElementById('content');
-        c.innerHTML = `<div class="text-center mt-32">
-            <i class="fas fa-apple-whole text-ouro text-5xl bounce-icon"></i>
-            <p class="mt-5 font-black text-vinho text-xs tracking-[0.35em] uppercase">Preparando Agenda...</p>
+// ────────────────────────────────────────────
+//  CARREGAMENTO DE DADOS
+// ────────────────────────────────────────────
+async function loadAll() {
+    const c = document.getElementById('content');
+    c.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:100px;gap:12px;">
+            <div class="spin-border"></div>
+            <p style="font-size:10px;font-weight:900;color:#cbd5e1;text-transform:uppercase;letter-spacing:0.1em;">Sincronizando...</p>
         </div>`;
-        try {
-            const r = await fetch(API + '?action=getAll');
-            const d = await r.json();
-            pacs  = d.patients     || [];
-            appts = d.appointments || [];
-            render();
-        } catch(e) {
-            c.innerHTML = '<div class="text-center p-10 font-bold text-red-500 uppercase text-xs">ERRO DE CONEXÃO. VERIFIQUE A INTERNET.</div>';
-        }
-    }
+    updateDateLabel();
+    try {
+        const resp = await fetch(API + '?action=getAll');
+        const data = await resp.json();
 
-    function render() {
-        const dVal = document.getElementById('datepicker').value;
+        pacs = (data.patients || []).map(p => ({
+            ...p,
+            nome: String(p.nome || '').trim().toUpperCase()
+        }));
 
-        /* nav highlight */
-        document.querySelectorAll('nav button').forEach(b => {
-            b.classList.remove('text-vinho', 'bg-vinho/5', 'nav-active');
-            b.classList.add('text-slate-500');
+        appts = (data.appointments || []).map(a => ({
+            ...a,
+            paciente: String(a.paciente || '').trim().toUpperCase()
+        })).sort((a, b) => {
+            const dc = a.dataStr.localeCompare(b.dataStr);
+            return dc !== 0 ? dc : a.hora.localeCompare(b.hora);
         });
-        const ab = document.getElementById('t-' + currentTab);
-        if (ab) { ab.classList.remove('text-slate-500'); ab.classList.add('text-vinho', 'bg-vinho/5', 'nav-active'); }
 
-        const c = document.getElementById('content');
-        if      (currentTab === 'agenda')    renderAgenda(c, dVal);
-        else if (currentTab === 'relatorio') renderRelatorio(c, dVal);
-        else if (currentTab === 'historico') renderHistorico(c);
-        else                                 renderAusentes(c);
-    }
-
-    function changeEspProf(val) { currentEspProf = val; render(); }
-
-    /* ══════════════════════════════════════════
-       AGENDA
-    ══════════════════════════════════════════ */
-    function renderAgenda(c, dVal) {
-        if (!dVal) return;
-        const dataF = dVal.split('-').reverse().join('/');
-        let html = '';
-
-        const config = [
-            { n: 'ESPORTIVO',     b: 'borda-esp',  step: 25 },
-            { n: 'EMAGRECIMENTO', b: 'borda-emag', step: 35 },
-            { n: 'APLICAÇÃO',     b: 'borda-apl'           }
-        ];
-
-        config.forEach(cat => {
-            const list = appts.filter(a => a.dataStr === dataF && a.categoria === cat.n);
-
-            /* cabeçalho da seção */
-            html += `<div class="flex justify-between items-center mb-5 mt-10 pb-2" style="border-bottom:2px solid #f1f5f9;">
-                <h3 class="font-black text-[11px] text-slate-700 uppercase tracking-widest">
-                    <i class="fas fa-tag text-ouro mr-2"></i>
-                    ${cat.n} ${cat.n==='ESPORTIVO' ? '— '+currentEspProf : cat.n==='EMAGRECIMENTO' ? '— BRUNO' : '— SUELEN'}
-                </h3>
-                ${cat.n==='ESPORTIVO' ? `
-                <select onchange="changeEspProf(this.value)"
-                    class="p-1.5 border border-slate-200 rounded-xl font-bold text-[10px] bg-white outline-none text-vinho uppercase no-print shadow-sm">
-                    <option value="GERALDO" ${currentEspProf==='GERALDO'?'selected':''}>Geraldo</option>
-                    <option value="LÍBIA"   ${currentEspProf==='LÍBIA'  ?'selected':''}>Líbia</option>
-                </select>` : ''}
-            </div>`;
-
-            let cardIdx = 0;
-
-            if (cat.n === 'APLICAÇÃO') {
-                const withTime = list.filter(a => a.hora && a.hora!=='ENCAIXE').sort((a,b)=>a.hora.localeCompare(b.hora));
-                const noTime   = list.filter(a => !a.hora || a.hora==='ENCAIXE');
-                [...withTime, ...noTime].forEach(f => { html += slotBusy(f, cat.b, cardIdx++); });
-            } else {
-                /* gera horários fixos */
-                const fixedTimes = [];
-                let h=9, m=0;
-                while (h < 12) {
-                    fixedTimes.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-                    m += cat.step; if (m>=60){ h++; m-=60; }
-                }
-                const encaixeTimes = list.filter(a => a.hora && a.hora!=='ENCAIXE' && !fixedTimes.includes(a.hora)).map(a=>a.hora);
-                const noTime       = list.filter(a => !a.hora || a.hora==='ENCAIXE');
-                const allTimes     = [...new Set([...fixedTimes,...encaixeTimes])].sort();
-
-                allTimes.forEach(t => {
-                    const ags = list.filter(a => a.hora===t);
-                    if (ags.length===0) {
-                        if (fixedTimes.includes(t)) {
-                            const d=(cardIdx++*0.06).toFixed(2);
-                            html += `<div onclick="openAgendar('${cat.n}','${t}')"
-                                style="animation:slideInUp 0.4s ease ${d}s both;"
-                                class="slot-livre p-5 mb-3 flex justify-between text-[11px] cursor-pointer">
-                                <span class="font-bold text-slate-500">${t}</span>
-                                <span class="text-slate-400 italic font-normal text-[10px]">Livre</span>
-                            </div>`;
-                        }
-                    } else {
-                        ags.forEach(ag => { html += slotBusy(ag, cat.b, cardIdx++); });
-                    }
-                });
-                noTime.forEach(en => { html += slotBusy(en, cat.b, cardIdx++); });
-            }
-
-            /* botão encaixe por especialidade */
-            html += `<div class="mb-8 mt-4">
-                <button onclick="openAgendar('${cat.n}','')" class="btn-vinho w-full py-4 text-[10px]">
-                    <i class="fas fa-plus mr-2"></i>Encaixe ${cat.n}
+        render();
+    } catch (err) {
+        c.innerHTML = `
+            <div style="text-align:center;padding:48px 24px;">
+                <i class="fas fa-wifi" style="font-size:40px;color:#fca5a5;display:block;margin-bottom:12px;"></i>
+                <p style="font-weight:900;color:#f87171;text-transform:uppercase;font-size:14px;">Erro de conexão</p>
+                <p style="font-size:10px;color:#94a3b8;margin-top:4px;">Verifique sua internet</p>
+                <button onclick="loadAll()"
+                    style="margin-top:16px;background:#fef2f2;color:#ef4444;border:none;padding:12px 24px;border-radius:12px;font-weight:900;font-size:10px;text-transform:uppercase;cursor:pointer;">
+                    Tentar novamente
                 </button>
             </div>`;
-        });
-
-        c.innerHTML = html;
     }
+}
 
-    function slotBusy(ag, borda, idx=0) {
-        const delay = (idx*0.07).toFixed(2);
-        const label = formatServico(ag.servico, ag.categoria);
-        return `<div class="premium-card p-5 mb-3 ${borda} flex justify-between items-center cursor-pointer"
-                    style="animation:slideInUp 0.4s ease ${delay}s both;"
-                    onclick="openAcoes('${ag.id}')">
+function updateDateLabel() {
+    const dVal   = document.getElementById('datepicker').value;
+    const days   = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+    const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    if (!dVal) return;
+    const d = new Date(dVal + 'T12:00:00');
+    document.getElementById('dataLabel').innerText =
+        `${days[d.getDay()]}, ${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+// ────────────────────────────────────────────
+//  ROTEADOR DE ABAS
+// ────────────────────────────────────────────
+function render() {
+    document.querySelectorAll('nav button').forEach(b => {
+        b.classList.remove('text-orange-600');
+        b.classList.add('text-slate-400');
+    });
+    const tabEl = document.getElementById('t-' + currentTab);
+    if (tabEl) {
+        tabEl.classList.remove('text-slate-400');
+        tabEl.classList.add('text-orange-600');
+    }
+    const c = document.getElementById('content');
+    if      (currentTab === 'agenda')    renderAgenda(c);
+    else if (currentTab === 'relatorio') renderRelatorio(c);
+    else if (currentTab === 'historico') renderHistorico(c);
+    else                                 renderAusentes(c);
+}
+
+function showTab(t) { currentTab = t; render(); }
+
+// ────────────────────────────────────────────
+//  ABA AGENDA
+// ────────────────────────────────────────────
+function renderAgenda(c) {
+    const dVal  = document.getElementById('datepicker').value;
+    const dataF = dVal.split('-').reverse().join('/');
+
+    const totalDia = appts.filter(a => a.dataStr === dataF).length;
+
+    let html = `
+        <div class="mb-6 flex items-center justify-between">
             <div>
-                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">${ag.hora||'ENCAIXE'} &bull; ${label}</p>
-                <p class="font-black text-vinho uppercase text-sm tracking-tight mt-1">${ag.paciente}</p>
-                ${ag.obs ? `<p class="text-[10px] text-slate-500 font-medium mt-1 bg-slate-50 px-2 py-0.5 rounded-lg border inline-block">Obs: ${ag.obs}</p>` : ''}
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide">Total do dia</p>
+                <p class="font-black text-2xl text-slate-800 leading-tight">
+                    ${totalDia}
+                    <span class="text-sm font-bold text-slate-400">paciente${totalDia !== 1 ? 's' : ''}</span>
+                </p>
             </div>
-            <div class="text-green-600 bg-green-50 p-3 rounded-2xl zap-btn">
-                <i class="fab fa-whatsapp text-xl"></i>
-            </div>
+            <button onclick="openEncaixe()"
+                class="bg-orange-600 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase shadow-lg shadow-orange-100 flex items-center gap-2">
+                <i class="fas fa-plus"></i> Encaixe
+            </button>
         </div>`;
-    }
 
-    function openAcoes(id) {
-        const ag = appts.find(a => a.id==id);
-        document.getElementById('m-content').innerHTML = `
-            <div class="text-center mb-8">
-                <div class="inline-block bg-gradient-to-br from-slate-50 to-pink-50 p-5 rounded-3xl mb-4 shadow-inner">
-                    <i class="fas fa-user-circle text-vinho text-4xl"></i>
-                </div>
-                <h2 class="font-black text-2xl uppercase tracking-tighter text-vinho">${ag.paciente}</h2>
-                <p class="text-[10px] text-ouro font-black mt-1 uppercase tracking-widest">${ag.hora} — ${formatServico(ag.servico,ag.categoria)}</p>
-            </div>
-            <div class="flex flex-col gap-3">
-                <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-slate-800 transition-all">Confirmar WhatsApp</button>
-                <button onclick="enviarZap('lembrete','${id}')"  class="w-full bg-green-500 text-white p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-green-600 transition-all">Enviar Lembrete</button>
-                <button onclick="openEditar('${id}')" class="w-full bg-blue-50 text-blue-600 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-100 transition-all"><i class="fas fa-pen mr-2"></i>Editar Agendamento</button>
-                <button id="btnDel" onclick="deletarAgendamento('${id}')" class="w-full bg-red-50 text-red-500 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-100 transition-all">Excluir Horário</button>
-                <button onclick="closeModal()" class="text-slate-400 font-black text-[10px] uppercase mt-4 tracking-widest text-center hover:text-slate-600 transition-all">Voltar</button>
+    const config = [
+        { n: 'ESPORTIVO',     b: 'borda-esp',  step: 25 },
+        { n: 'EMAGRECIMENTO', b: 'borda-emag', step: 35 },
+        { n: 'APLICAÇÃO',     b: 'borda-apl',  max:  3  }
+    ];
+
+    const coresAcento = {
+        ESPORTIVO:     '#fb923c',
+        EMAGRECIMENTO: '#60a5fa',
+        'APLICAÇÃO':   '#c084fc'
+    };
+
+    config.forEach(cat => {
+        const all   = appts
+            .filter(a => a.dataStr === dataF && a.categoria === cat.n)
+            .sort((a, b) => a.hora.localeCompare(b.hora));
+        const encs  = all.filter(a => a.hora.toUpperCase() === 'ENCAIXE');
+        const timed = all.filter(a => a.hora.toUpperCase() !== 'ENCAIXE');
+        const cor   = coresAcento[cat.n];
+
+        html += `
+            <div class="mt-8 mb-3 flex items-center justify-between">
+                <h3 class="font-black text-[10px] text-slate-400 uppercase tracking-widest border-l-4 pl-2"
+                    style="border-color:${cor};">${cat.n}</h3>
+                ${all.length > 0
+                    ? `<span class="badge font-black" style="background:${cor}22;color:${cor};">${all.length} pac.</span>`
+                    : ''}
             </div>`;
-        document.getElementById('modal').classList.remove('hidden');
-        const pop = document.querySelector('#modal > div');
-        pop.classList.remove('modal-pop'); void pop.offsetWidth; pop.classList.add('modal-pop');
-    }
 
-    function openEditar(id) {
-        const ag = appts.find(a => a.id==id);
-        document.getElementById('m-content').innerHTML = `
-            <div class="text-center mb-6">
-                <div class="inline-block bg-blue-50 p-4 rounded-3xl shadow-inner">
-                    <i class="fas fa-pen text-blue-500 text-2xl"></i>
-                </div>
-                <h2 class="font-black text-xl mt-3 uppercase text-vinho">${ag.paciente}</h2>
-                <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">${formatServico(ag.servico,ag.categoria)}</p>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Nova Data</label>
-                    <input type="date" id="editData" value="${ag.dataStr.split('/').reverse().join('-')}"
-                        class="w-full p-4 bg-slate-50 border rounded-2xl font-black text-xs outline-none text-vinho transition-all">
-                </div>
-                <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Novo Horário</label>
-                    <input type="text" id="editHora" value="${ag.hora||''}" placeholder="HH:MM ou ENCAIXE"
-                        class="w-full p-4 bg-slate-50 border rounded-2xl font-black text-xs outline-none transition-all">
-                </div>
-                <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Observação</label>
-                    <input type="text" id="editObs" value="${ag.obs||''}" placeholder="OPCIONAL"
-                        class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-xs outline-none transition-all">
-                </div>
-                <button id="btnSalvarEdit" onclick="salvarEdicaoAgendamento('${id}')"
-                    class="btn-vinho w-full p-5 mt-2">Salvar Alteração</button>
-                <button onclick="openAcoes('${id}')" class="w-full text-slate-400 font-black text-[10px] uppercase tracking-widest text-center hover:text-slate-600 transition-all">Voltar</button>
-            </div>`;
-    }
+        // Encaixes no topo da categoria
+        encs.forEach(ag => html += cardAgendamento(ag, cat.b));
 
-    async function salvarEdicaoAgendamento(id) {
-        const ag      = appts.find(a => a.id==id);
-        const novaData = document.getElementById('editData').value.split('-').reverse().join('/');
-        const novaHora = document.getElementById('editHora').value.trim() || 'ENCAIXE';
-        const novaObs  = document.getElementById('editObs').value;
-        document.getElementById('btnSalvarEdit').innerText = "SALVANDO...";
-        /* Remove o antigo e cria o novo */
-        await fetch(API,{method:'POST',body:JSON.stringify({action:'deleteAppointment',id:id})});
-        await fetch(API,{method:'POST',body:JSON.stringify({action:'addAppointment',paciente:ag.paciente,servico:ag.servico,data:novaData,hora:novaHora,categoria:ag.categoria,obs:novaObs})});
-        closeModal(); loadAll();
-    }
-
-    async function deletarAgendamento(id) {
-        if (!confirm("REMOVER DA AGENDA?")) return;
-        document.getElementById('btnDel').innerText = "REMOVENDO...";
-        await fetch(API,{method:'POST',body:JSON.stringify({action:'deleteAppointment',id:id})});
-        closeModal(); loadAll();
-    }
-
-    /* ─── WhatsApp ─── */
-    function enviarZap(tipo, id) {
-        const ag  = appts.find(a => a.id == id);
-        const p   = buscarPac(ag.paciente);
-        const tel = formatarTel(p.telefone);
-        const isRetorno   = ag.servico.toUpperCase().includes('RETORNO');
-        const isAplicacao = ag.categoria === 'APLICAÇÃO';
-
-        let profs = "DR Jorge Vieira Salomão (médico nutrólogo) | Geraldo (nutricionista) | Suelen Fernanda (enfermeira)";
-        if (ag.servico.includes("LÍBIA"))      profs = "DR Jorge Vieira Salomão (médico nutrólogo) | Líbia (nutricionista) | Suelen Fernanda (enfermeira)";
-        else if (ag.servico.includes("BRUNO")) profs = "DR Jorge Vieira Salomão (médico nutrólogo) | Bruno (nutricionista) | Suelen Fernanda (enfermeira)";
-        if (isAplicacao)                       profs = "Suelen Fernanda (enfermeira)";
-
-        let msg = "";
-        if (tipo === 'confirmar') {
-            if (isRetorno)
-                msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n*RETORNO NUTRIÇÃO ESPORTIVA*\nCom os profissionais: ${profs}\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
-            else if (isAplicacao)
-                msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n*APLICAÇÃO DE INJETÁVEIS*\nCom a profissional: ${profs}\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
-            else
-                msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n*Consulta ${ag.servico.includes("EMAGRECIMENTO") ? "Nutrição Emagrecimento" : "Nutrição Esportiva"}*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\nCom os profissionais: ${profs}\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n💰 O valor da consulta é de R$ 290,00.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
+        if (cat.n === 'APLICAÇÃO') {
+            for (let i = 1; i <= cat.max; i++) {
+                if (timed[i - 1]) {
+                    html += cardAgendamento(timed[i - 1], cat.b);
+                } else {
+                    html += `
+                        <div onclick="openAgendar('APLICAÇÃO','')" class="slot-livre">
+                            <span class="hora">Livre</span>
+                            <span class="livre">+ Agendar</span>
+                        </div>`;
+                }
+            }
         } else {
-            /* ── LEMBRETE ── */
-            const desconto = `🎁 *VALE DESCONTO — INJETÁVEIS*\nPague seus injetáveis em dinheiro e ganhe até 10% de desconto!\n_(Este desconto é válido exclusivamente para aplicação de injetáveis, não para consultas)_`;
-
-            if (isRetorno) {
-                /* Retorno: sem bioimpedância */
-                msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar seu *retorno* amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
-            } else if (isAplicacao) {
-                msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar sua *aplicação de injetáveis* amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
-            } else {
-                /* Consulta: com bioimpedância */
-                msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar seu agendamento amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\n📊 *BIOIMPEDÂNCIA — PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
+            let h = 9, m = 0;
+            while (h < 12 || (h === 11 && m <= 55)) {
+                const t  = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                const ag = timed.find(a => a.hora.includes(t));
+                if (ag) {
+                    html += cardAgendamento(ag, cat.b);
+                } else {
+                    html += `
+                        <div onclick="openAgendar('${cat.n}','${t}')" class="slot-livre">
+                            <span class="hora">${t}</span>
+                            <span class="livre">Disponível</span>
+                        </div>`;
+                }
+                m += cat.step;
+                if (m >= 60) { h++; m -= 60; }
             }
         }
-        abrirZap(tel, msg);
+    });
+
+    c.innerHTML = html;
+}
+
+function cardAgendamento(ag, borda) {
+    const isEnc = ag.hora.toUpperCase() === 'ENCAIXE';
+    return `
+        <div class="ios-card p-5 mb-3 ${borda} flex justify-between items-center cursor-pointer"
+            onclick="openAcoes('${ag.id}')">
+            <div class="flex-1 min-w-0 mr-3">
+                <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase">
+                        ${isEnc ? '⚡ ENCAIXE' : ag.hora}
+                    </span>
+                    ${isEnc ? '<span class="encaixe-tag">encaixe</span>' : ''}
+                    <span class="text-[8px] text-slate-300 font-bold uppercase">— ${ag.servico}</span>
+                </div>
+                <p class="font-black text-slate-800 uppercase text-[15px] leading-tight truncate">${ag.paciente}</p>
+                ${ag.obs ? `<p class="text-[9px] text-amber-500 font-bold mt-0.5 truncate">${ag.obs}</p>` : ''}
+            </div>
+            <i class="fab fa-whatsapp text-green-400 text-2xl flex-shrink-0"></i>
+        </div>`;
+}
+
+// ────────────────────────────────────────────
+//  MODAL DE AÇÕES DO AGENDAMENTO
+// ────────────────────────────────────────────
+function openAcoes(id) {
+    const ag = appts.find(a => a.id == id);
+    if (!ag) return;
+    const isEsp = ag.categoria === 'ESPORTIVO';
+
+    const profSelector = isEsp ? `
+        <div class="mb-5 p-4 bg-slate-50 rounded-2xl">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-wide">
+                Profissional para a mensagem
+            </p>
+            <div class="flex gap-2">
+                <button id="pG" onclick="setProfEsp('GERALDO')"
+                    class="prof-pill ${profEsp === 'GERALDO' ? 'active' : ''}">
+                    <i class="fas fa-user mr-1.5"></i> Geraldo
+                </button>
+                <button id="pL" onclick="setProfEsp('LIBIA')"
+                    class="prof-pill ${profEsp === 'LIBIA' ? 'active' : ''}">
+                    <i class="fas fa-user mr-1.5"></i> Líbia
+                </button>
+            </div>
+        </div>` : '';
+
+    document.getElementById('m-content').innerHTML = `
+        <div class="text-center mb-6">
+            <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">${ag.dataStr} · ${ag.hora}</p>
+            <h2 class="font-black text-xl uppercase italic leading-tight">${ag.paciente}</h2>
+            <span class="inline-block mt-1.5 px-3 py-1 rounded-full text-[8px] font-black uppercase bg-orange-50 text-orange-500">
+                ${ag.servico}
+            </span>
+        </div>
+        ${profSelector}
+        <div class="flex flex-col gap-3">
+            <button onclick="enviarZap('confirmar','${id}')"
+                class="w-full bg-blue-600 text-white p-4 rounded-2xl font-black uppercase text-[11px] flex items-center justify-center gap-2 shadow-sm">
+                <i class="fab fa-whatsapp text-lg"></i>
+                Confirmar Agendamento
+            </button>
+            <button onclick="enviarZap('lembrete','${id}')"
+                class="w-full bg-green-500 text-white p-4 rounded-2xl font-black uppercase text-[11px] flex items-center justify-center gap-2 shadow-sm">
+                <i class="fas fa-bell text-lg"></i>
+                Enviar Lembrete
+            </button>
+            <div class="h-px bg-slate-100 my-1"></div>
+            <button id="btnDel" onclick="deletarAgendamento('${id}')"
+                class="w-full bg-red-50 text-red-500 p-4 rounded-2xl font-black uppercase text-[11px] flex items-center justify-center gap-2">
+                <i class="fas fa-trash-alt"></i>
+                Excluir Agendamento
+            </button>
+            <button onclick="closeModal()"
+                class="text-slate-300 font-black text-[9px] uppercase mt-2 py-2">
+                Fechar
+            </button>
+        </div>`;
+    openModal();
+}
+
+function setProfEsp(p) {
+    profEsp = p;
+    localStorage.setItem('profEsp', p);
+    ['pG','pL','rG','rL'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const isG = id === 'pG' || id === 'rG';
+        el.classList.toggle('active', (isG && p === 'GERALDO') || (!isG && p === 'LIBIA'));
+    });
+}
+
+async function deletarAgendamento(id) {
+    if (!confirm('DESEJA REALMENTE EXCLUIR ESTE HORÁRIO?')) return;
+    const btn = document.getElementById('btnDel');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Excluindo...';
+    btn.classList.add('btn-loading');
+    await fetch(API, {
+        method: 'POST',
+        body:   JSON.stringify({ action: 'deleteAppointment', id })
+    });
+    closeModal();
+    loadAll();
+}
+
+// ────────────────────────────────────────────
+//  WHATSAPP — MENSAGENS
+// ────────────────────────────────────────────
+function getProfLinha(categoria) {
+    if (categoria === 'APLICAÇÃO') {
+        return 'Suelen Fernanda (enfermeira)';
+    }
+    const nutr = categoria === 'ESPORTIVO'
+        ? (profEsp === 'GERALDO' ? 'Geraldo (nutricionista)' : 'Líbia (nutricionista)')
+        : 'Bruno (nutricionista)';
+    return `DR Jorge Vieira Salomão (médico nutrólogo) | ${nutr} | Suelen Fernanda (enfermeira)`;
+}
+
+function getNomeServico(ag) {
+    const isApl     = ag.categoria === 'APLICAÇÃO';
+    const isRetorno = ag.servico.toUpperCase().includes('RETORNO');
+    if (isApl) return 'APLICAÇÃO DE INJETÁVEIS';
+    if (ag.categoria === 'ESPORTIVO')     return isRetorno ? 'RETORNO NUTRIÇÃO ESPORTIVA'    : 'Nutrição Esportiva';
+    if (ag.categoria === 'EMAGRECIMENTO') return isRetorno ? 'RETORNO NUTRIÇÃO EMAGRECIMENTO' : 'Nutrição Emagrecimento';
+    return ag.servico;
+}
+
+function enviarZap(tipo, id) {
+    const ag  = appts.find(a => a.id == id);
+    const p   = pacs.find(x => x.nome === ag.paciente) || {};
+    const tel = (p.telefone || '').replace(/\D/g, '');
+
+    if (!tel) {
+        alert('⚠️ Paciente sem telefone cadastrado.\nAcesse "Pacientes" e cadastre o número.');
+        return;
     }
 
-    /* ══════════════════════════════════════════
-       RELATÓRIO
-    ══════════════════════════════════════════ */
-    function renderRelatorio(c, dVal) {
-        if (!dVal) return;
-        const dataF = dVal.split('-').reverse().join('/');
-        document.getElementById('print-date-label').innerText = "RELATÓRIO DE ATENDIMENTOS — " + dataF;
+    const isApl     = ag.categoria === 'APLICAÇÃO';
+    const isRetorno = ag.servico.toUpperCase().includes('RETORNO');
+    const profLinha = getProfLinha(ag.categoria);
+    const servNome  = getNomeServico(ag);
+    let msg = '';
 
-        let html = `
-        <div class="no-print mb-6 flex gap-3 items-center">
-            <button onclick="window.print()" class="btn-vinho flex-1 py-5 rounded-[22px] text-[10px]">
-                <i class="fas fa-print mr-2"></i>Imprimir Folha de Atendimento
+    // ── CONFIRMAR AGENDAMENTO ──────────────────────────────
+    if (tipo === 'confirmar') {
+
+        if (isApl) {
+            msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n*APLICAÇÃO DE INJETÁVEIS*\nCom a profissional: Suelen Fernanda (enfermeira)\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+
+        } else if (isRetorno) {
+            msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n*${servNome}*\nCom os profissionais: ${profLinha}\n\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+
+        } else {
+            msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n\n*Consulta ${servNome}*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\nCom os profissionais: ${profLinha}\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n💰 O valor da consulta é de R$ 290,00.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\n\nObrigada e até lá! ❤️`;
+        }
+
+    // ── LEMBRETE ───────────────────────────────────────────
+    } else {
+
+        if (isApl) {
+            msg = `Olá ${ag.paciente}! 👋\nConfirme seu agendamento amanhã\n\n*APLICAÇÃO DE INJETÁVEIS*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado!`;
+
+        } else if (isRetorno) {
+            msg = `Olá ${ag.paciente}! 👋\nConfirme seu agendamento amanhã\n\n*${servNome}*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado!`;
+
+        } else {
+            msg = `Olá ${ag.paciente}! 👋\nConfirme seu agendamento amanhã\n\n*Consulta ${servNome}*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n🎁 *VALE DESCONTO ESTHETIC CENTER - SETOR DE APLICAÇÃO DE INJETÁVEIS*\nFaça seu pagamento em dinheiro e ganhe até 10% de desconto!\n(Válido apenas para Aplicação de injetáveis)\n\n📊 *BIOIMPEDÂNCIA - PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não seja portador de marca-passo\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\nObs: Durante gravidez os resultados não são consistentes.\n\nResponda SIM para confirmar ou NÃO para remarcar. Obrigado!`;
+        }
+    }
+
+    window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`);
+}
+
+// ────────────────────────────────────────────
+//  ABA RELATÓRIO
+// ────────────────────────────────────────────
+function renderRelatorio(c) {
+    const dVal  = document.getElementById('datepicker').value;
+    const dataF = dVal.split('-').reverse().join('/');
+
+    const cfg = {
+        ESPORTIVO:     { bg: '#fff7ed', accent: '#ea580c', text: '#9a3412', border: '#fed7aa' },
+        EMAGRECIMENTO: { bg: '#eff6ff', accent: '#2563eb', text: '#1e3a8a', border: '#bfdbfe' },
+        APLICAÇÃO:     { bg: '#faf5ff', accent: '#7c3aed', text: '#4c1d95', border: '#e9d5ff' }
+    };
+
+    let totalGeral = 0;
+    ['ESPORTIVO','EMAGRECIMENTO','APLICAÇÃO'].forEach(cat => {
+        totalGeral += appts.filter(a => a.dataStr === dataF && a.categoria === cat).length;
+    });
+
+    let html = `
+        <div class="no-print mb-5">
+            <button onclick="window.print()"
+                class="w-full bg-slate-900 text-white p-3 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2">
+                <i class="fas fa-print"></i> Imprimir Relatório
             </button>
-            <select onchange="changeEspProf(this.value)"
-                class="p-4 border-2 border-slate-100 rounded-2xl font-black text-[10px] bg-white outline-none text-vinho uppercase shadow-sm">
-                <option value="GERALDO" ${currentEspProf==='GERALDO'?'selected':''}>GERALDO</option>
-                <option value="LÍBIA"   ${currentEspProf==='LÍBIA'  ?'selected':''}>LÍBIA</option>
-            </select>
         </div>
-        <div class="print-area">
-            <div style="text-align:center;padding:16px 0 14px;border-bottom:2.5px solid #722f51;margin-bottom:22px;">
-                <i class="fas fa-apple-whole" style="font-size:22px;color:#bca374;"></i>
-                <div style="font-size:14px;font-weight:900;color:#722f51;letter-spacing:2px;text-transform:uppercase;margin:5px 0 3px;">
-                    AGENDA LOURDES — RELATÓRIO DE ATENDIMENTOS
+        <div class="text-center mb-6 no-print">
+            <p class="font-black text-slate-800 text-base uppercase tracking-wide">${dataF}</p>
+            <p class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">
+                Relatório do Dia · ${totalGeral} paciente${totalGeral !== 1 ? 's' : ''} no total
+            </p>
+        </div>`;
+
+    let algum = false;
+    ['ESPORTIVO','EMAGRECIMENTO','APLICAÇÃO'].forEach(cat => {
+        const list = appts
+            .filter(a => a.dataStr === dataF && a.categoria === cat)
+            .sort((a, b) => a.hora.localeCompare(b.hora));
+        if (!list.length) return;
+        algum = true;
+
+        const cor      = cfg[cat];
+        const profNome = cat === 'ESPORTIVO'
+            ? (profEsp === 'GERALDO' ? 'GERALDO' : 'LÍBIA')
+            : (cat === 'EMAGRECIMENTO' ? 'BRUNO' : 'SUELEN');
+
+        const toggle = cat === 'ESPORTIVO' ? `
+            <div class="flex gap-1 no-print">
+                <button id="rG" onclick="setProfEsp('GERALDO')"
+                    class="prof-pill ${profEsp === 'GERALDO' ? 'active' : ''}"
+                    style="font-size:8px;padding:4px 10px;">Geraldo</button>
+                <button id="rL" onclick="setProfEsp('LIBIA')"
+                    class="prof-pill ${profEsp === 'LIBIA' ? 'active' : ''}"
+                    style="font-size:8px;padding:4px 10px;">Líbia</button>
+            </div>` : '';
+
+        html += `
+            <div class="rep-card" style="border-top: 4px solid ${cor.accent};">
+                <div class="rep-header" style="background:${cor.bg};">
+                    <div class="flex items-center flex-wrap gap-2">
+                        <span class="font-black text-[12px] uppercase" style="color:${cor.text};">${cat}</span>
+                        <span class="text-[9px] font-bold" style="color:${cor.accent};">· ${profNome}</span>
+                        ${toggle}
+                    </div>
+                    <span class="badge" style="background:${cor.border};color:${cor.text};">${list.length} pac.</span>
                 </div>
-                <div style="font-size:11px;font-weight:700;color:#bca374;letter-spacing:1px;">${dataF}</div>
-            </div>`;
+                <div class="overflow-x-auto">
+                    <table class="rep-table">
+                        <thead>
+                            <tr style="background:${cor.bg};">
+                                <th style="color:${cor.text};">Hora</th>
+                                <th style="color:${cor.text};">Paciente</th>
+                                <th style="color:${cor.text};">Telefone</th>
+                                <th style="color:${cor.text};">Nasc.</th>
+                                <th style="color:${cor.text};">Alt.</th>
+                                <th style="color:${cor.text};">Última Visita</th>
+                                <th style="color:${cor.text};">Serviço</th>
+                                <th style="color:${cor.text};">Obs</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
 
-        /* cores de fundo das seções (igual à foto) — texto sempre escuro */
-        const blocos = [
-            { id:'ESPORTIVO',     title:`ESPORTIVO — ${currentEspProf}`, bgSec:'#FFF3E6', bgTh:'#FFD9A8' },
-            { id:'EMAGRECIMENTO', title:'EMAGRECIMENTO — BRUNO',          bgSec:'#E8F2FF', bgTh:'#BBDEFB' },
-            { id:'APLICAÇÃO',     title:'APLICAÇÃO',                      bgSec:'#F3E8FF', bgTh:'#DFC5FF' }
-        ];
-        const txtEscuro = '#334155';   /* cor única escura para todos os textos do relatório */
-
-        blocos.forEach(b => {
-            const list = appts.filter(a => a.dataStr===dataF && a.categoria===b.id)
-                .sort((p,q)=>{
-                    if (!p.hora||p.hora==='ENCAIXE') return 1;
-                    if (!q.hora||q.hora==='ENCAIXE') return -1;
-                    return p.hora.localeCompare(q.hora);
-                });
-
-            const rows = list.map(a => {
-                const pac  = buscarPac(a.paciente);
-                const hist = appts.filter(x => x.paciente===a.paciente && x.dataStr!==dataF)
-                    .sort((x,y)=>{
-                        const dx=x.dataStr.split('/'), dy=y.dataStr.split('/');
-                        return new Date(dy[2],dy[1]-1,dy[0]) - new Date(dx[2],dx[1]-1,dx[0]);
-                    });
-                const ultimaVisita = hist.length ? hist[0].dataStr : '';
-                const ultimoProc   = hist.length ? hist[0].servico  : '';
-                let hojeLabel = '';
-                if      (!hist.length)                              hojeLabel = 'Primeira Consulta';
-                else if (a.servico.toUpperCase().includes('RETORNO')) hojeLabel = 'Retorno';
-                else                                                hojeLabel = 'Consulta';
-                return { a, pac, ultimaVisita, ultimoProc, hojeLabel };
-            });
-
-            const thS = `padding:8px 10px;border:1px solid #e2e8f0;font-size:8.5px;font-weight:900;text-transform:uppercase;color:${txtEscuro};`;
-            const tdS = `padding:9px 10px;border:1px solid #e2e8f0;color:${txtEscuro};`;
+        list.forEach(ag => {
+            const pac  = pacs.find(x => x.nome === ag.paciente) || {};
+            const hist = appts
+                .filter(x => x.paciente === ag.paciente && x.dataStr !== dataF)
+                .sort((x, y) => y.dataStr.localeCompare(x.dataStr));
+            const ult  = hist.length ? hist[0].dataStr : '—';
+            const enc  = ag.hora.toUpperCase() === 'ENCAIXE';
 
             html += `
-            <div class="relatorio-section" style="margin-bottom:28px;">
-                <div style="background:${b.bgSec};padding:9px 14px;font-weight:900;font-size:11px;
-                    text-transform:uppercase;color:${txtEscuro};border-radius:6px 6px 0 0;
-                    border:1px solid ${b.bgTh};border-bottom:none;">
-                    * ${b.title}
-                </div>
-                <table style="width:100%;border-collapse:collapse;font-size:10.5px;background:white;border:1px solid #e2e8f0;">
-                    <thead>
-                        <tr style="background:${b.bgTh};">
-                            <th style="${thS}white-space:nowrap;">Horário</th>
-                            <th style="${thS}">Paciente</th>
-                            <th style="${thS}">Telefone</th>
-                            <th style="${thS}white-space:nowrap;">Nascimento</th>
-                            <th style="${thS}">Email</th>
-                            <th style="${thS}">Alt.</th>
-                            <th style="${thS}white-space:nowrap;">Última visita</th>
-                            <th style="${thS}white-space:nowrap;">Último proc.</th>
-                            <th style="${thS}">Hoje</th>
-                            <th style="${thS}">Observação</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-
-            if (!rows.length) {
-                html += `<tr><td colspan="10" style="text-align:center;padding:18px;color:#cbd5e1;font-style:italic;">Sem pacientes listados</td></tr>`;
-            } else {
-                rows.forEach(({ a, pac, ultimaVisita, ultimoProc, hojeLabel }) => {
-                    html += `<tr>
-                        <td style="${tdS}text-align:center;font-weight:700;white-space:nowrap;">${a.hora||'ENC'}</td>
-                        <td style="${tdS}font-weight:800;text-transform:uppercase;">${a.paciente}</td>
-                        <td style="${tdS}text-align:center;">${pac.telefone   ||'-'}</td>
-                        <td style="${tdS}text-align:center;">${pac.nascimento ||'-'}</td>
-                        <td style="${tdS}">${pac.email||'-'}</td>
-                        <td style="${tdS}text-align:center;">${pac.altura||'-'}</td>
-                        <td style="${tdS}text-align:center;font-size:9.5px;">${ultimaVisita}</td>
-                        <td style="${tdS}font-size:8.5px;text-align:center;">${ultimoProc}</td>
-                        <td style="${tdS}font-weight:700;font-size:9.5px;text-align:center;white-space:nowrap;">${hojeLabel}</td>
-                        <td style="${tdS}font-style:italic;">${a.obs||''}</td>
-                    </tr>`;
-                });
-            }
-            html += `</tbody></table></div>`;
+                            <tr>
+                                <td>
+                                    <span class="font-black" style="color:${cor.accent};">
+                                        ${enc ? '⚡ ENC.' : ag.hora}
+                                    </span>
+                                </td>
+                                <td class="font-black uppercase" style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ag.paciente}</td>
+                                <td style="white-space:nowrap;">${pac.telefone || '—'}</td>
+                                <td style="white-space:nowrap;">${pac.nascimento || '—'}</td>
+                                <td>${pac.altura || '—'}</td>
+                                <td style="white-space:nowrap;">${ult}</td>
+                                <td class="font-bold" style="color:${cor.accent};white-space:nowrap;">${ag.servico}</td>
+                                <td style="color:#d97706;max-width:100px;">${ag.obs || ''}</td>
+                            </tr>`;
         });
 
-        c.innerHTML = html + `</div>`;
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+    });
+
+    if (!algum) {
+        html += `
+            <div style="text-align:center;padding:80px 0;">
+                <i class="fas fa-calendar-times" style="font-size:40px;color:#e2e8f0;display:block;margin-bottom:12px;"></i>
+                <p style="color:#cbd5e1;font-weight:900;text-transform:uppercase;font-size:12px;">Nenhum agendamento neste dia</p>
+            </div>`;
     }
 
-    /* ══════════════════════════════════════════
-       MODAL DE AGENDAMENTO
-    ══════════════════════════════════════════ */
-    function openAgendar(cat, hora) {
-        let servOptions = cat === 'APLICAÇÃO'
-            ? `<option value="CONSULTA">CONSULTA / APLICAÇÃO</option><option value="RETORNO">RETORNO</option>`
-            : `<option value="CONSULTA">CONSULTA</option><option value="RETORNO">RETORNO</option>`;
+    c.innerHTML = html;
+}
 
-        document.getElementById('m-content').innerHTML = `
-            <div class="text-center mb-6">
-                <div class="inline-block bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-3xl shadow-inner">
-                    <i class="fas fa-calendar-check text-ouro text-3xl"></i>
-                </div>
-                <h2 class="font-black text-xl mt-3 uppercase text-vinho">Encaixe — ${cat}</h2>
+// ────────────────────────────────────────────
+//  ABA PACIENTES / HISTÓRICO
+// ────────────────────────────────────────────
+function renderHistorico(c) {
+    c.innerHTML = `
+        <div class="mb-4">
+            <button onclick="openCadastrar()"
+                class="w-full bg-orange-600 text-white p-4 rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2 shadow-lg shadow-orange-100">
+                <i class="fas fa-user-plus"></i> Cadastrar Novo Paciente
+            </button>
+        </div>
+        <div class="relative mb-6">
+            <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
+            <input
+                type="text"
+                id="histSearch"
+                oninput="searchHist()"
+                placeholder="Pesquisar paciente..."
+                class="w-full pl-12 pr-5 py-5 rounded-2xl border-2 border-slate-100 font-black uppercase outline-none focus:border-orange-400 text-[11px] transition-colors">
+        </div>
+        <div id="histResults"></div>`;
+}
+
+// ── MODAL CADASTRAR PACIENTE ────────────────
+function openCadastrar() {
+    document.getElementById('m-content').innerHTML = `
+        <h2 class="font-black text-xl mb-1 uppercase text-center">Novo Paciente</h2>
+        <p class="text-center text-[9px] text-slate-400 font-bold uppercase mb-6">Preencha os dados do paciente</p>
+        <div class="space-y-3">
+            <div>
+                <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Nome Completo *</label>
+                <input type="text" id="cNome"
+                    placeholder="Ex: Maria da Silva"
+                    class="w-full p-4 bg-slate-50 rounded-xl font-black uppercase outline-none border-2 border-transparent focus:border-orange-400 text-[11px] transition-colors">
             </div>
-            <div class="space-y-4 relative">
-                <div class="relative">
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Paciente</label>
-                    <input type="text" id="newPac" placeholder="BUSCAR OU DIGITAR NOME" autocomplete="off"
-                        class="w-full p-4 bg-slate-50 border rounded-2xl font-black uppercase outline-none text-xs text-vinho transition-all">
-                    <div id="suggestions" class="suggestions-box hidden"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Horário</label>
-                        <input type="text" id="newHora" value="${hora||''}" placeholder="HH:MM"
-                            class="w-full p-4 bg-slate-50 border rounded-2xl font-black text-xs outline-none transition-all">
-                    </div>
-                    <div>
-                        <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Observação</label>
-                        <input type="text" id="newObs" placeholder="OPCIONAL"
-                            class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-xs outline-none transition-all">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">WhatsApp *</label>
+                    <div class="flex gap-1">
+                        <input type="tel" id="cTel"
+                            placeholder="(31) 99999-9999"
+                            oninput="maskPhone(this)"
+                            class="flex-1 p-4 bg-slate-50 rounded-xl font-bold outline-none border-2 border-transparent focus:border-orange-400 text-[11px] transition-colors min-w-0">
+                        <button type="button" onclick="testarNumero('cTel')" title="Testar número no WhatsApp"
+                            class="bg-green-50 text-green-500 px-3 rounded-xl text-sm font-black flex-shrink-0 border-2 border-green-100">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
                     </div>
                 </div>
                 <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">Serviço</label>
-                    <select id="newServ" class="w-full p-4 bg-slate-50 border rounded-2xl font-black text-[10px] outline-none text-vinho uppercase transition-all">
-                        ${servOptions}
-                    </select>
+                    <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Nascimento</label>
+                    <input type="text" id="cNasc"
+                        placeholder="DD/MM/AAAA"
+                        class="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none border-2 border-transparent focus:border-orange-400 text-[11px] transition-colors">
                 </div>
-                <button id="btnS" onclick="salvarNovo('${cat}')" class="btn-vinho w-full p-5 mt-4">Reservar Horário</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">Altura</label>
+                    <input type="text" id="cAlt"
+                        placeholder="Ex: 1,70"
+                        class="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none border-2 border-transparent focus:border-orange-400 text-[11px] transition-colors">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-slate-400 uppercase block mb-1">E-mail</label>
+                    <input type="email" id="cEmail"
+                        placeholder="email@email.com"
+                        class="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none border-2 border-transparent focus:border-orange-400 text-[11px] transition-colors">
+                </div>
+            </div>
+            <div class="pt-2">
+                <button id="btnCad" onclick="salvarCadastro()"
+                    class="w-full bg-slate-900 text-white p-5 rounded-[22px] font-black uppercase text-[11px]">
+                    Cadastrar Paciente
+                </button>
+            </div>
+            <button onclick="closeModal()"
+                class="w-full text-slate-300 font-black text-[9px] uppercase py-1">
+                Cancelar
+            </button>
+        </div>`;
+    openModal();
+}
+
+async function salvarCadastro() {
+    const nome  = document.getElementById('cNome').value.trim().toUpperCase();
+    const tel   = document.getElementById('cTel').value.trim();
+    const nasc  = document.getElementById('cNasc').value.trim();
+    const alt   = document.getElementById('cAlt').value.trim();
+    const email = document.getElementById('cEmail').value.trim();
+
+    if (!nome) { alert('⚠️ Informe o nome do paciente.'); return; }
+    if (pacs.find(p => p.nome === nome)) { alert('⚠️ Esse paciente já está cadastrado!'); return; }
+
+    const btn = document.getElementById('btnCad');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Cadastrando...';
+    btn.classList.add('btn-loading');
+
+    await fetch(API, {
+        method: 'POST',
+        body:   JSON.stringify({ action: 'addPatient', nome, telefone: tel, nascimento: nasc, email, altura: alt })
+    });
+
+    closeModal();
+    await loadAll();
+
+    // Abre WhatsApp automaticamente para confirmar o número
+    const raw = tel.replace(/\D/g, '');
+    if (raw.length >= 10) {
+        const primeiroNome = nome.split(' ')[0];
+        const msg = `Olá ${primeiroNome}! 👋\n\nSeu cadastro foi realizado com sucesso em nossa clínica! 🎉\n\nA partir de agora você receberá confirmações e lembretes dos seus agendamentos por aqui.\n\nQualquer dúvida é só chamar!\n\n📍 Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n🅿️ Temos estacionamento próprio!\n\nObrigada! ❤️ Equipe Lourdes`;
+        window.open(`https://wa.me/55${raw}?text=${encodeURIComponent(msg)}`);
+    }
+}
+
+// ── PESQUISAR E EDITAR PACIENTE ─────────────
+function searchHist() {
+    const term    = document.getElementById('histSearch').value.toUpperCase().trim();
+    const results = document.getElementById('histResults');
+    if (term.length < 2) { results.innerHTML = ''; return; }
+
+    const found = pacs.filter(p => p.nome.includes(term));
+    if (!found.length) {
+        results.innerHTML = `
+            <div style="text-align:center;padding:40px 0;">
+                <i class="fas fa-user-slash" style="font-size:32px;color:#e2e8f0;display:block;margin-bottom:8px;"></i>
+                <p style="color:#cbd5e1;font-weight:900;font-size:11px;text-transform:uppercase;">Paciente não encontrado</p>
             </div>`;
+        return;
+    }
 
-        document.getElementById('modal').classList.remove('hidden');
-        const pop = document.querySelector('#modal > div');
-        pop.classList.remove('modal-pop'); void pop.offsetWidth; pop.classList.add('modal-pop');
+    const pac  = found[0];
+    const hist = appts.filter(x => x.paciente === pac.nome).sort((a, b) => b.dataStr.localeCompare(a.dataStr));
+    const ult  = hist.length ? hist[0].dataStr : 'Nunca consultou';
 
-        const input = document.getElementById('newPac');
-        const Snowy = document.getElementById('suggestions');
-        input.addEventListener('input', () => {
-            const val = normalizar(input.value);
-            Snowy.innerHTML = '';
-            if (val.length < 2) { Snowy.classList.add('hidden'); return; }
-            const filtered = pacs.filter(p => normalizar(p.nome).includes(val)).slice(0,5);
-            if (filtered.length) {
-                Snowy.classList.remove('hidden');
-                filtered.forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = 'suggestion-item';
-                    div.innerText = p.nome;
-                    div.onclick = () => { input.value = p.nome; Snowy.classList.add('hidden'); };
-                    Snowy.appendChild(div);
-                });
-            } else Snowy.classList.add('hidden');
+    let html = `
+        <div class="ios-card p-6 border-l-8 border-orange-500 mb-4">
+            <h3 class="font-black text-base uppercase mb-0.5">${pac.nome}</h3>
+            <p class="text-[9px] text-slate-400 font-bold mb-5 uppercase">
+                Última consulta: ${ult} ·
+                <span class="text-slate-600">${hist.length} visita${hist.length !== 1 ? 's' : ''}</span>
+            </p>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-slate-50 p-3 rounded-xl">
+                    <label class="text-[8px] font-black block text-slate-400 mb-1 uppercase">WhatsApp</label>
+                    <div class="flex items-center gap-1">
+                        <input type="tel" id="eTel" value="${pac.telefone || ''}"
+                            oninput="maskPhone(this)"
+                            class="flex-1 bg-transparent font-bold outline-none text-[11px] min-w-0">
+                        <button onclick="testarNumero('eTel')" class="text-green-500 text-sm flex-shrink-0">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl">
+                    <label class="text-[8px] font-black block text-slate-400 mb-1 uppercase">Altura</label>
+                    <input type="text" id="eAlt" value="${pac.altura || ''}"
+                        class="w-full bg-transparent font-bold outline-none text-[11px]">
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl">
+                    <label class="text-[8px] font-black block text-slate-400 mb-1 uppercase">Nascimento</label>
+                    <input type="text" id="eNasc" value="${pac.nascimento || ''}"
+                        class="w-full bg-transparent font-bold outline-none text-[11px]">
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl">
+                    <label class="text-[8px] font-black block text-slate-400 mb-1 uppercase">E-mail</label>
+                    <input type="email" id="eEmail" value="${pac.email || ''}"
+                        class="w-full bg-transparent font-bold outline-none text-[11px]">
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="salvarEdicao('${pac.nome}')"
+                    class="flex-1 bg-slate-900 text-white p-4 rounded-xl font-black uppercase text-[10px]">
+                    Salvar Dados
+                </button>
+                <button id="btnDelP" onclick="deletarPaciente('${pac.nome}')"
+                    class="bg-red-50 text-red-500 px-5 rounded-xl font-black">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>`;
+
+    if (hist.length) {
+        html += `
+            <h4 class="font-black text-slate-400 uppercase text-[9px] mb-3 mt-2 tracking-wide">
+                Histórico de Consultas (${hist.length})
+            </h4>`;
+        hist.forEach(ag => {
+            const b = ag.categoria === 'ESPORTIVO' ? 'borda-esp'
+                    : ag.categoria === 'EMAGRECIMENTO' ? 'borda-emag' : 'borda-apl';
+            html += `
+                <div class="ios-card p-4 mb-2 ${b}">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">${ag.dataStr} · ${ag.hora}</p>
+                    <p class="font-black text-slate-800 text-sm">${ag.servico}</p>
+                    ${ag.obs ? `<p class="text-[9px] text-amber-500 mt-0.5">${ag.obs}</p>` : ''}
+                </div>`;
         });
     }
 
-    async function salvarNovo(cat) {
-        const inputNome = document.getElementById('newPac').value.toUpperCase().trim();
-        if (!inputNome) return alert("NOME VAZIO!");
-        document.getElementById('btnS').innerText = "AGENDANDO...";
-        const data     = document.getElementById('datepicker').value.split('-').reverse().join('/');
-        const horaVal  = document.getElementById('newHora').value.trim() || 'ENCAIXE';
-        const obsVal   = document.getElementById('newObs').value;
-        const servBase = document.getElementById('newServ').value;
-        let servFull   = servBase;
-        if      (cat==='ESPORTIVO')     servFull = servBase==='RETORNO' ? `RETORNO NUTRIÇÃO ESPORTIVA (${currentEspProf})`     : `CONSULTA NUTRIÇÃO ESPORTIVA (${currentEspProf})`;
-        else if (cat==='EMAGRECIMENTO') servFull = servBase==='RETORNO' ? 'RETORNO NUTRIÇÃO EMAGRECIMENTO (BRUNO)'               : 'CONSULTA NUTRIÇÃO EMAGRECIMENTO (BRUNO)';
-        else if (cat==='APLICAÇÃO')     servFull = servBase==='RETORNO' ? 'RETORNO APLICAÇÃO (SUELEN)'                           : 'APLICAÇÃO DE INJETÁVEIS (SUELEN)';
-        await fetch(API,{method:'POST',body:JSON.stringify({action:'addAppointment',paciente:inputNome,servico:servFull,data:data,hora:horaVal,categoria:cat,obs:obsVal})});
-        closeModal(); loadAll();
-    }
+    results.innerHTML = html;
+}
 
-    /* ══════════════════════════════════════════
-       PACIENTES / HISTÓRICO
-    ══════════════════════════════════════════ */
-    function renderHistorico(c) {
-        c.innerHTML = `
-            <div class="premium-card p-8 mb-10" style="animation:fadeIn 0.4s ease;">
-                <h3 class="font-black text-[12px] uppercase tracking-[0.2em] text-vinho mb-6">
-                    <i class="fas fa-plus-circle mr-2 text-ouro"></i>Novo Cadastro de Paciente
-                </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input type="text" id="cadNome"  placeholder="NOME COMPLETO"           class="p-4 bg-slate-50 border rounded-2xl font-black uppercase text-xs outline-none transition-all">
-                    <input type="text" id="cadTel"   placeholder="WHATSAPP"                class="p-4 bg-slate-50 border rounded-2xl font-bold  text-xs outline-none transition-all">
-                    <input type="text" id="cadNas"   placeholder="NASCIMENTO (DD/MM/AAAA)" class="p-4 bg-slate-50 border rounded-2xl font-bold  text-xs outline-none transition-all">
-                    <input type="text" id="cadEmail" placeholder="EMAIL"                   class="p-4 bg-slate-50 border rounded-2xl font-bold  text-xs outline-none transition-all">
-                    <input type="text" id="cadAlt"   placeholder="ALTURA"                  class="p-4 bg-slate-50 border rounded-2xl font-bold  text-xs outline-none transition-all">
-                </div>
-                <button id="btnCad" onclick="salvarCadastroCompleto()" class="btn-vinho w-full p-5 mt-6">Gravar Paciente no Sistema</button>
-            </div>
-            <div class="p-1">
-                <input type="text" id="histSearch" oninput="searchHist()" placeholder="DIGITE O NOME PARA BUSCAR..."
-                    class="w-full p-6 rounded-[25px] border-2 border-slate-100 font-black uppercase outline-none text-center text-xs shadow-inner transition-all bg-white">
-                <div id="histResults" class="mt-6"></div>
+async function salvarEdicao(nome) {
+    await fetch(API, {
+        method: 'POST',
+        body:   JSON.stringify({
+            action:     'editPatient',
+            nome,
+            telefone:   document.getElementById('eTel').value,
+            nascimento: document.getElementById('eNasc').value,
+            email:      document.getElementById('eEmail').value,
+            altura:     document.getElementById('eAlt').value
+        })
+    });
+    await loadAll();
+    alert('✅ Dados atualizados com sucesso!');
+    searchHist();
+}
+
+async function deletarPaciente(nome) {
+    if (!confirm(`⚠️ APAGAR CADASTRO DE ${nome}?\n\nEssa ação não pode ser desfeita.`)) return;
+    const btn = document.getElementById('btnDelP');
+    btn.innerHTML = '...';
+    btn.classList.add('btn-loading');
+    await fetch(API, {
+        method: 'POST',
+        body:   JSON.stringify({ action: 'deletePatient', nome })
+    });
+    document.getElementById('histSearch').value = '';
+    document.getElementById('histResults').innerHTML = '';
+    loadAll();
+}
+
+// ────────────────────────────────────────────
+//  ABA RETORNOS — ABAS COLORIDAS
+// ────────────────────────────────────────────
+function diasSemConsulta(p) {
+    const h = appts.filter(a => a.paciente === p.nome);
+    if (!h.length) return null;
+    const u    = h.sort((a, b) => b.dataStr.localeCompare(a.dataStr))[0];
+    const d    = new Date(u.dataStr.split('/').reverse().join('-'));
+    const dias = Math.floor((new Date() - d) / (1000 * 3600 * 24));
+    return { dias, ultima: u.dataStr };
+}
+
+function categoriaRetorno(dias) {
+    if (dias >= 45) return 'red';    // Vencidos há mais de 20 dias
+    if (dias >= 25) return 'yellow'; // Vencidos há menos de 20 dias (25 a 44 dias)
+    if (dias >= 18) return 'green';  // Vencem essa semana (18 a 24 dias)
+    return null;
+}
+
+function renderAusentes(c) {
+    const lista = pacs
+        .filter(p => !excludedRetornos.includes(p.nome))
+        .map(p => {
+            const r = diasSemConsulta(p);
+            return r ? { ...p, ...r } : null;
+        })
+        .filter(p => p && categoriaRetorno(p.dias) !== null)
+        .sort((a, b) => b.dias - a.dias);
+
+    const grupos = { red: [], yellow: [], green: [] };
+    lista.forEach(p => grupos[categoriaRetorno(p.dias)].push(p));
+
+    const tabs = [
+        { key: 'red',    label: 'Vencidos',    icon: 'fa-exclamation-circle', cor: 'active-red',    cnt: grupos.red.length    },
+        { key: 'yellow', label: 'Recentes',    icon: 'fa-clock',              cor: 'active-yellow', cnt: grupos.yellow.length },
+        { key: 'green',  label: 'Esta Semana', icon: 'fa-calendar-check',     cor: 'active-green',  cnt: grupos.green.length  },
+        { key: 'all',    label: 'Todos',       icon: 'fa-list',               cor: 'active-all',    cnt: lista.length         }
+    ];
+
+    // ── Tabs ──
+    let html = `<div class="flex gap-2 mb-5">`;
+    tabs.forEach(t => {
+        html += `
+            <button onclick="setRetTab('${t.key}')"
+                class="ret-tab ${retTab === t.key ? t.cor : ''}">
+                <i class="fas ${t.icon} block text-lg mb-0.5"></i>
+                <span class="block text-[7px] leading-tight">${t.label}</span>
+                <span class="block font-black text-base leading-none mt-0.5">${t.cnt}</span>
+            </button>`;
+    });
+    html += `</div>`;
+
+    // ── Subtítulo ──
+    const subtitles = {
+        red:    '🔴 Sem retorno há mais de 45 dias — urgente',
+        yellow: '🟡 Retorno vencido há menos de 20 dias (25 – 44 dias)',
+        green:  '🟢 Retorno vence esta semana (18 – 24 dias)',
+        all:    '📋 Todos os retornos pendentes'
+    };
+    html += `
+        <p class="text-[9px] font-bold text-slate-400 uppercase mb-4 leading-relaxed">
+            ${subtitles[retTab]}
+        </p>`;
+
+    const current = retTab === 'all' ? lista : grupos[retTab];
+
+    // ── Vazio ──
+    if (!current.length) {
+        const msgs  = {
+            red:    'Nenhum caso crítico!',
+            yellow: 'Nenhum vencido recente!',
+            green:  'Nenhum vencendo esta semana!',
+            all:    'Todos os pacientes em dia!'
+        };
+        const icons = { red: '😊', yellow: '✅', green: '🗓️', all: '🎉' };
+        html += `
+            <div style="text-align:center;padding:80px 0;">
+                <p style="font-size:48px;margin-bottom:12px;">${icons[retTab]}</p>
+                <p style="color:#cbd5e1;font-weight:900;text-transform:uppercase;font-size:10px;">${msgs[retTab]}</p>
             </div>`;
-    }
 
-    function searchHist() {
-        const term    = normalizar(document.getElementById('histSearch').value);
-        const results = document.getElementById('histResults');
-        if (term.length < 3) return results.innerHTML = "";
-        const matches = pacs.filter(p => normalizar(p.nome).includes(term));
-        let html = "";
-        matches.forEach(pac => {
-            const safeId = pac.nome.replace(/\s+/g,'');
-            const hPac   = appts.filter(x=>x.paciente===pac.nome).sort((a,b)=>b.dataStr.localeCompare(a.dataStr)).slice(0,3);
+    // ── Lista de pacientes ──
+    } else {
+        const bordas = {
+            red:    'border-l-4 border-red-400',
+            yellow: 'border-l-4 border-yellow-400',
+            green:  'border-l-4 border-green-400'
+        };
+        const badges = {
+            red:    'bg-red-50 text-red-600',
+            yellow: 'bg-yellow-50 text-yellow-700',
+            green:  'bg-green-50 text-green-700'
+        };
+
+        current.forEach(p => {
+            const cat   = categoriaRetorno(p.dias);
+            const borda = bordas[cat] || 'border-l-4 border-slate-200';
+            const badge = badges[cat] || 'bg-slate-50 text-slate-500';
+            const tel   = (p.telefone || '').replace(/\D/g, '');
+
             html += `
-                <div class="premium-card p-6 mb-4 border-l-8 border-vinho" style="animation:slideInUp 0.35s ease both;">
-                    <div class="bg-slate-50 p-4 rounded-2xl mb-4 border border-slate-100">
-                        <label class="text-[8px] font-black text-slate-400 block uppercase mb-1">Paciente</label>
-                        <input type="text" id="eNome-${safeId}" value="${pac.nome}" class="w-full bg-transparent font-black text-sm uppercase outline-none text-vinho">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[7px] font-black text-slate-400 block uppercase">Tel</label>  <input type="text" id="eTel-${safeId}"   value="${pac.telefone   ||''}" class="w-full bg-transparent font-bold text-xs outline-none"></div>
-                        <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[7px] font-black text-slate-400 block uppercase">Nasc</label> <input type="text" id="eNas-${safeId}"   value="${pac.nascimento||''}" class="w-full bg-transparent font-bold text-xs outline-none"></div>
-                        <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[7px] font-black text-slate-400 block uppercase">Email</label><input type="text" id="eEmail-${safeId}" value="${pac.email      ||''}" class="w-full bg-transparent font-bold text-xs outline-none"></div>
-                        <div class="bg-slate-50 p-3 rounded-xl"><label class="text-[7px] font-black text-slate-400 block uppercase">Alt</label>  <input type="text" id="eAlt-${safeId}"   value="${pac.altura     ||''}" class="w-full bg-transparent font-bold text-xs outline-none"></div>
-                    </div>
-                    <div class="mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <p class="text-[8px] font-black text-slate-500 uppercase mb-2">
-                            <i class="fas fa-clock-rotate-left mr-1"></i>Histórico Recente
-                        </p>
-                        ${hPac.length
-                            ? hPac.map(v=>`<div class="flex justify-between text-[10px] py-1.5 border-b last:border-0 border-slate-200">
-                                <span class="font-bold text-slate-600">${v.dataStr}</span>
-                                <span class="font-black uppercase text-[8px] text-slate-700">${formatServico(v.servico,v.categoria)}</span>
-                              </div>`).join('')
-                            : '<p class="text-[10px] text-slate-300 italic">Sem visitas registradas</p>'}
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="salvarEdicao('${pac.nome}')"    class="btn-vinho flex-1 py-3 text-[9px]">Atualizar Dados</button>
-                        <button onclick="deletarPaciente('${pac.nome}')" class="bg-red-50 text-red-500 px-5 rounded-2xl hover:bg-red-100 transition-all"><i class="fas fa-trash-can"></i></button>
+                <div class="ios-card p-5 mb-3 ${borda}">
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1 min-w-0 mr-3">
+                            <p class="font-black uppercase text-sm leading-tight truncate">${p.nome}</p>
+                            <p class="text-[9px] text-slate-400 font-bold mt-0.5">
+                                Última: ${p.ultima} ·
+                                <span class="badge ${badge}">${p.dias} dias</span>
+                            </p>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button onclick="zapRetorno('${p.nome}','${p.ultima}','${tel}')"
+                                class="bg-green-50 text-green-500 p-3 rounded-xl text-sm">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                            <button onclick="excludeRetorno('${p.nome}')"
+                                class="bg-slate-50 text-slate-400 p-3 rounded-xl text-sm">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>`;
         });
-        results.innerHTML = html || "<p class='text-center text-slate-300 font-black text-[10px] uppercase py-8 tracking-widest'>Nenhum paciente localizado</p>";
     }
 
-    async function salvarEdicao(nomeOrig) {
-        const safeId = nomeOrig.replace(/\s+/g,'');
-        await fetch(API,{method:'POST',body:JSON.stringify({action:'editPatient',nome:nomeOrig,novoNome:document.getElementById(`eNome-${safeId}`).value.toUpperCase().trim(),telefone:document.getElementById(`eTel-${safeId}`).value,nascimento:document.getElementById(`eNas-${safeId}`).value,email:document.getElementById(`eEmail-${safeId}`).value,altura:document.getElementById(`eAlt-${safeId}`).value})});
-        alert("ATUALIZADO!"); loadAll();
-    }
+    c.innerHTML = html;
+}
 
-    async function salvarCadastroCompleto() {
-        const n = document.getElementById('cadNome').value.toUpperCase().trim();
-        if (!n) return alert("NOME OBRIGATÓRIO!");
-        document.getElementById('btnCad').innerText = "GRAVANDO...";
-        await fetch(API,{method:'POST',body:JSON.stringify({action:'addPatient',nome:n,telefone:document.getElementById('cadTel').value,nascimento:document.getElementById('cadNas').value,email:document.getElementById('cadEmail').value,altura:document.getElementById('cadAlt').value})});
-        alert("CADASTRADO COM SUCESSO!"); loadAll();
-    }
+function setRetTab(t) { retTab = t; render(); }
 
-    async function deletarPaciente(nome) {
-        if (!confirm("REMOVER CADASTRO?")) return;
-        await fetch(API,{method:'POST',body:JSON.stringify({action:'deletePatient',nome:nome})});
-        loadAll();
-    }
+function zapRetorno(nome, ultima, tel) {
+    if (!tel) { alert('⚠️ Paciente sem telefone cadastrado.'); return; }
+    const primeiroNome = nome.split(' ')[0];
+    const msg = `Olá ${primeiroNome}! 👋\n\nTudo bem? Esperamos que sim! 😊\n\nViemos lembrá-lo(a) que sua última consulta conosco foi em *${ultima}* e gostaríamos de convidá-lo(a) a retornar para uma nova avaliação!\n\nEstamos à disposição para agendar o melhor horário para você. 📅\n\n📍 Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n🅿️ Temos estacionamento próprio!\n\nObrigada e até breve! ❤️ Equipe Lourdes`;
+    window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`);
+}
 
-    /* ══════════════════════════════════════════
-       RENOVAÇÃO DE PROTOCOLO
-    ══════════════════════════════════════════ */
-    const PRAZO_PROTOCOLO = 28; /* dias — margem antes dos 30 */
-    let filtroRetorno = 'urgente';
+function excludeRetorno(nome) {
+    excludedRetornos.push(nome);
+    localStorage.setItem('excludedRetornos', JSON.stringify(excludedRetornos));
+    render();
+}
 
-    function renderAusentes(c) {
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
+// ────────────────────────────────────────────
+//  MODAL DE AGENDAMENTO
+// ────────────────────────────────────────────
+function openAgendar(cat, hora) {
+    _bookCat  = cat;
+    _bookHora = hora;
+    _bookTipo = 'CONSULTA';
+    const showTipo = cat !== 'APLICAÇÃO';
 
-        /* Monta lista de todos os pacientes com histórico, ignorando os ocultos */
-        const lista = pacs
-            .filter(p => !excludedRetornos.includes(p.nome))
-            .map(p => {
-                const hist = appts
-                    .filter(a => a.paciente === p.nome)
-                    .sort((a,b) => {
-                        const da = a.dataStr.split('/'); const db = b.dataStr.split('/');
-                        return new Date(db[2],db[1]-1,db[0]) - new Date(da[2],da[1]-1,da[0]);
-                    });
-                if (!hist.length) return null;
-                const ult  = hist[0];
-                const dp   = ult.dataStr.split('/');
-                const dtUlt= new Date(dp[2],dp[1]-1,dp[0]);
-                const dtRet= new Date(dtUlt); dtRet.setDate(dtUlt.getDate() + PRAZO_PROTOCOLO);
-                const diasRestantes = Math.round((dtRet - hoje)/(1000*3600*24));
-                return { p, ult, dtRet, diasRestantes };
-            })
-            .filter(Boolean)
-            .sort((a,b) => a.diasRestantes - b.diasRestantes); /* mais urgentes primeiro */
-
-        /* Aplica filtro */
-        const filtrado = lista.filter(item => {
-            if (filtroRetorno === 'urgente')  return item.diasRestantes <= 0;
-            if (filtroRetorno === 'semana')   return item.diasRestantes > 0 && item.diasRestantes <= 7;
-            return true; /* todos */
-        });
-
-        /* Contadores para os badges */
-        const cUrgente = lista.filter(i => i.diasRestantes <= 0).length;
-        const cSemana  = lista.filter(i => i.diasRestantes > 0 && i.diasRestantes <= 7).length;
-        const cTodos   = lista.length;
-
-        const btnClass  = (k) => filtroRetorno === k
-            ? 'btn-vinho px-4 py-2 text-[9px] rounded-2xl'
-            : 'bg-slate-100 text-slate-500 px-4 py-2 text-[9px] font-black uppercase rounded-2xl hover:bg-slate-200 transition-all';
-
-        let html = `
-        <div class="mb-6">
-            <h2 class="font-black text-slate-700 uppercase text-[11px] mb-4 tracking-widest">
-                <i class="fas fa-rotate text-ouro mr-2"></i>Renovação de Protocolo
-            </h2>
-            <div class="flex gap-2 flex-wrap">
-                <button onclick="setFiltroRetorno('urgente')" class="${btnClass('urgente')}">
-                    🔴 Vencido <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cUrgente}</span>
+    document.getElementById('m-content').innerHTML = `
+        <h2 class="font-black text-lg mb-1 uppercase text-center italic">${cat}</h2>
+        <p class="text-center text-[9px] font-bold text-slate-400 mb-5">${hora || 'Horário a definir'}</p>
+        ${showTipo ? `
+        <div class="mb-5">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-2">Tipo de Atendimento</p>
+            <div class="flex gap-2">
+                <button id="tCon" onclick="setBookTipo('CONSULTA')" class="tipo-pill active flex-1">
+                    <i class="fas fa-stethoscope mr-1.5"></i> Consulta
                 </button>
-                <button onclick="setFiltroRetorno('semana')" class="${btnClass('semana')}">
-                    🟠 Esta semana <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cSemana}</span>
-                </button>
-                <button onclick="setFiltroRetorno('todos')" class="${btnClass('todos')}">
-                    📋 Todos <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cTodos}</span>
+                <button id="tRet" onclick="setBookTipo('RETORNO')" class="tipo-pill flex-1">
+                    <i class="fas fa-redo mr-1.5"></i> Retorno
                 </button>
             </div>
-        </div>`;
+        </div>` : ''}
+        <div class="relative mb-4">
+            <label class="text-[9px] font-black text-slate-400 uppercase block mb-2">Nome do Paciente</label>
+            <input type="text" id="newPac" placeholder="NOME DO PACIENTE" autocomplete="off"
+                class="w-full p-4 bg-slate-50 rounded-xl font-black uppercase outline-none border-2 border-transparent focus:border-orange-400 text-[11px] transition-colors">
+            <div id="suggestions" class="suggestions-box hidden"></div>
+        </div>
+        <div class="mb-5">
+            <label class="text-[9px] font-black text-slate-400 uppercase block mb-2">Observação (opcional)</label>
+            <input type="text" id="newObs" placeholder="Ex: Levar exames, Primeira vez..."
+                class="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none border-2 border-transparent focus:border-orange-400 text-[11px] transition-colors">
+        </div>
+        <button id="btnS" onclick="salvarNovo()"
+            class="w-full bg-slate-900 text-white p-5 rounded-[22px] font-black uppercase text-[11px]">
+            Salvar Agendamento
+        </button>
+        <button onclick="closeModal()"
+            class="w-full text-slate-300 font-black text-[9px] uppercase py-2 mt-1">
+            Cancelar
+        </button>`;
 
-        if (!filtrado.length) {
-            const msgs = {
-                urgente: '✓ Nenhum protocolo vencido!',
-                semana:  '✓ Nenhum vencimento esta semana!',
-                todos:   '✓ Nenhum paciente com histórico.'
-            };
-            html += `<p class="text-center py-20 text-slate-300 font-black text-xs tracking-widest">${msgs[filtroRetorno]}</p>`;
-            c.innerHTML = html; return;
-        }
+    openModal();
+    setupSuggestions();
+}
 
-        filtrado.forEach((item, i) => {
-            const { p, ult, dtRet, diasRestantes } = item;
-            const diaRet = String(dtRet.getDate()).padStart(2,'0');
-            const mesRet = String(dtRet.getMonth()+1).padStart(2,'0');
-            const anoRet = dtRet.getFullYear();
-            const dataRetFmt = `${diaRet}/${mesRet}/${anoRet}`;
-            const servLabel  = formatServico(ult.servico, ult.categoria);
+// ── MODAL ENCAIXE ───────────────────────────
+function openEncaixe() {
+    _bookCat  = 'ESPORTIVO';
+    _bookHora = 'ENCAIXE';
+    _bookTipo = 'CONSULTA';
 
-            /* cor e status */
-            let borda, statusIcon, statusTxt, bgStatus;
-            if (diasRestantes < 0) {
-                borda='border-red-400'; bgStatus='bg-red-50'; statusIcon='🔴';
-                statusTxt=`VENCIDO HÁ ${Math.abs(diasRestantes)} DIA${Math.abs(diasRestantes)>1?'S':''}`;
-            } else if (diasRestantes === 0) {
-                borda='border-red-300'; bgStatus='bg-red-50'; statusIcon='🔴';
-                statusTxt='VENCE HOJE';
-            } else if (diasRestantes <= 3) {
-                borda='border-orange-400'; bgStatus='bg-orange-50'; statusIcon='🟠';
-                statusTxt=`VENCE EM ${diasRestantes} DIA${diasRestantes>1?'S':''}`;
-            } else if (diasRestantes <= 7) {
-                borda='border-yellow-400'; bgStatus='bg-yellow-50'; statusIcon='🟡';
-                statusTxt=`VENCE EM ${diasRestantes} DIAS`;
-            } else if (diasRestantes <= 14) {
-                borda='border-blue-300'; bgStatus='bg-blue-50'; statusIcon='🔵';
-                statusTxt=`VENCE EM ${diasRestantes} DIAS`;
-            } else {
-                borda='border-green-300'; bgStatus='bg-green-50'; statusIcon='🟢';
-                statusTxt=`VENCE EM ${diasRestantes} DIAS`;
-            }
-
-            html += `
-            <div class="premium-card p-5 mb-3 border-l-8 ${borda}"
-                style="animation:slideInUp 0.4s ease ${(i*0.06).toFixed(2)}s both;">
-                <div class="flex justify-between items-start">
-                    <div class="flex-1 min-w-0 mr-3">
-                        <p class="font-black uppercase text-vinho text-sm tracking-tight leading-tight">${p.nome}</p>
-                        <p class="text-[10px] text-slate-500 font-medium mt-1">${servLabel} • Últ: ${ult.dataStr}</p>
-                        <div class="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-xl ${bgStatus}">
-                            <span class="text-[10px]">${statusIcon}</span>
-                            <span class="text-[9px] font-black uppercase tracking-wide text-slate-600">${statusTxt}</span>
-                        </div>
-                        <p class="text-[9px] text-slate-400 font-medium mt-1.5">
-                            <i class="fas fa-calendar-check mr-1"></i>Retorno sugerido: <span class="font-black text-slate-600">${dataRetFmt}</span>
-                        </p>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <button onclick="chamarProtocolo('${p.nome}','${p.telefone}','${servLabel}','${ult.categoria}')"
-                            class="bg-green-50 text-green-600 p-3 rounded-2xl zap-btn hover:bg-green-100 transition-all">
-                            <i class="fab fa-whatsapp text-lg"></i>
-                        </button>
-                        <button onclick="excludeRetorno('${p.nome}')"
-                            class="bg-slate-100 text-slate-400 p-3 rounded-2xl hover:bg-slate-200 transition-all">
-                            <i class="fas fa-eye-slash text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>`;
-        });
-
-        c.innerHTML = html;
-    }
-
-    function setFiltroRetorno(f) { filtroRetorno = f; render(); }
-
-    function chamarProtocolo(nome, tel, servico, categoria) {
-        const livres = getProximosLivres(categoria, 2);
-
-        let horariosMsg = '';
-        if (livres.length) {
-            horariosMsg = '\n\n📅 *Horários disponíveis:*\n' +
-                livres.map(l => `▪️ ${l.dataFmt} às ${l.hora}`).join('\n');
-        } else {
-            horariosMsg = '\n\nPodemos verificar um horário disponível para você!';
-        }
-
-        const msg = `Olá ${nome}! 👋\nEstamos passando para avisar que está na hora de renovar o seu *protocolo de ${servico}*! 💊✨${horariosMsg}\n\nQual prefere? 😊`;
-        abrirZap(tel, msg);
-    }
-
-    /* ─── Abre WhatsApp Business no Android; wa.me no iOS/desktop ─── */
-    function abrirZap(tel, msg) {
-        const encoded = encodeURIComponent(msg);
-        const fone    = tel.startsWith('55') ? tel : formatarTel(tel);
-        if (/android/i.test(navigator.userAgent)) {
-            window.location.href = `intent://send?phone=${fone}&text=${encoded}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;end`;
-        } else {
-            window.open(`https://wa.me/${fone}?text=${encoded}`);
-        }
-    }
-
-    function chamarRetorno(n, t) {
-        abrirZap(t, `Olá ${n}! 👋\nGostaríamos de convidá-lo(a) a retornar ao consultório para dar continuidade às suas metas! 📊✨\nPodemos agendar um horário para você esta semana?`);
-    }
-
-    function excludeRetorno(n) {
-        excludedRetornos.push(n);
-        localStorage.setItem('excludedRetornos', JSON.stringify(excludedRetornos));
-        render();
-    }
-
-    /* ══════════════════════════════════════════
-       DISPONIBILIDADE RÁPIDA — WhatsApp
-    ══════════════════════════════════════════ */
-    function openDisponibilidade() {
-        document.getElementById('m-content').innerHTML = `
-            <div class="text-center mb-6">
-                <div class="inline-block bg-green-50 p-4 rounded-3xl shadow-inner">
-                    <i class="fab fa-whatsapp text-green-500 text-3xl"></i>
-                </div>
-                <h2 class="font-black text-xl mt-3 uppercase text-vinho">Horários Livres</h2>
-                <p class="text-[10px] text-slate-400 mt-1">Gera mensagem com os 2 próximos horários</p>
+    document.getElementById('m-content').innerHTML = `
+        <h2 class="font-black text-lg mb-1 uppercase text-center italic">⚡ Encaixe</h2>
+        <p class="text-center text-[9px] font-bold text-slate-400 mb-5">Agendamento sem horário fixo</p>
+        <div class="mb-4">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-2">Categoria</p>
+            <div class="flex gap-2">
+                <button id="ceE" onclick="setEncCat('ESPORTIVO')"     class="tipo-pill active flex-1 text-[9px]">Esportivo</button>
+                <button id="ceM" onclick="setEncCat('EMAGRECIMENTO')" class="tipo-pill flex-1 text-[9px]">Emagrecimento</button>
+                <button id="ceA" onclick="setEncCat('APLICAÇÃO')"     class="tipo-pill flex-1 text-[9px]">Aplicação</button>
             </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2 ml-1">Especialidade</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="selecionarEsp(this,'ESPORTIVO')"
-                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
-                            <i class="fas fa-dumbbell block text-lg mb-1"></i>Esportivo
-                        </button>
-                        <button onclick="selecionarEsp(this,'EMAGRECIMENTO')"
-                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
-                            <i class="fas fa-weight-scale block text-lg mb-1"></i>Emagrecimento
-                        </button>
-                        <button onclick="selecionarEsp(this,'APLICAÇÃO')"
-                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
-                            <i class="fas fa-syringe block text-lg mb-1"></i>Aplicação
-                        </button>
-                    </div>
-                </div>
-                <div id="disp-preview" class="hidden">
-                    <div class="bg-green-50 border border-green-200 rounded-2xl p-4 mt-2">
-                        <p class="text-[9px] font-black text-green-700 uppercase tracking-widest mb-3">
-                            <i class="fas fa-eye mr-1"></i>Prévia da mensagem
-                        </p>
-                        <p id="disp-texto" class="text-[11px] text-slate-700 font-medium whitespace-pre-line leading-relaxed"></p>
-                    </div>
-                    <button id="btnZapDisp" onclick="enviarDisponibilidade()"
-                        class="w-full mt-4 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white shadow-xl transition-all"
-                        style="background:linear-gradient(135deg,#25d366,#1da851);box-shadow:0 4px 14px rgba(37,211,102,0.4);">
-                        <i class="fab fa-whatsapp mr-2"></i>Abrir WhatsApp
-                    </button>
-                </div>
-                <div id="disp-vazio" class="hidden text-center py-6">
-                    <i class="fas fa-calendar-xmark text-slate-300 text-3xl mb-3 block"></i>
-                    <p class="text-[11px] font-black text-slate-400 uppercase">Nenhum horário livre nos próximos 14 dias</p>
-                </div>
-                <button onclick="closeModal()" class="w-full text-slate-400 font-black text-[10px] uppercase mt-2 tracking-widest text-center hover:text-slate-600 transition-all">Cancelar</button>
-            </div>`;
+        </div>
+        <div id="encTipo" class="mb-4">
+            <p class="text-[9px] font-black text-slate-400 uppercase mb-2">Tipo</p>
+            <div class="flex gap-2">
+                <button id="etC" onclick="setEncTipo('CONSULTA')" class="tipo-pill active flex-1">
+                    <i class="fas fa-stethoscope mr-1.5"></i> Consulta
+                </button>
+                <button id="etR" onclick="setEncTipo('RETORNO')" class="tipo-pill flex-1">
+                    <i class="fas fa-redo mr-1.5"></i> Retorno
+                </button>
+            </div>
+        </div>
+        <div class="relative mb-4">
+            <label class="text-[9px] font-black text-slate-400 uppercase block mb-2">Nome do Paciente</label>
+            <input type="text" id="newPac" placeholder="NOME DO PACIENTE" autocomplete="off"
+                class="w-full p-4 bg-slate-50 rounded-xl font-black uppercase outline-none border-2 border-transparent focus:border-orange-400 text-[11px] transition-colors">
+            <div id="suggestions" class="suggestions-box hidden"></div>
+        </div>
+        <div class="mb-5">
+            <label class="text-[9px] font-black text-slate-400 uppercase block mb-2">Observação (opcional)</label>
+            <input type="text" id="newObs" placeholder="Ex: Levar exames, Primeira vez..."
+                class="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none border-2 border-transparent focus:border-orange-400 text-[11px] transition-colors">
+        </div>
+        <button id="btnS" onclick="salvarNovo()"
+            class="w-full bg-orange-600 text-white p-5 rounded-[22px] font-black uppercase text-[11px]">
+            Salvar Encaixe
+        </button>
+        <button onclick="closeModal()"
+            class="w-full text-slate-300 font-black text-[9px] uppercase py-2 mt-1">
+            Cancelar
+        </button>`;
 
-        document.getElementById('modal').classList.remove('hidden');
-        const pop = document.querySelector('#modal > div');
-        pop.classList.remove('modal-pop'); void pop.offsetWidth; pop.classList.add('modal-pop');
-    }
+    openModal();
+    setupSuggestions();
+}
 
-    let _espSelecionada = '';
-    let _msgDisp = '';
+function setBookTipo(t) {
+    _bookTipo = t;
+    document.getElementById('tCon') && document.getElementById('tCon').classList.toggle('active', t === 'CONSULTA');
+    document.getElementById('tRet') && document.getElementById('tRet').classList.toggle('active', t === 'RETORNO');
+}
 
-    function selecionarEsp(btn, esp) {
-        /* highlight do botão */
-        document.querySelectorAll('.esp-btn').forEach(b => {
-            b.classList.remove('border-vinho','text-vinho','bg-vinho/5');
-            b.classList.add('border-slate-200','text-slate-600');
-        });
-        btn.classList.remove('border-slate-200','text-slate-600');
-        btn.classList.add('border-vinho','text-vinho','bg-vinho/5');
+function setEncCat(cat) {
+    _bookCat = cat;
+    ['ceE','ceM','ceA'].forEach(id => {
+        document.getElementById(id) && document.getElementById(id).classList.remove('active');
+    });
+    const map = { ESPORTIVO: 'ceE', EMAGRECIMENTO: 'ceM', 'APLICAÇÃO': 'ceA' };
+    document.getElementById(map[cat]) && document.getElementById(map[cat]).classList.add('active');
+    const wrap = document.getElementById('encTipo');
+    if (wrap) wrap.style.display = cat === 'APLICAÇÃO' ? 'none' : '';
+    if (cat === 'APLICAÇÃO') _bookTipo = 'CONSULTA';
+}
 
-        _espSelecionada = esp;
-        const livres = getProximosLivres(esp, 2);
+function setEncTipo(t) {
+    _bookTipo = t;
+    document.getElementById('etC') && document.getElementById('etC').classList.toggle('active', t === 'CONSULTA');
+    document.getElementById('etR') && document.getElementById('etR').classList.toggle('active', t === 'RETORNO');
+}
 
-        const preview  = document.getElementById('disp-preview');
-        const vazio    = document.getElementById('disp-vazio');
-        const textoEl  = document.getElementById('disp-texto');
+// ── AUTOCOMPLETE ────────────────────────────
+function setupSuggestions() {
+    const input   = document.getElementById('newPac');
+    const suggBox = document.getElementById('suggestions');
+    if (!input || !suggBox) return;
 
-        if (!livres.length) {
-            preview.classList.add('hidden');
-            vazio.classList.remove('hidden');
-            return;
+    input.addEventListener('input', () => {
+        const val = input.value.toUpperCase().trim();
+        suggBox.innerHTML = '';
+        if (val.length < 2) { suggBox.classList.add('hidden'); return; }
+
+        const filtered = pacs.filter(p => p.nome.includes(val)).slice(0, 6);
+        if (filtered.length) {
+            suggBox.classList.remove('hidden');
+            filtered.forEach(p => {
+                const div     = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerText = p.nome;
+                div.onclick   = () => { input.value = p.nome; suggBox.classList.add('hidden'); };
+                suggBox.appendChild(div);
+            });
+        } else {
+            suggBox.classList.add('hidden');
         }
-        vazio.classList.add('hidden');
+    });
+}
 
-        const espLabel = esp === 'ESPORTIVO'
-            ? `Nutrição Esportiva (${currentEspProf})`
-            : esp === 'EMAGRECIMENTO'
-                ? 'Nutrição Emagrecimento'
-                : 'Aplicação de Injetáveis';
+function buildServico(cat, tipo) {
+    if (cat === 'APLICAÇÃO') return 'APLICAÇÃO';
+    const base = cat === 'ESPORTIVO' ? 'NUTRIÇÃO ESPORTIVA' : 'NUTRIÇÃO EMAGRECIMENTO';
+    return tipo === 'RETORNO' ? `RETORNO ${base}` : base;
+}
 
-        const linhas = livres.map(l => `📅 ${l.dataFmt} às ${l.hora}`).join('\n');
-        _msgDisp = `Olá! 😊\nTemos estes horários disponíveis para *${espLabel}*:\n\n${linhas}\n\nQual prefere?`;
+async function salvarNovo() {
+    const nome = document.getElementById('newPac').value.trim().toUpperCase();
+    const obs  = document.getElementById('newObs') ? document.getElementById('newObs').value.trim() : '';
 
-        textoEl.innerText = _msgDisp;
-        preview.classList.remove('hidden');
+    if (!nome) { alert('⚠️ Informe o nome do paciente.'); return; }
+
+    const btn = document.getElementById('btnS');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Salvando...';
+    btn.classList.add('btn-loading');
+
+    const data    = document.getElementById('datepicker').value.split('-').reverse().join('/');
+    const servico = buildServico(_bookCat, _bookTipo);
+
+    await fetch(API, {
+        method: 'POST',
+        body:   JSON.stringify({
+            action:    'addAppointment',
+            paciente:  nome,
+            servico,
+            data,
+            hora:      _bookHora || 'ENCAIXE',
+            categoria: _bookCat,
+            obs
+        })
+    });
+
+    closeModal();
+    loadAll();
+}
+
+// ────────────────────────────────────────────
+//  TELEFONE — MÁSCARA + TESTE
+// ────────────────────────────────────────────
+function maskPhone(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 11);
+    if      (v.length <= 2)  v = v.replace(/^(\d{0,2})/,               '($1');
+    else if (v.length <= 7)  v = v.replace(/^(\d{2})(\d{0,5})/,        '($1) $2');
+    else                     v = v.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+    input.value = v;
+}
+
+function testarNumero(inputId) {
+    const raw = document.getElementById(inputId).value.replace(/\D/g, '');
+    if (raw.length < 10) {
+        alert('⚠️ Digite um número válido com DDD antes de testar.');
+        return;
     }
+    const msg = `Olá! 👋 Estamos confirmando seu número de contato cadastrado na Agenda Lourdes. Tudo certo! ❤️`;
+    window.open(`https://wa.me/55${raw}?text=${encodeURIComponent(msg)}`);
+}
 
-    function getProximosLivres(esp, quantidade) {
-        const stepMap = { 'ESPORTIVO': 25, 'EMAGRECIMENTO': 35 };
-        const livres  = [];
-        const hoje    = new Date();
+// ────────────────────────────────────────────
+//  UTILITÁRIOS DO MODAL
+// ────────────────────────────────────────────
+function openModal() {
+    document.getElementById('modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
 
-        for (let d = 0; d <= 60 && livres.length < quantidade; d++) {
-            const dt = new Date(hoje);
-            dt.setDate(hoje.getDate() + d);
+function closeModal() {
+    document.getElementById('modal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
 
-            /* ── SOMENTE TERÇAS (getDay() === 2) ── */
-            if (dt.getDay() !== 2) continue;
+// ────────────────────────────────────────────
+//  INICIALIZAÇÃO
+// ────────────────────────────────────────────
+window.onload = () => {
+    document.getElementById('datepicker').value = new Date().toISOString().split('T')[0];
+    loadAll();
+};
 
-            const dia   = String(dt.getDate()).padStart(2,'0');
-            const mes   = String(dt.getMonth()+1).padStart(2,'0');
-            const ano   = dt.getFullYear();
-            const dataF = `${dia}/${mes}/${ano}`;
-
-            const ocupados = appts
-                .filter(a => a.dataStr === dataF && a.categoria === esp)
-                .map(a => a.hora);
-
-            if (esp === 'APLICAÇÃO') {
-                if (!ocupados.length)
-                    livres.push({ dataFmt: `Terça ${dataF}`, hora: 'horário a combinar' });
-            } else {
-                let h = 9, m = 0;
-                const step = stepMap[esp];
-                while (h < 12 && livres.length < quantidade) {
-                    const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                    if (!ocupados.includes(t))
-                        livres.push({ dataFmt: `Terça ${dataF}`, hora: t });
-                    m += step; if (m >= 60) { h++; m -= 60; }
-                }
-            }
-        }
-        return livres;
-    }
-
-    function enviarDisponibilidade() {
-        abrirZap('', _msgDisp);
-    }
-
-    function showTab(t)   { currentTab = t; render(); }
-    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-
-    window.onload = () => {
-        const terca = proximaTerca();
-        document.getElementById('datepicker').value = terca;
-        atualizarLabel(terca);
-        loadAll();
-    };
 </script>
 </body>
 </html>
