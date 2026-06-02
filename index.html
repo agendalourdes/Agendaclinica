@@ -58,6 +58,12 @@
             from { transform: scaleX(0); }
             to   { transform: scaleX(1); }
         }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .fa-spin-custom { animation: spin 0.7s linear infinite; display: inline-block; }
+        .btn-loading    { opacity: 0.85; pointer-events: none; }
 
         .logo-glow    { animation: logoGlow 3.5s ease-in-out infinite; }
         .zap-btn      { animation: zapPulse 2.2s ease-in-out infinite; }
@@ -635,11 +641,14 @@
         const novaData = document.getElementById('editData').value.split('-').reverse().join('/');
         const novaHora = document.getElementById('editHora').value.trim() || 'ENCAIXE';
         const novaObs  = document.getElementById('editObs').value;
-        document.getElementById('btnSalvarEdit').innerText = "SALVANDO...";
-        /* Remove o antigo e cria o novo */
+        const btn = document.getElementById('btnSalvarEdit');
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin-custom mr-2"></i>SALVANDO...';
+        btn.classList.add('btn-loading');
         await fetch(API,{method:'POST',body:JSON.stringify({action:'deleteAppointment',id:id})});
         await fetch(API,{method:'POST',body:JSON.stringify({action:'addAppointment',paciente:ag.paciente,servico:ag.servico,data:novaData,hora:novaHora,categoria:ag.categoria,obs:novaObs})});
-        closeModal(); loadAll();
+        btn.innerHTML = '<i class="fas fa-check mr-2"></i>SALVO!';
+        btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+        setTimeout(() => { closeModal(); loadAll(); }, 700);
     }
 
     async function deletarAgendamento(id) {
@@ -868,7 +877,9 @@
     async function salvarNovo(cat) {
         const inputNome = document.getElementById('newPac').value.toUpperCase().trim();
         if (!inputNome) return alert("NOME VAZIO!");
-        document.getElementById('btnS').innerText = "AGENDANDO...";
+        const btn = document.getElementById('btnS');
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin-custom mr-2"></i>AGENDANDO...';
+        btn.classList.add('btn-loading');
         const data     = document.getElementById('datepicker').value.split('-').reverse().join('/');
         const horaVal  = document.getElementById('newHora').value.trim() || 'ENCAIXE';
         const obsVal   = document.getElementById('newObs').value;
@@ -878,7 +889,10 @@
         else if (cat==='EMAGRECIMENTO') servFull = servBase==='RETORNO' ? 'RETORNO NUTRIÇÃO EMAGRECIMENTO (BRUNO)'               : 'CONSULTA NUTRIÇÃO EMAGRECIMENTO (BRUNO)';
         else if (cat==='APLICAÇÃO')     servFull = servBase==='RETORNO' ? 'RETORNO APLICAÇÃO (SUELEN)'                           : 'APLICAÇÃO DE INJETÁVEIS (SUELEN)';
         await fetch(API,{method:'POST',body:JSON.stringify({action:'addAppointment',paciente:inputNome,servico:servFull,data:data,hora:horaVal,categoria:cat,obs:obsVal})});
-        closeModal(); loadAll();
+        btn.innerHTML = '<i class="fas fa-check mr-2"></i>AGENDADO!';
+        btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+        btn.classList.remove('btn-loading');
+        setTimeout(() => { closeModal(); loadAll(); }, 700);
     }
 
     /* ══════════════════════════════════════════
@@ -970,60 +984,79 @@
     /* ══════════════════════════════════════════
        RENOVAÇÃO DE PROTOCOLO
     ══════════════════════════════════════════ */
-    const PRAZO_PROTOCOLO = 28; /* dias — margem antes dos 30 */
-    let filtroRetorno = 'urgente';
+    const PRAZO_PROTOCOLO = 28;
+    let filtroRetorno = 'todos';
+    let buscaRetorno  = '';
 
     function renderAusentes(c) {
         const hoje = new Date(); hoje.setHours(0,0,0,0);
 
-        /* Monta lista de todos os pacientes com histórico, ignorando os ocultos */
         const lista = pacs
             .filter(p => !excludedRetornos.includes(p.nome))
             .map(p => {
-                const hist = appts
-                    .filter(a => a.paciente === p.nome)
+                const hist = appts.filter(a => a.paciente === p.nome)
                     .sort((a,b) => {
-                        const da = a.dataStr.split('/'); const db = b.dataStr.split('/');
+                        const da=a.dataStr.split('/'), db=b.dataStr.split('/');
                         return new Date(db[2],db[1]-1,db[0]) - new Date(da[2],da[1]-1,da[0]);
                     });
                 if (!hist.length) return null;
-                const ult  = hist[0];
-                const dp   = ult.dataStr.split('/');
-                const dtUlt= new Date(dp[2],dp[1]-1,dp[0]);
-                const dtRet= new Date(dtUlt); dtRet.setDate(dtUlt.getDate() + PRAZO_PROTOCOLO);
+                const ult = hist[0];
+                const dp  = ult.dataStr.split('/');
+                const dtUlt = new Date(dp[2],dp[1]-1,dp[0]);
+                const dtRet = new Date(dtUlt); dtRet.setDate(dtUlt.getDate() + PRAZO_PROTOCOLO);
                 const diasRestantes = Math.round((dtRet - hoje)/(1000*3600*24));
                 return { p, ult, dtRet, diasRestantes };
             })
             .filter(Boolean)
-            .sort((a,b) => a.diasRestantes - b.diasRestantes); /* mais urgentes primeiro */
+            .sort((a,b) => a.diasRestantes - b.diasRestantes);
 
-        /* Aplica filtro */
+        /* Aplica filtro + busca */
+        const buscaN = normalizar(buscaRetorno);
         const filtrado = lista.filter(item => {
-            if (filtroRetorno === 'urgente')  return item.diasRestantes <= 0;
-            if (filtroRetorno === 'semana')   return item.diasRestantes > 0 && item.diasRestantes <= 7;
-            return true; /* todos */
+            const nomeOk = !buscaN || normalizar(item.p.nome).includes(buscaN);
+            if (!nomeOk) return false;
+            const dr = item.diasRestantes;
+            if (filtroRetorno === 'muitoTempo') return dr < -60;
+            if (filtroRetorno === 'recente')    return dr >= -60 && dr <= 0;
+            if (filtroRetorno === 'semana')     return dr > 0 && dr <= 7;
+            return true;
         });
 
-        /* Contadores para os badges */
-        const cUrgente = lista.filter(i => i.diasRestantes <= 0).length;
-        const cSemana  = lista.filter(i => i.diasRestantes > 0 && i.diasRestantes <= 7).length;
-        const cTodos   = lista.length;
+        /* Contadores */
+        const cMuito  = lista.filter(i => i.diasRestantes < -60).length;
+        const cRecente= lista.filter(i => i.diasRestantes >= -60 && i.diasRestantes <= 0).length;
+        const cSemana = lista.filter(i => i.diasRestantes > 0 && i.diasRestantes <= 7).length;
+        const cTodos  = lista.length;
 
-        const btnClass  = (k) => filtroRetorno === k
+        const btnClass = (k) => filtroRetorno === k
             ? 'btn-vinho px-4 py-2 text-[9px] rounded-2xl'
             : 'bg-slate-100 text-slate-500 px-4 py-2 text-[9px] font-black uppercase rounded-2xl hover:bg-slate-200 transition-all';
 
         let html = `
-        <div class="mb-6">
+        <div class="mb-5">
             <h2 class="font-black text-slate-700 uppercase text-[11px] mb-4 tracking-widest">
                 <i class="fas fa-rotate text-ouro mr-2"></i>Renovação de Protocolo
             </h2>
+            <!-- Busca rápida -->
+            <div class="relative mb-4">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="buscaRetornoInput" value="${buscaRetorno}"
+                    oninput="setBuscaRetorno(this.value)"
+                    placeholder="BUSCAR PACIENTE RAPIDAMENTE..."
+                    class="w-full pl-10 pr-4 py-4 rounded-2xl border-2 border-slate-100 bg-white font-black uppercase text-xs outline-none transition-all shadow-sm">
+            </div>
+            <!-- Resultado rápido do paciente buscado -->
+            <div id="retorno-quick" class="mb-4"></div>
+            <!-- Filtros -->
             <div class="flex gap-2 flex-wrap">
-                <button onclick="setFiltroRetorno('urgente')" class="${btnClass('urgente')}">
-                    🔴 Vencido <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cUrgente}</span>
+                <button onclick="setFiltroRetorno('muitoTempo')" class="${btnClass('muitoTempo')}">
+                    🔴 +60d atrasado <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cMuito}</span>
+                </button>
+                <button onclick="setFiltroRetorno('recente')" class="${btnClass('recente')}">
+                    🟠 Recente <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cRecente}</span>
                 </button>
                 <button onclick="setFiltroRetorno('semana')" class="${btnClass('semana')}">
-                    🟠 Esta semana <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cSemana}</span>
+                    🟢 Esta semana <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cSemana}</span>
                 </button>
                 <button onclick="setFiltroRetorno('todos')" class="${btnClass('todos')}">
                     📋 Todos <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cTodos}</span>
@@ -1031,45 +1064,49 @@
             </div>
         </div>`;
 
-        if (!filtrado.length) {
-            const msgs = {
-                urgente: '✓ Nenhum protocolo vencido!',
-                semana:  '✓ Nenhum vencimento esta semana!',
-                todos:   '✓ Nenhum paciente com histórico.'
-            };
-            html += `<p class="text-center py-20 text-slate-300 font-black text-xs tracking-widest">${msgs[filtroRetorno]}</p>`;
+        /* Resultado da busca rápida */
+        if (buscaN.length >= 3) {
+            const encontrado = lista.find(i => normalizar(i.p.nome).includes(buscaN));
+            if (encontrado) {
+                const { p, ult, dtRet, diasRestantes: dr } = encontrado;
+                const dRf = `${String(dtRet.getDate()).padStart(2,'0')}/${String(dtRet.getMonth()+1).padStart(2,'0')}/${dtRet.getFullYear()}`;
+                const [ic, bg, tx] = dr < -60   ? ['🔴','bg-red-50 border-red-300',   'VENCIDO HÁ '+Math.abs(dr)+' DIAS']
+                                  : dr <= 0     ? ['🟠','bg-orange-50 border-orange-300','VENCIDO HÁ '+Math.abs(dr)+' DIAS']
+                                  : dr <= 7     ? ['🟢','bg-green-50 border-green-300', 'VENCE EM '+dr+' DIAS']
+                                  :               ['🔵','bg-blue-50 border-blue-300',   'FALTAM '+dr+' DIAS'];
+                html = html.replace('<div id="retorno-quick" class="mb-4"></div>',
+                    `<div id="retorno-quick" class="mb-4 p-4 rounded-2xl border-2 ${bg} flex items-center gap-3" style="animation:popIn 0.25s ease both;">
+                        <span class="text-2xl">${ic}</span>
+                        <div>
+                            <p class="font-black text-slate-800 text-sm uppercase">${p.nome}</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">Últ. consulta: ${ult.dataStr} • Retorno sugerido: ${dRf}</p>
+                            <p class="text-[10px] font-black text-slate-700 mt-0.5">${tx}</p>
+                        </div>
+                    </div>`);
+            }
+        }
+
+        if (!filtrado.length && !buscaN) {
+            const msgs = { muitoTempo:'✓ Nenhum com +60 dias de atraso!', recente:'✓ Nenhum vencido recente!', semana:'✓ Nenhum vencimento esta semana!', todos:'✓ Nenhum paciente com histórico.' };
+            html += `<p class="text-center py-20 text-slate-300 font-black text-xs tracking-widest">${msgs[filtroRetorno]||'✓ Nenhum encontrado.'}</p>`;
             c.innerHTML = html; return;
         }
 
         filtrado.forEach((item, i) => {
-            const { p, ult, dtRet, diasRestantes } = item;
+            const { p, ult, dtRet, diasRestantes: dr } = item;
             const diaRet = String(dtRet.getDate()).padStart(2,'0');
             const mesRet = String(dtRet.getMonth()+1).padStart(2,'0');
             const anoRet = dtRet.getFullYear();
             const dataRetFmt = `${diaRet}/${mesRet}/${anoRet}`;
             const servLabel  = formatServico(ult.servico, ult.categoria);
 
-            /* cor e status */
             let borda, statusIcon, statusTxt, bgStatus;
-            if (diasRestantes < 0) {
-                borda='border-red-400'; bgStatus='bg-red-50'; statusIcon='🔴';
-                statusTxt=`VENCIDO HÁ ${Math.abs(diasRestantes)} DIA${Math.abs(diasRestantes)>1?'S':''}`;
-            } else if (diasRestantes === 0) {
-                borda='border-red-300'; bgStatus='bg-red-50'; statusIcon='🔴';
-                statusTxt='VENCE HOJE';
-            } else if (diasRestantes <= 3) {
-                borda='border-orange-400'; bgStatus='bg-orange-50'; statusIcon='🟠';
-                statusTxt=`VENCE EM ${diasRestantes} DIA${diasRestantes>1?'S':''}`;
-            } else if (diasRestantes <= 7) {
-                borda='border-yellow-400'; bgStatus='bg-yellow-50'; statusIcon='🟡';
-                statusTxt=`VENCE EM ${diasRestantes} DIAS`;
-            } else if (diasRestantes <= 14) {
-                borda='border-blue-300'; bgStatus='bg-blue-50'; statusIcon='🔵';
-                statusTxt=`VENCE EM ${diasRestantes} DIAS`;
-            } else {
-                borda='border-green-300'; bgStatus='bg-green-50'; statusIcon='🟢';
-                statusTxt=`VENCE EM ${diasRestantes} DIAS`;
-            }
+            if      (dr < -60)         { borda='border-red-500';    bgStatus='bg-red-50';    statusIcon='🔴'; statusTxt=`ATRASADO HÁ ${Math.abs(dr)} DIAS`; }
+            else if (dr < 0)           { borda='border-orange-400'; bgStatus='bg-orange-50'; statusIcon='🟠'; statusTxt=`VENCIDO HÁ ${Math.abs(dr)} DIA${Math.abs(dr)>1?'S':''}`; }
+            else if (dr === 0)         { borda='border-orange-400'; bgStatus='bg-orange-50'; statusIcon='🟠'; statusTxt='VENCE HOJE'; }
+            else if (dr <= 7)          { borda='border-green-400';  bgStatus='bg-green-50';  statusIcon='🟢'; statusTxt=`VENCE EM ${dr} DIA${dr>1?'S':''}`; }
+            else if (dr <= 14)         { borda='border-blue-300';   bgStatus='bg-blue-50';   statusIcon='🔵'; statusTxt=`VENCE EM ${dr} DIAS`; }
+            else                       { borda='border-slate-200';  bgStatus='bg-slate-50';  statusIcon='⚪'; statusTxt=`FALTAM ${dr} DIAS`; }
 
             html += `
             <div class="premium-card p-5 mb-3 border-l-8 ${borda}"
@@ -1104,6 +1141,7 @@
     }
 
     function setFiltroRetorno(f) { filtroRetorno = f; render(); }
+    function setBuscaRetorno(v)  { buscaRetorno  = v; render(); }
 
     function chamarProtocolo(nome, tel, servico, categoria) {
         const livres = getProximosLivres(categoria, 2);
@@ -1235,14 +1273,18 @@
         preview.classList.remove('hidden');
     }
 
-    function getProximosLivres(esp, quantidade) {
+    function getProximosLivres(esp, quantidade, fromDate) {
         const stepMap = { 'ESPORTIVO': 25, 'EMAGRECIMENTO': 35 };
         const livres  = [];
-        const hoje    = new Date();
+        /* usa datepicker como data de início se não vier fromDate */
+        const pickerVal = document.getElementById('datepicker').value;
+        const inicio  = fromDate
+            ? new Date(fromDate + 'T12:00:00')
+            : pickerVal ? new Date(pickerVal + 'T12:00:00') : new Date();
 
-        for (let d = 0; d <= 60 && livres.length < quantidade; d++) {
-            const dt = new Date(hoje);
-            dt.setDate(hoje.getDate() + d);
+        for (let d = 0; d <= 90 && livres.length < quantidade; d++) {
+            const dt = new Date(inicio);
+            dt.setDate(inicio.getDate() + d);
 
             /* ── SOMENTE TERÇAS (getDay() === 2) ── */
             if (dt.getDay() !== 2) continue;
