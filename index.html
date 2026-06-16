@@ -41,10 +41,6 @@
             0%,100% { text-shadow: 0 0 8px rgba(188,163,116,0.25); }
             50%      { text-shadow: 0 0 22px rgba(188,163,116,0.6); }
         }
-        @keyframes headerShimmer {
-            0%   { background-position: -300% center; }
-            100% { background-position: 300% center; }
-        }
         @keyframes bounceSoft {
             0%,100% { transform: translateY(0); }
             50%      { transform: translateY(-5px); }
@@ -88,6 +84,9 @@
         .borda-esp  { border-left: 6px solid #f9c784; }
         .borda-emag { border-left: 6px solid #7ab8f5; }
         .borda-apl  { border-left: 6px solid #c084fc; }
+        .borda-laranja { border-left: 6px solid #ff9800; }
+        .borda-verde   { border-left: 6px solid #4caf50; }
+        .borda-vermelho { border-left: 6px solid #f44336; }
 
         /* ── Buttons ── */
         .btn-vinho {
@@ -244,7 +243,6 @@
                 class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-vinho hover:text-white text-slate-500 transition-all font-black text-sm shadow-sm active:scale-95">
                 ›
             </button>
-            <!-- input escondido mantém a lógica existente -->
             <input type="date" id="datepicker" onchange="onDateChange()" class="sr-only">
         </div>
     </div>
@@ -269,8 +267,11 @@
     <button onclick="showTab('historico')" id="t-historico" class="flex flex-col items-center px-5 py-2 rounded-2xl transition-all">
         <i class="fas fa-address-book text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Pacientes</span>
     </button>
+    <button onclick="showTab('ligacoes')" id="t-ligacoes" class="flex flex-col items-center px-5 py-2 rounded-2xl transition-all">
+        <i class="fas fa-phone text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Ligações</span>
+    </button>
     <button onclick="showTab('ausentes')"  id="t-ausentes"  class="flex flex-col items-center px-5 py-2 rounded-2xl transition-all">
-        <i class="fas fa-clock-rotate-left text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Retornos</span>
+        <i class="fas fa-rotate text-xl"></i><span class="text-[9px] font-black mt-1 uppercase">Retornos</span>
     </button>
 </nav>
 
@@ -294,46 +295,124 @@
     let excludedRetornos = JSON.parse(localStorage.getItem('excludedRetornos') || '[]');
     let currentEspProf = 'GERALDO';
 
+    /* ─── Pacientes do ano 2026 com dados para ligações ─── */
+    const pacientesLigacoes = {
+        "ADRIANA DE OLIVEIRA PEREIRA NONATO": { tel: "31 98484-5868", categoria: "Emagrecimento", ultimo: "Retorno", data_ultimo: "17/03/2026" },
+        "ALEXANDER ELIAS DE SOUZA": { tel: "31 99634-3441", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "26/05/2026" },
+        "ALEXANDRE GOMES DA SILVA": { tel: "31 99653-4595", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "06/01/2025" },
+        "ALEXANDRE ROBERTO DA SILVA": { tel: "31 99524-1009", categoria: "Esportivo", ultimo: "Retorno", data_ultimo: "10/03/2026" },
+        "ALINE DE PAULA LOPES": { tel: "31 99465-5449", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "24/03/2026" },
+        "ALVARO DE PAOLI": { tel: "31 99313-2072", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "02/06/2026" },
+        "ANA CRISTINA BATISTA CAIRES": { tel: "31 99145-0960", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "03/03/2026" },
+        "ANA KARINE CARDOSO PEIXOTO": { tel: "38 99803-3911", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "26/05/2026" },
+        "ANGELICA GONÇALVES CARVALHO": { tel: "31 99985-8307", categoria: "Esportivo", ultimo: "Retorno", data_ultimo: "17/03/2026" },
+        "ANGELO MARCOS DE ANDRADE": { tel: "31 99951-5830", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "26/05/2026" },
+        "BARBARA EVELYN ANDRADE MAIA": { tel: "31 98307-1558", categoria: "Emagrecimento", ultimo: "Retorno", data_ultimo: "17/03/2026" },
+        "BEATRICE GOMES BUGNARA": { tel: "31 99523-5032", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "19/02/2026" },
+        "BERNARDO RODRIGUES COSTA DE PAOLI": { tel: "31 99728-8699", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "09/06/2026" },
+        "BIANCA BATISTA MOTA RAMOS": { tel: "31 98742-2165", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "26/05/2026" },
+        "BRUNO GAMALIEL ALVES DE SOUZA": { tel: "31 99173-8077", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "02/06/2026" },
+        "CARLOS ADRIAN FERREIRA DA SILVA": { tel: "31 99212-0162", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "31/03/2026" },
+        "CARLOS ALEXANDRE SILVA": { tel: "31 99159-8291", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "19/05/2026" },
+        "CARLOS RENAN DE OLIVEIRA GONÇALVES": { tel: "31 98860-3208", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "09/06/2026" },
+        "CAMILA BRUNA DOS SANTOS": { tel: "31 98475-5447", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "16/06/2026" },
+        "CRISTIANO MOREIRA DA SILVA": { tel: "31 98350-4018", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "16/06/2026" },
+        "DENNER FERNANDES PIMENTA": { tel: "31 98475-5447", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "16/06/2026" },
+        "EDMUNDO MENDES": { tel: "31 99703-6657", categoria: "Emagrecimento", ultimo: "Retorno", data_ultimo: "09/06/2026" },
+        "ELINEIA MARTINS PEREIRA": { tel: "32 99090-0986", categoria: "Esportivo", ultimo: "Aplicação", data_ultimo: "24/02/2026" },
+        "FERNANDA APARECIDA DE ANDRADE ESTEVES": { tel: "31 98860-5960", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "03/02/2025" },
+        "FERNANDO ALMEIDA DOS SANTOS": { tel: "31 97532-2705", categoria: "Emagrecimento", ultimo: "Retorno", data_ultimo: "19/02/2026" },
+        "FLAVIA SANTOS DE JESUS": { tel: "31 99898-2911", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "23/04/2026" },
+        "GABRIEL ALMEIDA COSTA": { tel: "31 99221-7439", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "13/01/2025" },
+        "GEOVANE DONISET DA COSTA": { tel: "31 99683-4481", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "02/06/2026" },
+        "GIAN SIMON DE ARAÚJO ABREU": { tel: "31 99344-1135", categoria: "Esportivo", ultimo: "Retorno", data_ultimo: "24/02/2026" },
+        "GILBSON LIMA PEREIRA GOMES": { tel: "31 99181-4934", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "10/02/2025" },
+        "GILMARA MARIA DE OLIVEIRA": { tel: "31 99345-1391", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "03/03/2026" },
+        "GUILHERME AFFORNALLI": { tel: "41 99534-4499", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "03/02/2025" },
+        "GUILHERME RAFAEL DE ALMEIDA MIRANDA": { tel: "31 99190-7463", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "13/01/2025" },
+        "GUSTAVO MELO NOVAIS": { tel: "31 99784-1841", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "19/02/2026" },
+        "HUGO HENRIQUE SOUZA DUARTE": { tel: "31 99559-2861", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "03/03/2026" },
+        "IRACI ALVES FERREIRA": { tel: "31 99321-0641", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "23/04/2026" },
+        "JOAO PAULO DE OLIVEIRA REIS": { tel: "37 99867-4853", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "17/03/2026" },
+        "JOÃO PAULO PINTO": { tel: "31 99936-6728", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "24/03/2026" },
+        "JULIA MARA PEREIRA": { tel: "31 98403-1730", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "16/06/2026" },
+        "JULIANA BARCELOS COSTA DE PAOLI": { tel: "31 99728-8699", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "09/06/2026" },
+        "KEILA FERNANDES LEAL": { tel: "31 98404-9214", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "16/06/2026" },
+        "LARA ISABELLE DE AGUIAR ANDRADE": { tel: "31 99159-8291", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "19/02/2026" },
+        "LEANDRO HENRIQUE GONÇALVES": { tel: "31 98404-9214", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "02/06/2026" },
+        "LEANDRO MARCIO GUGEL": { tel: "31 99197-5802", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "24/02/2026" },
+        "LEONARDO FERREIRA DA SILVA": { tel: "38 99803-3911", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "26/05/2026" },
+        "LEONARDO MILAN TOSCANO BARRETO": { tel: "31 99837-0637", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "07/04/2026" },
+        "LEONARDO RICOLY LEÃO": { tel: "31 99161-6066", categoria: "Esportivo", ultimo: "Aplicação", data_ultimo: "10/03/2026" },
+        "LIDIANE SANTOS GUIMARÃES": { tel: "31 99110-9474", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "24/02/2026" },
+        "LUCAS MIRANDA BATISTA PEREIRA": { tel: "31 99110-9474", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "24/02/2026" },
+        "LUCAS SPEROTTO DIAS DUARTE": { tel: "31 98460-6276", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "26/05/2026" },
+        "LUCAS TOMAZ RESENDE MIRANDA": { tel: "31 98214-1021", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "26/05/2026" },
+        "LUCILIA DA SILVA": { tel: "31 98518-2438", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "02/06/2026" },
+        "LUCILENE MARTINS DE OLIVEIRA": { tel: "31 97312-4462", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "16/06/2026" },
+        "LUIZ CLAUDIO AMARAL": { tel: "31 98709-1534", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "30/06/2026" },
+        "LUIZA HERMINIA PEREIRA LEMOS": { tel: "31 99242-2073", categoria: "Emagrecimento", ultimo: "Retorno", data_ultimo: "10/03/2026" },
+        "MARCELA DE CARVALHO FONTES": { tel: "31 99859-9987", categoria: "Emagrecimento", ultimo: "Retorno", data_ultimo: "28/04/2026" },
+        "MARCELO BASÍLIO DE FIGUEIREDO": { tel: "31 99846-1786", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "27/01/2025" },
+        "MARCOS BLACK MATOS": { tel: "31 98678-4397", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "10/03/2026" },
+        "MARIA APARECIDA VELOSO": { tel: "31 98424-7994", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "09/06/2026" },
+        "MARIA CAROLINA DOS SANTOS": { tel: "61 99559-5021", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "24/03/2026" },
+        "MAVIANNE ELLEN CAETANO LORENZINI": { tel: "31 99769-4249", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "12/05/2026" },
+        "MIRELLA FERNANDA SOUZA CORREIA": { tel: "31 98732-1169", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "05/05/2026" },
+        "MIZAEL PINTO RIBEIRO SOARES": { tel: "31 98828-8931", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "16/06/2026" },
+        "NATHALIA GOMES PERERIA DOS REIS": { tel: "31 99967-8802", categoria: "Esportivo", ultimo: "Aplicação", data_ultimo: "24/03/2026" },
+        "PATRÍCIA DE SÁ ANDRADE": { tel: "31 98265-2733", categoria: "Esportivo", ultimo: "Aplicação", data_ultimo: "26/05/2026" },
+        "PATRÍCIA NONAKA": { tel: "31 99168-3100", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "19/05/2026" },
+        "PETER FERNANDES DA SILVA": { tel: "31 98893-4886", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "17/03/2026" },
+        "RAMON CORREIA": { tel: "31 98806-3674", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "23/06/2026" },
+        "REGINA CÉLIA DE SÁ ANDRADE": { tel: "31 98265-2733", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "12/05/2026" },
+        "RICARDO DE ARAÚJO OLIVEIRA": { tel: "31 99717-1636", categoria: "Emagrecimento", ultimo: "Retorno", data_ultimo: "12/05/2026" },
+        "RICARDO FRANKLIN DE PAULO": { tel: "31 99809-3210", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "19/05/2026" },
+        "ROBERT WILLIAM DA SILVA NICOLAU": { tel: "41 99594-7976", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "17/03/2026" },
+        "ROGÉRIO DE ARAÚJO LOPES JUNIOR": { tel: "31 99239-3228", categoria: "Esportivo", ultimo: "Nutrição Esportiva", data_ultimo: "09/06/2026" },
+        "ROSEMARY MAIRINK TEIXEIRA SOUZA": { tel: "31 97340-7441", categoria: "Esportivo", ultimo: "Retorno", data_ultimo: "12/05/2026" },
+        "SAVIO STEWART SANTOS SOUZA": { tel: "31 99468-0765", categoria: "Esportivo", ultimo: "Aplicação", data_ultimo: "02/06/2026" },
+        "SHEILA CARDOSO DO NASCIMENTO": { tel: "31 99468-0765", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "19/02/2026" },
+        "SIMONE MENDES SCHLUTER": { tel: "31 99197-5802", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "24/02/2026" },
+        "SOLANGE MARQUES FERNANDES": { tel: "31 99633-1512", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "24/02/2026" },
+        "THABATA GABRIELA CARVALHO SOARES": { tel: "31 98419-3808", categoria: "Esportivo", ultimo: "Aplicação", data_ultimo: "28/04/2026" },
+        "THAIS DA SILVA SANTOS": { tel: "31 98768-8683", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "03/02/2025" },
+        "UZIEL ROGERIO FERNANDES": { tel: "31 99896-5409", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "13/01/2025" },
+        "VALDERLENE RODRIGUES ALVES BRAGA": { tel: "31 98645-1399", categoria: "Emagrecimento", ultimo: "Aplicação", data_ultimo: "23/06/2026" },
+        "VANUSA APARECIDA DE ANDRADE": { tel: "31 98709-1534", categoria: "Esportivo", ultimo: "Retorno", data_ultimo: "30/06/2026" },
+        "WASHINGTON RODRIGUES DA SILVEIRA": { tel: "31 99998-9591", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "09/06/2026" },
+        "YAGO PACHECO ALCÂNTARA": { tel: "31 99463-1647", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "07/04/2026" },
+        "BRUNO DE ALMEIDA PEDRAS": { tel: "31 99886-4824", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "09/06/2026" },
+        "CARLA PATRÍCIA NOGUEIRA": { tel: "31 97509-7303", categoria: "Esportivo", ultimo: "Consulta", data_ultimo: "05/05/2026" },
+        "JONATHAN HENRIQUE LEMOS DOS SANTOS": { tel: "31 99477-1089", categoria: "Emagrecimento", ultimo: "Consulta", data_ultimo: "19/05/2026" }
+    };
 
-    /* ─── Helpers de normalização ─────────────────────────────────────
-       Garante que diferenças de espaço, caixa ou acento não quebrem
-       a busca de paciente entre a planilha de agendamentos e a de cadastros.
-    ─────────────────────────────────────────────────────────────────── */
     function normalizar(str) {
         return (str || '')
             .trim()
             .toUpperCase()
-            .replace(/\s+/g, ' ')                      // espaços duplos
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos p/ comparação
+            .replace(/\s+/g, ' ')
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
     function buscarPac(nome) {
         if (!nome) return {};
         const n = normalizar(nome);
-
-        /* 1. Correspondência exata normalizada */
         let pac = pacs.find(x => normalizar(x.nome) === n);
         if (pac) return pac;
-
-        /* 2. Um contém o outro */
         pac = pacs.find(x => {
             const xn = normalizar(x.nome);
             return xn.includes(n) || n.includes(xn);
         });
         if (pac) return pac;
-
-        /* 3. Todas as palavras do nome buscado existem no cadastro */
         const palavras = n.split(' ').filter(p => p.length > 1);
         pac = pacs.find(x => {
             const xn = normalizar(x.nome);
             return palavras.every(p => xn.includes(p));
         });
         if (pac) return pac;
-
-        /* 4. Melhor score: quem tiver mais palavras em comum ganha
-              (resolve casos como SANTOS vs PEIXOTO no sobrenome) */
         if (palavras.length >= 2) {
-            let melhor = null, melhorScore = 1; /* mínimo 2 palavras */
+            let melhor = null, melhorScore = 1;
             pacs.forEach(x => {
                 const xn    = normalizar(x.nome);
                 const score = palavras.filter(p => xn.includes(p)).length;
@@ -341,11 +420,9 @@
             });
             if (melhor) return melhor;
         }
-
         return {};
     }
 
-    /* Formata telefone: remove tudo que não é dígito, garante 55 uma só vez */
     function formatarTel(tel) {
         const nums = (tel || '').replace(/\D/g, '');
         if (!nums) return '';
@@ -353,7 +430,6 @@
         return '55' + nums;
     }
 
-    /* ─── formato curto do serviço para exibição nos cards da agenda ─── */
     function formatServico(servico, categoria) {
         if (!servico) return '';
         const s = servico.toUpperCase();
@@ -364,44 +440,9 @@
         return servico;
     }
 
-    /* ─────────────────────────────────────────────
-       CONTROLE DE DIAS — só Terças + exceções
-       Para liberar um dia extra: adicione a data
-       no formato 'AAAA-MM-DD' no array abaixo.
-    ───────────────────────────────────────────── */
-    /* ─── Profissional alternado por semana ───
-       Referência: 02/06/2026 = GERALDO, depois alterna a cada terça ─── */
-    function getProfPadrao(dateStr) {
-        const ref     = new Date('2026-06-02T12:00:00'); // GERALDO
-        const d       = new Date(dateStr + 'T12:00:00');
-        const semanas = Math.round((d - ref) / (7 * 24 * 3600 * 1000));
-        return semanas % 2 === 0 ? 'GERALDO' : 'LÍBIA';
-    }
-
-    function atualizarLabel(val) {
-        if (!val) return;
-        const dt   = new Date(val + 'T12:00:00');
-        const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-        const meses= ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        const dia  = String(dt.getDate()).padStart(2,'0');
-        const mes  = String(dt.getMonth()+1).padStart(2,'0');
-        const ano  = dt.getFullYear();
-        const nomeDia = dias[dt.getDay()];
-        document.getElementById('data-label-dia').innerText  = `${nomeDia}, ${meses[dt.getMonth()]} ${ano}`;
-        document.getElementById('data-label-data').innerText = `${dia}/${mes}/${ano}`;
-        /* define automaticamente o profissional padrão da semana */
-        currentEspProf = getProfPadrao(val);
-    }
-
-    /* ─────────────────────────────────────────────
-       CONTROLE DE DIAS
-       diasExcecao   → dias que SUBSTITUEM uma terça
-       diasCancelados → terças que NÃO acontecem
-    ───────────────────────────────────────────── */
     const diasExcecao    = ['2026-07-13', '2026-07-24'];
     const diasCancelados = ['2026-07-14', '2026-07-21'];
 
-    /* Gera lista ordenada de todos os dias válidos num intervalo de ±2 anos */
     function getDiasValidos() {
         const hoje   = new Date();
         const inicio = new Date(hoje); inicio.setFullYear(hoje.getFullYear() - 1);
@@ -449,6 +490,27 @@
         loadAll();
     }
 
+    function getProfPadrao(dateStr) {
+        const ref     = new Date('2026-06-02T12:00:00');
+        const d       = new Date(dateStr + 'T12:00:00');
+        const semanas = Math.round((d - ref) / (7 * 24 * 3600 * 1000));
+        return semanas % 2 === 0 ? 'GERALDO' : 'LÍBIA';
+    }
+
+    function atualizarLabel(val) {
+        if (!val) return;
+        const dt   = new Date(val + 'T12:00:00');
+        const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        const meses= ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        const dia  = String(dt.getDate()).padStart(2,'0');
+        const mes  = String(dt.getMonth()+1).padStart(2,'0');
+        const ano  = dt.getFullYear();
+        const nomeDia = dias[dt.getDay()];
+        document.getElementById('data-label-dia').innerText  = `${nomeDia}, ${meses[dt.getMonth()]} ${ano}`;
+        document.getElementById('data-label-data').innerText = `${dia}/${mes}/${ano}`;
+        currentEspProf = getProfPadrao(val);
+    }
+
     async function loadAll() {
         const c = document.getElementById('content');
         c.innerHTML = `<div class="text-center mt-32">
@@ -469,7 +531,6 @@
     function render() {
         const dVal = document.getElementById('datepicker').value;
 
-        /* nav highlight */
         document.querySelectorAll('nav button').forEach(b => {
             b.classList.remove('text-vinho', 'bg-vinho/5', 'nav-active');
             b.classList.add('text-slate-500');
@@ -481,6 +542,7 @@
         if      (currentTab === 'agenda')    renderAgenda(c, dVal);
         else if (currentTab === 'relatorio') renderRelatorio(c, dVal);
         else if (currentTab === 'historico') renderHistorico(c);
+        else if (currentTab === 'ligacoes')  renderLigacoes(c);
         else                                 renderAusentes(c);
     }
 
@@ -503,7 +565,6 @@
         config.forEach(cat => {
             const list = appts.filter(a => a.dataStr === dataF && a.categoria === cat.n);
 
-            /* cabeçalho da seção */
             html += `<div class="flex justify-between items-center mb-5 mt-10 pb-2" style="border-bottom:2px solid #f1f5f9;">
                 <h3 class="font-black text-[11px] text-slate-700 uppercase tracking-widest">
                     <i class="fas fa-tag text-ouro mr-2"></i>
@@ -524,7 +585,6 @@
                 const noTime   = list.filter(a => !a.hora || a.hora==='ENCAIXE');
                 [...withTime, ...noTime].forEach(f => { html += slotBusy(f, cat.b, cardIdx++); });
             } else {
-                /* gera horários fixos */
                 const fixedTimes = [];
                 let h=9, m=0;
                 while (h < 12) {
@@ -554,7 +614,6 @@
                 noTime.forEach(en => { html += slotBusy(en, cat.b, cardIdx++); });
             }
 
-            /* botão encaixe por especialidade */
             html += `<div class="mb-8 mt-4">
                 <button onclick="openAgendar('${cat.n}','')" class="btn-vinho w-full py-4 text-[10px]">
                     <i class="fas fa-plus mr-2"></i>Encaixe ${cat.n}
@@ -680,16 +739,13 @@
             else
                 msg = `Olá ${ag.paciente}! 👋\nSeu agendamento foi realizado com sucesso!\n*Consulta ${ag.servico.includes("EMAGRECIMENTO") ? "Nutrição Emagrecimento" : "Nutrição Esportiva"}*:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\nCom os profissionais: ${profs}\n📋 Lembre-se de levar exames anteriores impresso caso possuir.\n📍 Nosso endereço se encontra na Rua dos Timbiras, 2237 / 5o andar - Lourdes.\n💰 O valor da consulta é de R$ 290,00.\n🅿️ Temos estacionamento próprio! (Favor consultar valores no local)\nObrigada e até lá!`;
         } else {
-            /* ── LEMBRETE ── */
             const desconto = `🎁 *VALE DESCONTO — INJETÁVEIS*\nPague seus injetáveis em dinheiro e ganhe até 10% de desconto!\n_(Este desconto é válido exclusivamente para aplicação de injetáveis, não para consultas)_`;
 
             if (isRetorno) {
-                /* Retorno: sem bioimpedância */
                 msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar seu *retorno* amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
             } else if (isAplicacao) {
                 msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar sua *aplicação de injetáveis* amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
             } else {
-                /* Consulta: com bioimpedância */
                 msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar seu agendamento amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\n📊 *BIOIMPEDÂNCIA — PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
             }
         }
@@ -724,13 +780,12 @@
                 <div style="font-size:11px;font-weight:700;color:#bca374;letter-spacing:1px;">${dataF}</div>
             </div>`;
 
-        /* cores de fundo das seções (igual à foto) — texto sempre escuro */
         const blocos = [
             { id:'ESPORTIVO',     title:`ESPORTIVO — ${currentEspProf}`, bgSec:'#FFF3E6', bgTh:'#FFD9A8' },
             { id:'EMAGRECIMENTO', title:'EMAGRECIMENTO — BRUNO',          bgSec:'#E8F2FF', bgTh:'#BBDEFB' },
             { id:'APLICAÇÃO',     title:'APLICAÇÃO',                      bgSec:'#F3E8FF', bgTh:'#DFC5FF' }
         ];
-        const txtEscuro = '#334155';   /* cor única escura para todos os textos do relatório */
+        const txtEscuro = '#334155';
 
         blocos.forEach(b => {
             const list = appts.filter(a => a.dataStr===dataF && a.categoria===b.id)
@@ -808,8 +863,460 @@
     }
 
     /* ══════════════════════════════════════════
-       MODAL DE AGENDAMENTO
+       LIGAÇÕES
     ══════════════════════════════════════════ */
+    function renderLigacoes(c) {
+        let html = `
+        <div class="mb-6">
+            <input type="text" id="searchLig" oninput="filtrarLigacoes()" placeholder="BUSCAR PACIENTE..."
+                class="w-full p-6 rounded-[25px] border-2 border-slate-100 font-black uppercase outline-none text-center text-xs shadow-inner transition-all bg-white">
+        </div>
+        <div id="ligacoesList"></div>`;
+        
+        c.innerHTML = html;
+        carregarLigacoes();
+    }
+
+    function carregarLigacoes() {
+        const lista = document.getElementById('ligacoesList');
+        lista.innerHTML = '';
+
+        const pacientes = Object.keys(pacientesLigacoes).sort();
+        
+        pacientes.forEach((nome, idx) => {
+            const dados = pacientesLigacoes[nome];
+            const tipoClass = dados.categoria === 'Esportivo' ? 'text-orange-600 bg-orange-50' : 'text-blue-600 bg-blue-50';
+            const borda = dados.categoria === 'Esportivo' ? 'borda-laranja' : 'borda-emag';
+            const obs = localStorage.getItem(`obs_lig_${nome}`) || '';
+            const whatsapp = dados.tel.replace(/\D/g, '');
+            const delay = (idx*0.06).toFixed(2);
+            
+            // Mensagem customizada para WhatsApp
+            let msgWA = '';
+            if (dados.categoria === 'Esportivo') {
+                msgWA = `Olá ${nome.split(' ')[0]}! 👋\nEstamos aqui para convidá-lo(a) para uma *nova consulta de nutrição esportiva*! 💪\nTemos horários disponíveis. Gostaria de agendar?`;
+            } else {
+                msgWA = `Olá ${nome.split(' ')[0]}! 👋\nEstamos aqui para convidá-lo(a) para uma *nova consulta de emagrecimento*! 🎯\nTemos horários disponíveis. Gostaria de agendar?`;
+            }
+            
+            const html = `
+            <div class="premium-card p-5 mb-3 ${borda} flex flex-col sm:flex-row justify-between sm:items-start gap-4"
+                style="animation:slideInUp 0.4s ease ${delay}s both;">
+                <div class="flex-1">
+                    <div class="inline-block px-3 py-1 rounded-xl ${tipoClass} text-[10px] font-black uppercase mb-3">
+                        ${dados.categoria}
+                    </div>
+                    <div class="space-y-2 mb-3">
+                        <div>
+                            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Paciente</p>
+                            <p class="font-black text-vinho text-sm">${nome}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Telefone</p>
+                                <p class="font-bold text-sm text-slate-700">${dados.tel}</p>
+                            </div>
+                            <div>
+                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Data Último</p>
+                                <p class="font-bold text-sm text-slate-700">${dados.data_ultimo}</p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Último Procedimento</p>
+                                <p class="font-bold text-sm text-slate-700">${dados.ultimo}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Observações</p>
+                        <textarea id="obs_lig_${nome.replace(/\s+/g,'')}" class="w-full p-3 border border-slate-200 rounded-xl text-xs font-medium resize-none" rows="3" placeholder="Adicione notas...">${obs}</textarea>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2 min-w-max">
+                    <button onclick="enviarWhatsAppLig('${nome}','${whatsapp}','${msgWA.replace(/'/g, "\\'")}')" 
+                        class="bg-green-50 text-green-600 px-6 py-3 rounded-2xl font-black text-[10px] uppercase hover:bg-green-100 transition-all shadow-md">
+                        <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+                    </button>
+                    <button onclick="fazerLigacao('${dados.tel}')" 
+                        class="bg-vinho text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase hover:bg-slate-700 transition-all shadow-md">
+                        <i class="fas fa-phone mr-2"></i>Ligar
+                    </button>
+                    <button onclick="salvarObsLig('${nome.replace(/\s+/g,'')}')" 
+                        class="bg-ouro text-vinho px-6 py-3 rounded-2xl font-black text-[10px] uppercase hover:bg-yellow-200 transition-all shadow-md">
+                        <i class="fas fa-save mr-2"></i>Salvar
+                    </button>
+                    <button onclick="excluirLig('${nome}')" 
+                        class="bg-red-50 text-red-500 px-6 py-3 rounded-2xl font-black text-[10px] uppercase hover:bg-red-100 transition-all shadow-md">
+                        <i class="fas fa-trash mr-2"></i>Excluir
+                    </button>
+                </div>
+            </div>`;
+            lista.innerHTML += html;
+        });
+    }
+
+    function filtrarLigacoes() {
+        const input = document.getElementById('searchLig').value.toLowerCase();
+        const items = document.querySelectorAll('.premium-card');
+        
+        items.forEach(item => {
+            const nome = item.querySelector('.font-black.text-vinho.text-sm').textContent.toLowerCase();
+            item.style.display = nome.includes(input) ? '' : 'none';
+        });
+    }
+
+    function enviarWhatsAppLig(nome, telefone, mensagem) {
+        if (!telefone) {
+            alert(`${nome} não tem telefone cadastrado`);
+            return;
+        }
+        const mensagemCodificada = encodeURIComponent(mensagem);
+        window.open(`https://wa.me/55${telefone}?text=${mensagemCodificada}`, '_blank');
+    }
+
+    function fazerLigacao(telefone) {
+        if (!telefone) {
+            alert('Telefone não disponível');
+            return;
+        }
+        window.location.href = `tel:${telefone}`;
+    }
+
+    function salvarObsLig(safeNome) {
+        const obs = document.getElementById(`obs_lig_${safeNome}`).value;
+        const nomeReal = Object.keys(pacientesLigacoes).find(n => n.replace(/\s+/g,'') === safeNome);
+        localStorage.setItem(`obs_lig_${nomeReal}`, obs);
+        alert('Observação salva! ✅');
+    }
+
+    function excluirLig(nome) {
+        if (confirm(`Deseja excluir ${nome} da lista?`)) {
+            delete pacientesLigacoes[nome];
+            localStorage.removeItem(`obs_lig_${nome}`);
+            carregarLigacoes();
+            alert('Paciente removido! ❌');
+        }
+    }
+
+    /* ══════════════════════════════════════════
+       RETORNOS (REFORMULADO COM FILTROS POR DIAS)
+    ══════════════════════════════════════════ */
+    const PRAZO_PROTOCOLO = 28;
+    let filtroRetorno = 'todos';
+    let buscaRetorno  = '';
+
+    function renderAusentes(c) {
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+        const lista = pacs
+            .filter(p => !excludedRetornos.includes(p.nome))
+            .map(p => {
+                const hist = appts.filter(a => a.paciente === p.nome)
+                    .sort((a,b) => {
+                        const da=a.dataStr.split('/'), db=b.dataStr.split('/');
+                        return new Date(db[2],db[1]-1,db[0]) - new Date(da[2],da[1]-1,da[0]);
+                    });
+                if (!hist.length) return null;
+                const ult = hist[0];
+                const dp  = ult.dataStr.split('/');
+                const dtUlt = new Date(dp[2],dp[1]-1,dp[0]);
+                const dtRet = new Date(dtUlt); dtRet.setDate(dtUlt.getDate() + PRAZO_PROTOCOLO);
+                const diasRestantes = Math.round((dtRet - hoje)/(1000*3600*24));
+                return { p, ult, dtRet, diasRestantes };
+            })
+            .filter(Boolean)
+            .sort((a,b) => a.diasRestantes - b.diasRestantes);
+
+        const buscaN = normalizar(buscaRetorno);
+        const filtrado = lista.filter(item => {
+            const nomeOk = !buscaN || normalizar(item.p.nome).includes(buscaN);
+            if (!nomeOk) return false;
+            const dr = item.diasRestantes;
+            if (filtroRetorno === '30dias')  return dr >= 28 && dr <= 32;
+            if (filtroRetorno === '20dias')  return dr >= 18 && dr <= 22;
+            if (filtroRetorno === 'outros')  return !(dr >= 28 && dr <= 32) && !(dr >= 18 && dr <= 22);
+            return true;
+        });
+
+        const c30  = lista.filter(i => i.diasRestantes >= 28 && i.diasRestantes <= 32).length;
+        const c20  = lista.filter(i => i.diasRestantes >= 18 && i.diasRestantes <= 22).length;
+        const cOut = lista.filter(i => !(i.diasRestantes >= 28 && i.diasRestantes <= 32) && !(i.diasRestantes >= 18 && i.diasRestantes <= 22)).length;
+        const cTodos = lista.length;
+
+        const btnClass = (k) => filtroRetorno === k
+            ? 'btn-vinho px-4 py-2 text-[9px] rounded-2xl'
+            : 'bg-slate-100 text-slate-500 px-4 py-2 text-[9px] font-black uppercase rounded-2xl hover:bg-slate-200 transition-all';
+
+        let html = `
+        <div class="mb-5">
+            <h2 class="font-black text-slate-700 uppercase text-[11px] mb-4 tracking-widest">
+                <i class="fas fa-rotate text-ouro mr-2"></i>Agendamentos de Retorno
+            </h2>
+            <div class="relative mb-4">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="buscaRetornoInput" value="${buscaRetorno}"
+                    oninput="setBuscaRetorno(this.value)"
+                    placeholder="BUSCAR PACIENTE..."
+                    class="w-full pl-10 pr-4 py-4 rounded-2xl border-2 border-slate-100 bg-white font-black uppercase text-xs outline-none transition-all shadow-sm">
+            </div>
+            <div class="flex gap-2 flex-wrap">
+                <button onclick="setFiltroRetorno('30dias')" class="${btnClass('30dias')}">
+                    🟠 30 dias <span class="ml-1 bg-white/30 px-1.5 rounded-full">${c30}</span>
+                </button>
+                <button onclick="setFiltroRetorno('20dias')" class="${btnClass('20dias')}">
+                    🟢 20 dias <span class="ml-1 bg-white/30 px-1.5 rounded-full">${c20}</span>
+                </button>
+                <button onclick="setFiltroRetorno('outros')" class="${btnClass('outros')}">
+                    🔴 Outros <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cOut}</span>
+                </button>
+                <button onclick="setFiltroRetorno('todos')" class="${btnClass('todos')}">
+                    📋 Todos <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cTodos}</span>
+                </button>
+            </div>
+        </div>`;
+
+        if (!filtrado.length && !buscaN) {
+            const msgs = { '30dias':'✓ Nenhum com ~30 dias!', '20dias':'✓ Nenhum com ~20 dias!', 'outros':'✓ Nenhum outro!', 'todos':'✓ Sem retornos.' };
+            html += `<p class="text-center py-20 text-slate-300 font-black text-xs tracking-widest">${msgs[filtroRetorno]||'✓ Nenhum encontrado.'}</p>`;
+            c.innerHTML = html; return;
+        }
+
+        filtrado.forEach((item, i) => {
+            const { p, ult, dtRet, diasRestantes: dr } = item;
+            const diaRet = String(dtRet.getDate()).padStart(2,'0');
+            const mesRet = String(dtRet.getMonth()+1).padStart(2,'0');
+            const anoRet = dtRet.getFullYear();
+            const dataRetFmt = `${diaRet}/${mesRet}/${anoRet}`;
+            const servLabel  = formatServico(ult.servico, ult.categoria);
+
+            let borda, statusIcon, statusTxt, bgStatus, tipoRetorno;
+            if (dr >= 28 && dr <= 32) {
+                borda='borda-laranja';
+                bgStatus='bg-orange-50';
+                statusIcon='🟠';
+                statusTxt=`30 DIAS — NOVA CONSULTA`;
+                tipoRetorno = 'nova_consulta_30';
+            } else if (dr >= 18 && dr <= 22) {
+                borda='borda-verde';
+                bgStatus='bg-green-50';
+                statusIcon='🟢';
+                statusTxt=`20 DIAS — RETORNO EXAME`;
+                tipoRetorno = 'retorno_exame';
+            } else {
+                borda='borda-vermelho';
+                bgStatus='bg-red-50';
+                statusIcon='🔴';
+                statusTxt=`NOVA CONSULTA`;
+                tipoRetorno = 'nova_consulta_outro';
+            }
+
+            html += `
+            <div class="premium-card p-5 mb-3 ${borda}"
+                style="animation:slideInUp 0.4s ease ${(i*0.06).toFixed(2)}s both;">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1 min-w-0 mr-3">
+                        <p class="font-black uppercase text-vinho text-sm tracking-tight leading-tight">${p.nome}</p>
+                        <p class="text-[10px] text-slate-500 font-medium mt-1">${servLabel} • Últ: ${ult.dataStr}</p>
+                        <div class="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-xl ${bgStatus}">
+                            <span class="text-[10px]">${statusIcon}</span>
+                            <span class="text-[9px] font-black uppercase tracking-wide text-slate-600">${statusTxt}</span>
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-medium mt-1.5">
+                            <i class="fas fa-calendar-check mr-1"></i>Retorno sugerido: <span class="font-black text-slate-600">${dataRetFmt}</span>
+                        </p>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="chamarProtocoloCustomizado('${p.nome}','${p.telefone}','${servLabel}','${ult.categoria}','${tipoRetorno}')"
+                            class="bg-green-50 text-green-600 p-3 rounded-2xl zap-btn hover:bg-green-100 transition-all">
+                            <i class="fab fa-whatsapp text-lg"></i>
+                        </button>
+                        <button onclick="excludeRetorno('${p.nome}')"
+                            class="bg-slate-100 text-slate-400 p-3 rounded-2xl hover:bg-slate-200 transition-all">
+                            <i class="fas fa-eye-slash text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        c.innerHTML = html;
+    }
+
+    function setFiltroRetorno(f) { filtroRetorno = f; render(); }
+    function setBuscaRetorno(v)  { buscaRetorno  = v; render(); }
+
+    function chamarProtocoloCustomizado(nome, tel, servico, categoria, tipo) {
+        const livres = getProximosLivres(categoria, 2);
+        let horariosMsg = '';
+        
+        if (livres.length) {
+            horariosMsg = '\n\n📅 *Horários disponíveis:*\n' +
+                livres.map(l => `▪️ ${l.dataFmt} às ${l.hora}`).join('\n');
+        }
+
+        let msg = '';
+        if (tipo === 'nova_consulta_30' || tipo === 'nova_consulta_outro') {
+            msg = `Olá ${nome}! 👋\nEstamos aqui para convidá-lo(a) para uma *nova consulta*! 💪✨${horariosMsg}\n\nQual prefere? 😊`;
+        } else if (tipo === 'retorno_exame') {
+            msg = `Olá ${nome}! 👋\nEstamos passando para avisar que está na hora de fazer o seu *retorno de exame*! 📊✨${horariosMsg}\n\nQual prefere? 😊`;
+        }
+
+        abrirZap(tel, msg);
+    }
+
+    function abrirZap(tel, msg) {
+        const encoded = encodeURIComponent(msg);
+        const fone    = tel.startsWith('55') ? tel : formatarTel(tel);
+        if (/android/i.test(navigator.userAgent)) {
+            window.location.href = `intent://send?phone=${fone}&text=${encoded}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;end`;
+        } else {
+            window.open(`https://wa.me/${fone}?text=${encoded}`);
+        }
+    }
+
+    function excludeRetorno(n) {
+        excludedRetornos.push(n);
+        localStorage.setItem('excludedRetornos', JSON.stringify(excludedRetornos));
+        render();
+    }
+
+    /* ══════════════════════════════════════════
+       DISPONIBILIDADE RÁPIDA — WhatsApp
+    ══════════════════════════════════════════ */
+    function openDisponibilidade() {
+        document.getElementById('m-content').innerHTML = `
+            <div class="text-center mb-6">
+                <div class="inline-block bg-green-50 p-4 rounded-3xl shadow-inner">
+                    <i class="fab fa-whatsapp text-green-500 text-3xl"></i>
+                </div>
+                <h2 class="font-black text-xl mt-3 uppercase text-vinho">Horários Livres</h2>
+                <p class="text-[10px] text-slate-400 mt-1">Gera mensagem com os 2 próximos horários</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2 ml-1">Especialidade</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="selecionarEsp(this,'ESPORTIVO')"
+                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
+                            <i class="fas fa-dumbbell block text-lg mb-1"></i>Esportivo
+                        </button>
+                        <button onclick="selecionarEsp(this,'EMAGRECIMENTO')"
+                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
+                            <i class="fas fa-weight-scale block text-lg mb-1"></i>Emagrecimento
+                        </button>
+                        <button onclick="selecionarEsp(this,'APLICAÇÃO')"
+                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
+                            <i class="fas fa-syringe block text-lg mb-1"></i>Aplicação
+                        </button>
+                    </div>
+                </div>
+                <div id="disp-preview" class="hidden">
+                    <div class="bg-green-50 border border-green-200 rounded-2xl p-4 mt-2">
+                        <p class="text-[9px] font-black text-green-700 uppercase tracking-widest mb-3">
+                            <i class="fas fa-eye mr-1"></i>Prévia da mensagem
+                        </p>
+                        <p id="disp-texto" class="text-[11px] text-slate-700 font-medium whitespace-pre-line leading-relaxed"></p>
+                    </div>
+                    <button id="btnZapDisp" onclick="enviarDisponibilidade()"
+                        class="w-full mt-4 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white shadow-xl transition-all"
+                        style="background:linear-gradient(135deg,#25d366,#1da851);box-shadow:0 4px 14px rgba(37,211,102,0.4);">
+                        <i class="fab fa-whatsapp mr-2"></i>Abrir WhatsApp
+                    </button>
+                </div>
+                <div id="disp-vazio" class="hidden text-center py-6">
+                    <i class="fas fa-calendar-xmark text-slate-300 text-3xl mb-3 block"></i>
+                    <p class="text-[11px] font-black text-slate-400 uppercase">Nenhum horário livre nos próximos 14 dias</p>
+                </div>
+                <button onclick="closeModal()" class="w-full text-slate-400 font-black text-[10px] uppercase mt-2 tracking-widest text-center hover:text-slate-600 transition-all">Cancelar</button>
+            </div>`;
+
+        document.getElementById('modal').classList.remove('hidden');
+        const pop = document.querySelector('#modal > div');
+        pop.classList.remove('modal-pop'); void pop.offsetWidth; pop.classList.add('modal-pop');
+    }
+
+    let _espSelecionada = '';
+    let _msgDisp = '';
+
+    function selecionarEsp(btn, esp) {
+        document.querySelectorAll('.esp-btn').forEach(b => {
+            b.classList.remove('border-vinho','text-vinho','bg-vinho/5');
+            b.classList.add('border-slate-200','text-slate-600');
+        });
+        btn.classList.remove('border-slate-200','text-slate-600');
+        btn.classList.add('border-vinho','text-vinho','bg-vinho/5');
+
+        _espSelecionada = esp;
+        const livres = getProximosLivres(esp, 2);
+
+        const preview  = document.getElementById('disp-preview');
+        const vazio    = document.getElementById('disp-vazio');
+        const textoEl  = document.getElementById('disp-texto');
+
+        if (!livres.length) {
+            preview.classList.add('hidden');
+            vazio.classList.remove('hidden');
+            return;
+        }
+        vazio.classList.add('hidden');
+
+        const espLabel = esp === 'ESPORTIVO'
+            ? `Nutrição Esportiva (${currentEspProf})`
+            : esp === 'EMAGRECIMENTO'
+                ? 'Nutrição Emagrecimento'
+                : 'Aplicação de Injetáveis';
+
+        const linhas = livres.map(l => `📅 ${l.dataFmt} às ${l.hora}`).join('\n');
+        _msgDisp = `Olá! 😊\nTemos estes horários disponíveis para *${espLabel}*:\n\n${linhas}\n\nQual prefere?`;
+
+        textoEl.innerText = _msgDisp;
+        preview.classList.remove('hidden');
+    }
+
+    function getProximosLivres(esp, quantidade, fromDate) {
+        const stepMap = { 'ESPORTIVO': 25, 'EMAGRECIMENTO': 35 };
+        const livres  = [];
+        const pickerVal = document.getElementById('datepicker').value;
+        const inicio  = fromDate
+            ? new Date(fromDate + 'T12:00:00')
+            : pickerVal ? new Date(pickerVal + 'T12:00:00') : new Date();
+
+        for (let d = 0; d <= 90 && livres.length < quantidade; d++) {
+            const dt = new Date(inicio);
+            dt.setDate(inicio.getDate() + d);
+
+            if (dt.getDay() !== 2) continue;
+
+            const dia   = String(dt.getDate()).padStart(2,'0');
+            const mes   = String(dt.getMonth()+1).padStart(2,'0');
+            const ano   = dt.getFullYear();
+            const dataF = `${dia}/${mes}/${ano}`;
+
+            const ocupados = appts
+                .filter(a => a.dataStr === dataF && a.categoria === esp)
+                .map(a => a.hora);
+
+            if (esp === 'APLICAÇÃO') {
+                if (!ocupados.length)
+                    livres.push({ dataFmt: `Terça ${dataF}`, hora: 'horário a combinar' });
+            } else {
+                let h = 9, m = 0;
+                const step = stepMap[esp];
+                while (h < 12 && livres.length < quantidade) {
+                    const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                    if (!ocupados.includes(t))
+                        livres.push({ dataFmt: `Terça ${dataF}`, hora: t });
+                    m += step; if (m >= 60) { h++; m -= 60; }
+                }
+            }
+        }
+        return livres;
+    }
+
+    function enviarDisponibilidade() {
+        abrirZap('', _msgDisp);
+    }
+
+    /* ── MODAL AGENDAMENTO ── */
     function openAgendar(cat, hora) {
         let servOptions = cat === 'APLICAÇÃO'
             ? `<option value="CONSULTA">CONSULTA / APLICAÇÃO</option><option value="RETORNO">RETORNO</option>`
@@ -979,344 +1486,6 @@
         if (!confirm("REMOVER CADASTRO?")) return;
         await fetch(API,{method:'POST',body:JSON.stringify({action:'deletePatient',nome:nome})});
         loadAll();
-    }
-
-    /* ══════════════════════════════════════════
-       RENOVAÇÃO DE PROTOCOLO
-    ══════════════════════════════════════════ */
-    const PRAZO_PROTOCOLO = 28;
-    let filtroRetorno = 'todos';
-    let buscaRetorno  = '';
-
-    function renderAusentes(c) {
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-
-        const lista = pacs
-            .filter(p => !excludedRetornos.includes(p.nome))
-            .map(p => {
-                const hist = appts.filter(a => a.paciente === p.nome)
-                    .sort((a,b) => {
-                        const da=a.dataStr.split('/'), db=b.dataStr.split('/');
-                        return new Date(db[2],db[1]-1,db[0]) - new Date(da[2],da[1]-1,da[0]);
-                    });
-                if (!hist.length) return null;
-                const ult = hist[0];
-                const dp  = ult.dataStr.split('/');
-                const dtUlt = new Date(dp[2],dp[1]-1,dp[0]);
-                const dtRet = new Date(dtUlt); dtRet.setDate(dtUlt.getDate() + PRAZO_PROTOCOLO);
-                const diasRestantes = Math.round((dtRet - hoje)/(1000*3600*24));
-                return { p, ult, dtRet, diasRestantes };
-            })
-            .filter(Boolean)
-            .sort((a,b) => a.diasRestantes - b.diasRestantes);
-
-        /* Aplica filtro + busca */
-        const buscaN = normalizar(buscaRetorno);
-        const filtrado = lista.filter(item => {
-            const nomeOk = !buscaN || normalizar(item.p.nome).includes(buscaN);
-            if (!nomeOk) return false;
-            const dr = item.diasRestantes;
-            if (filtroRetorno === 'muitoTempo') return dr < -60;
-            if (filtroRetorno === 'recente')    return dr >= -60 && dr <= 0;
-            if (filtroRetorno === 'semana')     return dr > 0 && dr <= 7;
-            return true;
-        });
-
-        /* Contadores */
-        const cMuito  = lista.filter(i => i.diasRestantes < -60).length;
-        const cRecente= lista.filter(i => i.diasRestantes >= -60 && i.diasRestantes <= 0).length;
-        const cSemana = lista.filter(i => i.diasRestantes > 0 && i.diasRestantes <= 7).length;
-        const cTodos  = lista.length;
-
-        const btnClass = (k) => filtroRetorno === k
-            ? 'btn-vinho px-4 py-2 text-[9px] rounded-2xl'
-            : 'bg-slate-100 text-slate-500 px-4 py-2 text-[9px] font-black uppercase rounded-2xl hover:bg-slate-200 transition-all';
-
-        let html = `
-        <div class="mb-5">
-            <h2 class="font-black text-slate-700 uppercase text-[11px] mb-4 tracking-widest">
-                <i class="fas fa-rotate text-ouro mr-2"></i>Renovação de Protocolo
-            </h2>
-            <!-- Busca rápida -->
-            <div class="relative mb-4">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" id="buscaRetornoInput" value="${buscaRetorno}"
-                    oninput="setBuscaRetorno(this.value)"
-                    placeholder="BUSCAR PACIENTE RAPIDAMENTE..."
-                    class="w-full pl-10 pr-4 py-4 rounded-2xl border-2 border-slate-100 bg-white font-black uppercase text-xs outline-none transition-all shadow-sm">
-            </div>
-            <!-- Resultado rápido do paciente buscado -->
-            <div id="retorno-quick" class="mb-4"></div>
-            <!-- Filtros -->
-            <div class="flex gap-2 flex-wrap">
-                <button onclick="setFiltroRetorno('muitoTempo')" class="${btnClass('muitoTempo')}">
-                    🔴 +60d atrasado <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cMuito}</span>
-                </button>
-                <button onclick="setFiltroRetorno('recente')" class="${btnClass('recente')}">
-                    🟠 Recente <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cRecente}</span>
-                </button>
-                <button onclick="setFiltroRetorno('semana')" class="${btnClass('semana')}">
-                    🟢 Esta semana <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cSemana}</span>
-                </button>
-                <button onclick="setFiltroRetorno('todos')" class="${btnClass('todos')}">
-                    📋 Todos <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cTodos}</span>
-                </button>
-            </div>
-        </div>`;
-
-        /* Resultado da busca rápida */
-        if (buscaN.length >= 3) {
-            const encontrado = lista.find(i => normalizar(i.p.nome).includes(buscaN));
-            if (encontrado) {
-                const { p, ult, dtRet, diasRestantes: dr } = encontrado;
-                const dRf = `${String(dtRet.getDate()).padStart(2,'0')}/${String(dtRet.getMonth()+1).padStart(2,'0')}/${dtRet.getFullYear()}`;
-                const [ic, bg, tx] = dr < -60   ? ['🔴','bg-red-50 border-red-300',   'VENCIDO HÁ '+Math.abs(dr)+' DIAS']
-                                  : dr <= 0     ? ['🟠','bg-orange-50 border-orange-300','VENCIDO HÁ '+Math.abs(dr)+' DIAS']
-                                  : dr <= 7     ? ['🟢','bg-green-50 border-green-300', 'VENCE EM '+dr+' DIAS']
-                                  :               ['🔵','bg-blue-50 border-blue-300',   'FALTAM '+dr+' DIAS'];
-                html = html.replace('<div id="retorno-quick" class="mb-4"></div>',
-                    `<div id="retorno-quick" class="mb-4 p-4 rounded-2xl border-2 ${bg} flex items-center gap-3" style="animation:popIn 0.25s ease both;">
-                        <span class="text-2xl">${ic}</span>
-                        <div>
-                            <p class="font-black text-slate-800 text-sm uppercase">${p.nome}</p>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Últ. consulta: ${ult.dataStr} • Retorno sugerido: ${dRf}</p>
-                            <p class="text-[10px] font-black text-slate-700 mt-0.5">${tx}</p>
-                        </div>
-                    </div>`);
-            }
-        }
-
-        if (!filtrado.length && !buscaN) {
-            const msgs = { muitoTempo:'✓ Nenhum com +60 dias de atraso!', recente:'✓ Nenhum vencido recente!', semana:'✓ Nenhum vencimento esta semana!', todos:'✓ Nenhum paciente com histórico.' };
-            html += `<p class="text-center py-20 text-slate-300 font-black text-xs tracking-widest">${msgs[filtroRetorno]||'✓ Nenhum encontrado.'}</p>`;
-            c.innerHTML = html; return;
-        }
-
-        filtrado.forEach((item, i) => {
-            const { p, ult, dtRet, diasRestantes: dr } = item;
-            const diaRet = String(dtRet.getDate()).padStart(2,'0');
-            const mesRet = String(dtRet.getMonth()+1).padStart(2,'0');
-            const anoRet = dtRet.getFullYear();
-            const dataRetFmt = `${diaRet}/${mesRet}/${anoRet}`;
-            const servLabel  = formatServico(ult.servico, ult.categoria);
-
-            let borda, statusIcon, statusTxt, bgStatus;
-            if      (dr < -60)         { borda='border-red-500';    bgStatus='bg-red-50';    statusIcon='🔴'; statusTxt=`ATRASADO HÁ ${Math.abs(dr)} DIAS`; }
-            else if (dr < 0)           { borda='border-orange-400'; bgStatus='bg-orange-50'; statusIcon='🟠'; statusTxt=`VENCIDO HÁ ${Math.abs(dr)} DIA${Math.abs(dr)>1?'S':''}`; }
-            else if (dr === 0)         { borda='border-orange-400'; bgStatus='bg-orange-50'; statusIcon='🟠'; statusTxt='VENCE HOJE'; }
-            else if (dr <= 7)          { borda='border-green-400';  bgStatus='bg-green-50';  statusIcon='🟢'; statusTxt=`VENCE EM ${dr} DIA${dr>1?'S':''}`; }
-            else if (dr <= 14)         { borda='border-blue-300';   bgStatus='bg-blue-50';   statusIcon='🔵'; statusTxt=`VENCE EM ${dr} DIAS`; }
-            else                       { borda='border-slate-200';  bgStatus='bg-slate-50';  statusIcon='⚪'; statusTxt=`FALTAM ${dr} DIAS`; }
-
-            html += `
-            <div class="premium-card p-5 mb-3 border-l-8 ${borda}"
-                style="animation:slideInUp 0.4s ease ${(i*0.06).toFixed(2)}s both;">
-                <div class="flex justify-between items-start">
-                    <div class="flex-1 min-w-0 mr-3">
-                        <p class="font-black uppercase text-vinho text-sm tracking-tight leading-tight">${p.nome}</p>
-                        <p class="text-[10px] text-slate-500 font-medium mt-1">${servLabel} • Últ: ${ult.dataStr}</p>
-                        <div class="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-xl ${bgStatus}">
-                            <span class="text-[10px]">${statusIcon}</span>
-                            <span class="text-[9px] font-black uppercase tracking-wide text-slate-600">${statusTxt}</span>
-                        </div>
-                        <p class="text-[9px] text-slate-400 font-medium mt-1.5">
-                            <i class="fas fa-calendar-check mr-1"></i>Retorno sugerido: <span class="font-black text-slate-600">${dataRetFmt}</span>
-                        </p>
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <button onclick="chamarProtocolo('${p.nome}','${p.telefone}','${servLabel}','${ult.categoria}')"
-                            class="bg-green-50 text-green-600 p-3 rounded-2xl zap-btn hover:bg-green-100 transition-all">
-                            <i class="fab fa-whatsapp text-lg"></i>
-                        </button>
-                        <button onclick="excludeRetorno('${p.nome}')"
-                            class="bg-slate-100 text-slate-400 p-3 rounded-2xl hover:bg-slate-200 transition-all">
-                            <i class="fas fa-eye-slash text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>`;
-        });
-
-        c.innerHTML = html;
-    }
-
-    function setFiltroRetorno(f) { filtroRetorno = f; render(); }
-    function setBuscaRetorno(v)  { buscaRetorno  = v; render(); }
-
-    function chamarProtocolo(nome, tel, servico, categoria) {
-        const livres = getProximosLivres(categoria, 2);
-
-        let horariosMsg = '';
-        if (livres.length) {
-            horariosMsg = '\n\n📅 *Horários disponíveis:*\n' +
-                livres.map(l => `▪️ ${l.dataFmt} às ${l.hora}`).join('\n');
-        } else {
-            horariosMsg = '\n\nPodemos verificar um horário disponível para você!';
-        }
-
-        const msg = `Olá ${nome}! 👋\nEstamos passando para avisar que está na hora de renovar o seu *protocolo de ${servico}*! 💊✨${horariosMsg}\n\nQual prefere? 😊`;
-        abrirZap(tel, msg);
-    }
-
-    /* ─── Abre WhatsApp Business no Android; wa.me no iOS/desktop ─── */
-    function abrirZap(tel, msg) {
-        const encoded = encodeURIComponent(msg);
-        const fone    = tel.startsWith('55') ? tel : formatarTel(tel);
-        if (/android/i.test(navigator.userAgent)) {
-            window.location.href = `intent://send?phone=${fone}&text=${encoded}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;end`;
-        } else {
-            window.open(`https://wa.me/${fone}?text=${encoded}`);
-        }
-    }
-
-    function chamarRetorno(n, t) {
-        abrirZap(t, `Olá ${n}! 👋\nGostaríamos de convidá-lo(a) a retornar ao consultório para dar continuidade às suas metas! 📊✨\nPodemos agendar um horário para você esta semana?`);
-    }
-
-    function excludeRetorno(n) {
-        excludedRetornos.push(n);
-        localStorage.setItem('excludedRetornos', JSON.stringify(excludedRetornos));
-        render();
-    }
-
-    /* ══════════════════════════════════════════
-       DISPONIBILIDADE RÁPIDA — WhatsApp
-    ══════════════════════════════════════════ */
-    function openDisponibilidade() {
-        document.getElementById('m-content').innerHTML = `
-            <div class="text-center mb-6">
-                <div class="inline-block bg-green-50 p-4 rounded-3xl shadow-inner">
-                    <i class="fab fa-whatsapp text-green-500 text-3xl"></i>
-                </div>
-                <h2 class="font-black text-xl mt-3 uppercase text-vinho">Horários Livres</h2>
-                <p class="text-[10px] text-slate-400 mt-1">Gera mensagem com os 2 próximos horários</p>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2 ml-1">Especialidade</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="selecionarEsp(this,'ESPORTIVO')"
-                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
-                            <i class="fas fa-dumbbell block text-lg mb-1"></i>Esportivo
-                        </button>
-                        <button onclick="selecionarEsp(this,'EMAGRECIMENTO')"
-                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
-                            <i class="fas fa-weight-scale block text-lg mb-1"></i>Emagrecimento
-                        </button>
-                        <button onclick="selecionarEsp(this,'APLICAÇÃO')"
-                            class="esp-btn p-3 rounded-2xl border-2 border-slate-200 text-[9px] font-black uppercase text-slate-600 transition-all hover:border-vinho hover:text-vinho">
-                            <i class="fas fa-syringe block text-lg mb-1"></i>Aplicação
-                        </button>
-                    </div>
-                </div>
-                <div id="disp-preview" class="hidden">
-                    <div class="bg-green-50 border border-green-200 rounded-2xl p-4 mt-2">
-                        <p class="text-[9px] font-black text-green-700 uppercase tracking-widest mb-3">
-                            <i class="fas fa-eye mr-1"></i>Prévia da mensagem
-                        </p>
-                        <p id="disp-texto" class="text-[11px] text-slate-700 font-medium whitespace-pre-line leading-relaxed"></p>
-                    </div>
-                    <button id="btnZapDisp" onclick="enviarDisponibilidade()"
-                        class="w-full mt-4 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white shadow-xl transition-all"
-                        style="background:linear-gradient(135deg,#25d366,#1da851);box-shadow:0 4px 14px rgba(37,211,102,0.4);">
-                        <i class="fab fa-whatsapp mr-2"></i>Abrir WhatsApp
-                    </button>
-                </div>
-                <div id="disp-vazio" class="hidden text-center py-6">
-                    <i class="fas fa-calendar-xmark text-slate-300 text-3xl mb-3 block"></i>
-                    <p class="text-[11px] font-black text-slate-400 uppercase">Nenhum horário livre nos próximos 14 dias</p>
-                </div>
-                <button onclick="closeModal()" class="w-full text-slate-400 font-black text-[10px] uppercase mt-2 tracking-widest text-center hover:text-slate-600 transition-all">Cancelar</button>
-            </div>`;
-
-        document.getElementById('modal').classList.remove('hidden');
-        const pop = document.querySelector('#modal > div');
-        pop.classList.remove('modal-pop'); void pop.offsetWidth; pop.classList.add('modal-pop');
-    }
-
-    let _espSelecionada = '';
-    let _msgDisp = '';
-
-    function selecionarEsp(btn, esp) {
-        /* highlight do botão */
-        document.querySelectorAll('.esp-btn').forEach(b => {
-            b.classList.remove('border-vinho','text-vinho','bg-vinho/5');
-            b.classList.add('border-slate-200','text-slate-600');
-        });
-        btn.classList.remove('border-slate-200','text-slate-600');
-        btn.classList.add('border-vinho','text-vinho','bg-vinho/5');
-
-        _espSelecionada = esp;
-        const livres = getProximosLivres(esp, 2);
-
-        const preview  = document.getElementById('disp-preview');
-        const vazio    = document.getElementById('disp-vazio');
-        const textoEl  = document.getElementById('disp-texto');
-
-        if (!livres.length) {
-            preview.classList.add('hidden');
-            vazio.classList.remove('hidden');
-            return;
-        }
-        vazio.classList.add('hidden');
-
-        const espLabel = esp === 'ESPORTIVO'
-            ? `Nutrição Esportiva (${currentEspProf})`
-            : esp === 'EMAGRECIMENTO'
-                ? 'Nutrição Emagrecimento'
-                : 'Aplicação de Injetáveis';
-
-        const linhas = livres.map(l => `📅 ${l.dataFmt} às ${l.hora}`).join('\n');
-        _msgDisp = `Olá! 😊\nTemos estes horários disponíveis para *${espLabel}*:\n\n${linhas}\n\nQual prefere?`;
-
-        textoEl.innerText = _msgDisp;
-        preview.classList.remove('hidden');
-    }
-
-    function getProximosLivres(esp, quantidade, fromDate) {
-        const stepMap = { 'ESPORTIVO': 25, 'EMAGRECIMENTO': 35 };
-        const livres  = [];
-        /* usa datepicker como data de início se não vier fromDate */
-        const pickerVal = document.getElementById('datepicker').value;
-        const inicio  = fromDate
-            ? new Date(fromDate + 'T12:00:00')
-            : pickerVal ? new Date(pickerVal + 'T12:00:00') : new Date();
-
-        for (let d = 0; d <= 90 && livres.length < quantidade; d++) {
-            const dt = new Date(inicio);
-            dt.setDate(inicio.getDate() + d);
-
-            /* ── SOMENTE TERÇAS (getDay() === 2) ── */
-            if (dt.getDay() !== 2) continue;
-
-            const dia   = String(dt.getDate()).padStart(2,'0');
-            const mes   = String(dt.getMonth()+1).padStart(2,'0');
-            const ano   = dt.getFullYear();
-            const dataF = `${dia}/${mes}/${ano}`;
-
-            const ocupados = appts
-                .filter(a => a.dataStr === dataF && a.categoria === esp)
-                .map(a => a.hora);
-
-            if (esp === 'APLICAÇÃO') {
-                if (!ocupados.length)
-                    livres.push({ dataFmt: `Terça ${dataF}`, hora: 'horário a combinar' });
-            } else {
-                let h = 9, m = 0;
-                const step = stepMap[esp];
-                while (h < 12 && livres.length < quantidade) {
-                    const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                    if (!ocupados.includes(t))
-                        livres.push({ dataFmt: `Terça ${dataF}`, hora: t });
-                    m += step; if (m >= 60) { h++; m -= 60; }
-                }
-            }
-        }
-        return livres;
-    }
-
-    function enviarDisponibilidade() {
-        abrirZap('', _msgDisp);
     }
 
     function showTab(t)   { currentTab = t; render(); }
