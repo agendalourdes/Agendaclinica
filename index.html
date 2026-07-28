@@ -702,6 +702,7 @@
             <div class="flex flex-col gap-3">
                 <button onclick="enviarZap('confirmar','${id}')" class="w-full bg-slate-900 text-white p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-slate-800 transition-all">Confirmar WhatsApp</button>
                 <button onclick="enviarZap('lembrete','${id}')"  class="w-full bg-green-500 text-white p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-green-600 transition-all">Enviar Lembrete</button>
+                <button onclick="enviarFeedback('${id}')" class="w-full bg-purple-50 text-purple-600 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-purple-100 transition-all"><i class="fas fa-comment-medical mr-2"></i>Feedback Pós-Procedimento</button>
                 <button onclick="openEditar('${id}')" class="w-full bg-blue-50 text-blue-600 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-100 transition-all"><i class="fas fa-pen mr-2"></i>Editar Agendamento</button>
                 <button id="btnDel" onclick="deletarAgendamento('${id}')" class="w-full bg-red-50 text-red-500 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-red-100 transition-all">Excluir Horário</button>
                 <button onclick="closeModal()" class="text-slate-400 font-black text-[10px] uppercase mt-4 tracking-widest text-center hover:text-slate-600 transition-all">Voltar</button>
@@ -834,6 +835,35 @@
             } else {
                 msg = `Olá ${ag.paciente}! 👋\nPassando para confirmar seu agendamento amanhã:\n📅 ${ag.dataStr}\n🕐 ${ag.hora}\n\n${desconto}\n\n📊 *BIOIMPEDÂNCIA — PREPARAÇÃO NECESSÁRIA*\n✓ Não se exercite nas últimas 4 horas\n✓ Não coma 2 horas antes\n✓ Sem alterações na hidratação 24h antes\n\nResponda *SIM* para confirmar ou *NÃO* para remarcar. Obrigado!`;
             }
+        }
+        abrirZap(tel, msg);
+    }
+
+    /* ─── Feedback pós-procedimento ─── */
+    function calcularDataRetorno21Dias(dataStr) {
+        const [d,m,a] = dataStr.split('/');
+        const dt = new Date(parseInt(a), parseInt(m)-1, parseInt(d));
+        dt.setDate(dt.getDate() + 21);
+        const dia = String(dt.getDate()).padStart(2,'0');
+        const mes = String(dt.getMonth()+1).padStart(2,'0');
+        return `${dia}/${mes}`;
+    }
+
+    function enviarFeedback(id) {
+        const ag  = appts.find(a => a.id == id);
+        const p   = buscarPac(ag.paciente);
+        const tel = formatarTel(p.telefone);
+        const isRetorno   = ag.servico.toUpperCase().includes('RETORNO');
+        const isAplicacao = ag.categoria === 'APLICAÇÃO';
+
+        let msg = "";
+        if (isAplicacao) {
+            msg = `Olá ${ag.paciente}! 👋\n\nEspero que tenha corrido tudo bem com a sua aplicação. Gostaria de saber se ficou alguma dúvida, ou se você precisa da emissão da sua nota fiscal.\n\n⚠️ Observações:\nCaso sinta desconforto local, aumento de temperatura ou inchaço, faça compressa com água morna e massageie bem o local. Se houver dor, pode tomar o analgésico de costume.\n\nLembramos também de entrar em contato, conforme combinado com o Dr., para agendar a próxima aplicação ou a próxima consulta de renovação da receita, garantindo assim a continuidade do seu tratamento.\n\nQualquer dúvida, estamos à disposição! 💬`;
+        } else if (isRetorno) {
+            msg = `Olá ${ag.paciente}! 👋\n\nEspero que tenha corrido tudo bem no seu retorno. Gostaria de saber se ficou alguma dúvida, ou se você precisa da emissão da sua nota fiscal.\n\nAproveito para lembrar:\n💉 É importante verificar as datas de aplicação que o Dr. prescreveu em consulta e agendar previamente para garantir seu horário.\n💊 Quando sua medicação oral estiver quase finalizando (restando cerca de 5 comprimidos), já é o momento de agendar uma nova consulta.\n🥗 Caso ainda não tenha recebido sua dieta, ela será enviada em até 3 dias após o retorno.\n\nQualquer dúvida, estou à disposição! 💬`;
+        } else {
+            const dataRetorno = calcularDataRetorno21Dias(ag.dataStr);
+            msg = `Olá ${ag.paciente}! 👋\n\nEspero que tenha corrido tudo certo na sua consulta. Gostaria de saber se ficou alguma dúvida ou se você precisa da emissão da sua nota fiscal.\n\nLembrando que:\n📅 Você tem até *${dataRetorno}* para realizar seu retorno sem ônus.\n💊 O laboratório entrará em contato em até 3 dias após a consulta, com o orçamento das suas medicações e lhe encaminhará sua receita.\n🥗 As dietas serão enviadas assim que os exames forem verificados, ou em até 3 dias após sua consulta.\n\nQualquer coisa, estou à disposição! 💬`;
         }
         abrirZap(tel, msg);
     }
