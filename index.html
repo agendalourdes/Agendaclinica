@@ -94,6 +94,7 @@
         .borda-amarelo { border-left: 6px solid #fbbf24; }
         .borda-verde   { border-left: 6px solid #4caf50; }
         .borda-vermelho { border-left: 6px solid #f44336; }
+        .borda-preto { border-left: 6px solid #111111; }
 
         /* ── Buttons ── */
         .btn-vinho {
@@ -443,13 +444,20 @@
     const diasExcecao    = ['2026-07-13', '2026-07-24'];
     const diasCancelados = ['2026-07-14', '2026-07-21'];
 
+    function isoLocal(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth()+1).padStart(2,'0');
+        const day = String(d.getDate()).padStart(2,'0');
+        return `${y}-${m}-${day}`;
+    }
+
     function getDiasValidos() {
         const hoje   = new Date();
         const inicio = new Date(hoje); inicio.setFullYear(hoje.getFullYear() - 1);
         const fim    = new Date(hoje); fim.setFullYear(hoje.getFullYear() + 2);
         const dias   = [];
         for (let d = new Date(inicio); d <= fim; d.setDate(d.getDate() + 1)) {
-            const str = d.toISOString().split('T')[0];
+            const str = isoLocal(d);
             if (d.getDay() === 2 && !diasCancelados.includes(str)) dias.push(str);
             else if (diasExcecao.includes(str))                      dias.push(str);
         }
@@ -457,7 +465,7 @@
     }
 
     function proximaTerca(from) {
-        const ref  = from || new Date().toISOString().split('T')[0];
+        const ref  = from || isoLocal(new Date());
         const dias = getDiasValidos();
         return dias.find(d => d >= ref) || dias[dias.length - 1];
     }
@@ -1006,9 +1014,10 @@
             .sort((a,b) => a.diasDesdeUltima - b.diasDesdeUltima);
 
         function classificar(dias) {
-            if (dias <= 7)  return 'verde';
-            if (dias <= 20) return 'amarelo';
-            if (dias > 40)  return 'vermelho';
+            if (dias <= 7)   return 'verde';
+            if (dias <= 20)  return 'amarelo';
+            if (dias > 150)  return 'preto';
+            if (dias > 40)   return 'vermelho';
             return 'meio';
         }
 
@@ -1020,6 +1029,7 @@
             return classificar(item.diasDesdeUltima) === filtroRetorno;
         });
 
+        const cPreto    = lista.filter(i => classificar(i.diasDesdeUltima)==='preto').length;
         const cVermelho = lista.filter(i => classificar(i.diasDesdeUltima)==='vermelho').length;
         const cAmarelo  = lista.filter(i => classificar(i.diasDesdeUltima)==='amarelo').length;
         const cVerde    = lista.filter(i => classificar(i.diasDesdeUltima)==='verde').length;
@@ -1042,6 +1052,9 @@
                     class="w-full pl-10 pr-4 py-4 rounded-2xl border-2 border-slate-100 bg-white font-black uppercase text-xs outline-none transition-all shadow-sm">
             </div>
             <div class="flex gap-2 flex-wrap">
+                <button onclick="setFiltroRetorno('preto')" class="${btnClass('preto')}">
+                    ⚫ +150 dias <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cPreto}</span>
+                </button>
                 <button onclick="setFiltroRetorno('vermelho')" class="${btnClass('vermelho')}">
                     🔴 +40 dias <span class="ml-1 bg-white/30 px-1.5 rounded-full">${cVermelho}</span>
                 </button>
@@ -1058,7 +1071,7 @@
         </div>`;
 
         if (!filtrado.length && !buscaN) {
-            const msgs = { 'vermelho':'✓ Nenhum com mais de 40 dias!', 'amarelo':'✓ Nenhum até 20 dias!', 'verde':'✓ Nenhum recente!', 'todos':'✓ Sem retornos.' };
+            const msgs = { 'preto':'✓ Nenhum com mais de 150 dias!', 'vermelho':'✓ Nenhum com mais de 40 dias!', 'amarelo':'✓ Nenhum até 20 dias!', 'verde':'✓ Nenhum recente!', 'todos':'✓ Sem retornos.' };
             html += `<p class="text-center py-20 text-slate-300 font-black text-xs tracking-widest">${msgs[filtroRetorno]||'✓ Nenhum encontrado.'}</p>`;
             c.innerHTML = html; return;
         }
@@ -1069,7 +1082,9 @@
             const classe    = classificar(diasDesdeUltima);
 
             let borda, statusIcon, statusTxt, bgStatus;
-            if (classe === 'vermelho') {
+            if (classe === 'preto') {
+                borda='borda-preto';    bgStatus='bg-slate-200'; statusIcon='⚫'; statusTxt=`MAIS DE 150 DIAS — RECONQUISTA`;
+            } else if (classe === 'vermelho') {
                 borda='borda-vermelho'; bgStatus='bg-red-50';    statusIcon='🔴'; statusTxt=`MAIS DE 40 DIAS — ATENÇÃO`;
             } else if (classe === 'amarelo') {
                 borda='borda-amarelo';  bgStatus='bg-yellow-50'; statusIcon='🟡'; statusTxt=`ATÉ 20 DIAS`;
@@ -1095,10 +1110,15 @@
                         </p>
                     </div>
                     <div class="flex flex-col gap-2">
+                        ${classe === 'preto' ? `
+                        <button onclick="enviarReconquista('${p.nome}','${p.telefone}','${ult.categoria}')"
+                            class="bg-slate-900 text-white p-3 rounded-2xl zap-btn hover:bg-black transition-all">
+                            <i class="fab fa-whatsapp text-lg"></i>
+                        </button>` : `
                         <button onclick="chamarProtocoloCustomizado('${p.nome}','${p.telefone}','${servLabel}','${ult.categoria}')"
                             class="bg-green-50 text-green-600 p-3 rounded-2xl zap-btn hover:bg-green-100 transition-all">
                             <i class="fab fa-whatsapp text-lg"></i>
-                        </button>
+                        </button>`}
                         <button onclick="excludeRetorno('${p.nome}')"
                             class="bg-slate-100 text-slate-400 p-3 rounded-2xl hover:bg-slate-200 transition-all">
                             <i class="fas fa-eye-slash text-sm"></i>
@@ -1124,6 +1144,27 @@
         }
 
         const msg = `Olá ${nome}! 👋\nEstamos aqui para convidá-lo(a) para uma *nova consulta*! 💪✨${horariosMsg}\n\nQual prefere? 😊`;
+
+        abrirZap(tel, msg);
+    }
+
+    /* ─── Mensagem de reconquista (pacientes com +150 dias sem consulta) ─── */
+    function enviarReconquista(nome, tel, categoria) {
+        const livres = getProximosLivres(categoria, 2);
+        const espLabel = categoria === 'ESPORTIVO' ? 'Consulta Esportiva'
+                        : categoria === 'EMAGRECIMENTO' ? 'Consulta Emagrecimento'
+                        : 'Aplicação de Injetáveis';
+        let opcoesMsg = '';
+
+        if (livres.length >= 2) {
+            opcoesMsg = `\n\n📅 Separamos duas opções especiais pra você de *${espLabel}*:\n1️⃣ ${livres[0].dataFmt} às ${livres[0].hora}\n2️⃣ ${livres[1].dataFmt} às ${livres[1].hora}\n\nQual dessas fica melhor pra você? 😊`;
+        } else if (livres.length === 1) {
+            opcoesMsg = `\n\n📅 Já deixamos um horário separado pra você de *${espLabel}*:\n▪️ ${livres[0].dataFmt} às ${livres[0].hora}\n\nPosso confirmar? 😊`;
+        } else {
+            opcoesMsg = `\n\nMe conta um horário que fica melhor pra você que já vamos encaixar sua *${espLabel}*! 😊`;
+        }
+
+        const msg = `Olá, ${nome}! 👋✨\n\nSentimos a sua falta por aqui! Já faz um tempinho desde a sua última visita à Clínica Dr. Jorge Salomão, e queremos muito te ver novamente. 💛\n\nQue tal retomar o seu acompanhamento com a gente? Nossa equipe está pronta pra te ajudar a alcançar seus objetivos de saúde e bem-estar. 🌿${opcoesMsg}\n\nEstamos te esperando! 😊`;
 
         abrirZap(tel, msg);
     }
