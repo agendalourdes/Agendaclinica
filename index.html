@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AGENDA LOURDES — OFICIAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -1543,6 +1544,7 @@
                     </div>
                     <div class="flex gap-2">
                         <button onclick="salvarEdicao('${pac.nome}')"    class="btn-vinho flex-1 py-3 text-[9px]">Atualizar Dados</button>
+                        <button onclick="enviarProntuario('${pac.nome.replace(/'/g,"\\'")}', this)" class="bg-green-50 text-green-600 px-4 rounded-2xl hover:bg-green-100 transition-all" title="Enviar prontuário completo ao Dr."><i class="fab fa-whatsapp"></i></button>
                         <button onclick="deletarPaciente('${pac.nome}')" class="bg-red-50 text-red-500 px-5 rounded-2xl hover:bg-red-100 transition-all"><i class="fas fa-trash-can"></i></button>
                     </div>
                 </div>`;
@@ -1689,6 +1691,101 @@
             cidade:document.getElementById('cadCidade').value
         })});
         alert("CADASTRADO COM SUCESSO!"); loadAll();
+    }
+
+    /* ─── Enviar prontuário completo do paciente (dados + histórico) como IMAGEM via WhatsApp ─── */
+    function enviarProntuario(nome, btn) {
+        const p = pacs.find(x => x.nome === nome) || {};
+        const hist = appts.filter(a => a.paciente === nome).sort((a,b) => {
+            const da = a.dataStr.split('/'), db = b.dataStr.split('/');
+            return new Date(da[2],da[1]-1,da[0]) - new Date(db[2],db[1]-1,db[0]);
+        });
+        const endereco = montarEnderecoCompleto(p);
+
+        const textoOriginal = btn ? btn.innerHTML : '';
+        if (btn) { btn.innerHTML = '<i class="fas fa-circle-notch fa-spin-custom"></i>'; btn.style.pointerEvents = 'none'; }
+
+        const linhasHist = hist.length
+            ? hist.map((h,i) => `
+                <tr>
+                    <td style="padding:8px 10px;border-bottom:1px solid #f1e6ee;font-size:13px;color:#334155;white-space:nowrap;">${h.dataStr}</td>
+                    <td style="padding:8px 10px;border-bottom:1px solid #f1e6ee;font-size:13px;color:#334155;font-weight:700;">${formatServico(h.servico,h.categoria)}</td>
+                    <td style="padding:8px 10px;border-bottom:1px solid #f1e6ee;font-size:12px;color:#94a3b8;">${h.obs||''}</td>
+                </tr>`).join('')
+            : `<tr><td colspan="3" style="padding:14px;text-align:center;color:#cbd5e1;font-style:italic;font-size:13px;">Nenhum atendimento registrado</td></tr>`;
+
+        const card = document.createElement('div');
+        card.style.cssText = 'position:fixed;left:-9999px;top:0;width:640px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;';
+        card.innerHTML = `
+            <div style="background:linear-gradient(135deg,#722f51,#8c3965);padding:28px 32px;">
+                <div style="color:#bca374;font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;">Clínica Dr. Jorge Salomão</div>
+                <div style="color:#ffffff;font-size:22px;font-weight:900;letter-spacing:1px;text-transform:uppercase;margin-top:4px;">📋 Prontuário do Paciente</div>
+            </div>
+            <div style="padding:28px 32px;">
+                <div style="font-size:20px;font-weight:900;color:#722f51;text-transform:uppercase;margin-bottom:18px;">${p.nome || nome}</div>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:22px;">
+                    <tr>
+                        <td style="padding:6px 0;font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;width:33%;">Telefone</td>
+                        <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:700;">${p.telefone || '—'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 0;font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Nascimento</td>
+                        <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:700;">${p.nascimento || '—'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 0;font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Email</td>
+                        <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:700;">${p.email || '—'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 0;font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Altura</td>
+                        <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:700;">${p.altura || '—'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 0;font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;">CPF</td>
+                        <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:700;">${p.cpf || '—'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 0;font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;vertical-align:top;">Endereço</td>
+                        <td style="padding:6px 0;font-size:13px;color:#1e293b;font-weight:700;">${endereco || '—'}</td>
+                    </tr>
+                </table>
+                <div style="font-size:12px;font-weight:900;color:#bca374;text-transform:uppercase;letter-spacing:2px;border-bottom:2px solid #f1e6ee;padding-bottom:8px;margin-bottom:4px;">
+                    Histórico de Atendimentos (${hist.length})
+                </div>
+                <table style="width:100%;border-collapse:collapse;">
+                    ${linhasHist}
+                </table>
+            </div>
+            <div style="padding:14px 32px;background:#faf7f9;text-align:center;font-size:10px;color:#bca374;font-weight:700;letter-spacing:1px;">
+                AGENDA LOURDES — DOCUMENTO GERADO AUTOMATICAMENTE
+            </div>`;
+        document.body.appendChild(card);
+
+        html2canvas(card, {scale: 2, backgroundColor: '#ffffff', useCORS: true}).then(canvas => {
+            document.body.removeChild(card);
+            canvas.toBlob(async (blob) => {
+                if (btn) { btn.innerHTML = textoOriginal; btn.style.pointerEvents = ''; }
+                const nomeArquivo = `prontuario-${normalizar(nome).replace(/\s+/g,'-')}.png`;
+                const file = new File([blob], nomeArquivo, {type: 'image/png'});
+
+                if (navigator.canShare && navigator.canShare({files: [file]})) {
+                    try {
+                        await navigator.share({files: [file], title: 'Prontuário', text: `Prontuário — ${p.nome || nome}`});
+                        return;
+                    } catch (err) { /* usuário cancelou ou não suportado, cai no fallback abaixo */ }
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = nomeArquivo; a.click();
+                URL.revokeObjectURL(url);
+                alert('📥 Imagem do prontuário baixada!\n\nAbra o WhatsApp e anexe essa imagem pra enviar ao Dr.');
+            }, 'image/png');
+        }).catch(() => {
+            document.body.removeChild(card);
+            if (btn) { btn.innerHTML = textoOriginal; btn.style.pointerEvents = ''; }
+            alert('Não foi possível gerar a imagem. Tente novamente.');
+        });
     }
 
     async function deletarPaciente(nome) {
