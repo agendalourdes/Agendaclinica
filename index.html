@@ -304,6 +304,32 @@
     let excludedRetornos = JSON.parse(localStorage.getItem('excludedRetornos') || '[]');
     let currentEspProf = 'GERALDO';
 
+    /* ─── Cache local para abertura instantânea ───
+       Guarda a última resposta da API no localStorage. Ao abrir o app,
+       renderiza IMEDIATAMENTE com esses dados (sem tela de loading) e,
+       em paralelo, busca dados atualizados na API e re-renderiza quando
+       chegarem — sem travar a abertura do app.
+    ─────────────────────────────────────────────── */
+    const CACHE_KEY = 'agendaLourdesCache_v1';
+
+    function lerCache() {
+        try {
+            const raw = localStorage.getItem(CACHE_KEY);
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (e) { return null; }
+    }
+
+    function salvarCache(data) {
+        try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                patients: data.patients || [],
+                appointments: data.appointments || [],
+                salvoEm: Date.now()
+            }));
+        } catch (e) { /* localStorage cheio ou indisponível — ignora silenciosamente */ }
+    }
+
     function normalizar(str) {
         return (str || '')
             .trim()
@@ -520,20 +546,47 @@
         currentEspProf = getProfPadrao(val);
     }
 
+    /* ─── Carregamento de dados ───
+       1) Se existir cache local, renderiza NA HORA com ele (zero espera).
+       2) Sempre busca dados novos na API em paralelo/depois, e re-renderiza
+          quando chegarem, sem mostrar tela de loading nesse caso.
+       3) Se não houver cache (primeiro uso), mostra o loading normal
+          até a API responder, como já acontecia antes.
+    ─────────────────────────────────────────────── */
     async function loadAll() {
         const c = document.getElementById('content');
-        c.innerHTML = `<div class="text-center mt-32">
-            <i class="fas fa-apple-whole text-ouro text-5xl bounce-icon"></i>
-            <p class="mt-5 font-black text-vinho text-xs tracking-[0.35em] uppercase">Preparando Agenda...</p>
-        </div>`;
+        const cache = lerCache();
+
+        if (cache) {
+            /* abre instantâneo com os últimos dados salvos */
+            pacs  = cache.patients     || [];
+            appts = cache.appointments || [];
+            render();
+            buscarDadosAtualizados(false);
+        } else {
+            /* primeira vez — sem cache, mostra loading como antes */
+            c.innerHTML = `<div class="text-center mt-32">
+                <i class="fas fa-apple-whole text-ouro text-5xl bounce-icon"></i>
+                <p class="mt-5 font-black text-vinho text-xs tracking-[0.35em] uppercase">Preparando Agenda...</p>
+            </div>`;
+            await buscarDadosAtualizados(true);
+        }
+    }
+
+    async function buscarDadosAtualizados(mostrarErroNaTela) {
         try {
             const r = await fetch(API + '?action=getAll');
             const d = await r.json();
             pacs  = d.patients     || [];
             appts = d.appointments || [];
+            salvarCache(d);
             render();
-        } catch(e) {
-            c.innerHTML = '<div class="text-center p-10 font-bold text-red-500 uppercase text-xs">ERRO DE CONEXÃO. VERIFIQUE A INTERNET.</div>';
+        } catch (e) {
+            if (mostrarErroNaTela) {
+                document.getElementById('content').innerHTML =
+                    '<div class="text-center p-10 font-bold text-red-500 uppercase text-xs">ERRO DE CONEXÃO. VERIFIQUE A INTERNET.</div>';
+            }
+            /* se já tinha cache na tela, mantém os dados exibidos e ignora o erro silenciosamente */
         }
     }
 
